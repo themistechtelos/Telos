@@ -1,16 +1,18 @@
 # Telos — Themis Tech
 
-O Telos busca decisões do Tribunal de Justiça de São Paulo (TJSP) em Direito Bancário e usa um modelo de IA para apontar possíveis relações com os casos do escritório. A Groq é o provedor padrão; o Gemini continua disponível como alternativa. A ferramenta é um apoio à pesquisa: não substitui a leitura da decisão nem a avaliação de uma advogada ou advogado.
+O Telos busca decisões do Tribunal de Justiça de São Paulo (TJSP) pelos termos configurados e compara o conteúdo com os casos cadastrados. A área acompanhada depende dos arquivos na pasta `casos/` e dos termos em `TJSP_SEARCH_TERMS` no `.env`; não é fixa no código. Direito Bancário é apenas o exemplo inicial, agora acompanhado por exemplos de Direito do Consumidor. A ferramenta é um apoio à pesquisa: não substitui a leitura da decisão nem a avaliação de uma advogada ou advogado.
 
 ## O que você precisa
 
 - Python 3.10 ou mais recente.
-- Uma chave de API da [GroqCloud](https://console.groq.com/keys), com acesso ao plano gratuito. O Gemini também pode ser usado como alternativa, com uma chave do [Google AI Studio](https://aistudio.google.com/app/apikey).
+- Uma chave gratuita do [Google AI Studio](https://aistudio.google.com/app/apikey) para usar o Gemini. A Groq continua disponível como alternativa, com uma chave da [GroqCloud](https://console.groq.com/keys).
 - Internet para consultar o TJSP e enviar os textos ao provedor escolhido.
 
-O modelo padrão é `openai/gpt-oss-120b`: ele aparece nos limites do plano gratuito da Groq, é multilíngue e teve 85,3% na avaliação MMMLU em português no nível alto de raciocínio. A Groq também oferece JSON Schema estrito para esse modelo. O Telos usa temperatura zero e uma semente fixa para reduzir variações; a Groq ressalva que a repetibilidade é uma tentativa, não uma garantia, e pode mudar se o backend do modelo mudar. Os limites de uso gratuito também podem mudar; ao atingir um limite, a API recusa chamadas até a renovação da cota. Confira os [modelos e limites da Groq](https://console.groq.com/docs/rate-limits), os [formatos estruturados compatíveis](https://console.groq.com/docs/structured-outputs), os [parâmetros de consistência](https://console.groq.com/docs/prompting) e o [cartão do modelo com o resultado em português](https://openai.com/index/gpt-oss-model-card/).
+O Gemini é o provedor padrão porque, no teste feito pelo Telos, suas saídas foram idênticas nas duas rodadas das mesmas cinco decisões; com a Groq, houve diferenças em quatro de cinco. Esse resultado descreve apenas nosso teste e não garante que as respostas futuras serão sempre iguais.
 
-O cliente usa o SDK oficial `groq` para Python. Se o modelo padrão rejeitar uma resposta por formato JSON incompatível, o Telos tenta uma vez com `openai/gpt-oss-20b`, também disponível no plano gratuito, e identifica essa troca no aviso.
+## Usar a Groq como alternativa
+
+O modelo Groq padrão é `openai/gpt-oss-120b`: ele está nos limites do plano gratuito, é multilíngue e teve 85,3% na avaliação MMMLU em português no nível alto de raciocínio. A Groq oferece JSON Schema estrito para esse modelo. O Telos usa temperatura zero e uma semente fixa para reduzir variações; a Groq ressalva que isso não garante repetibilidade. Se o modelo padrão rejeitar uma resposta por formato JSON incompatível, o Telos tenta uma vez com `openai/gpt-oss-20b` e identifica a troca no aviso. Confira os [modelos e limites da Groq](https://console.groq.com/docs/rate-limits), os [formatos estruturados compatíveis](https://console.groq.com/docs/structured-outputs) e os [parâmetros de consistência](https://console.groq.com/docs/prompting).
 
 A Groq informa que não mantém por padrão os dados enviados para inferência, mas pode registrar temporariamente entradas e saídas para investigar problemas de confiabilidade ou abuso. Não envie informações sigilosas, dados pessoais de clientes ou conteúdo protegido sem confirmar que isso é permitido pelo escritório. Consulte [como a Groq trata os dados](https://console.groq.com/docs/your-data).
 
@@ -24,21 +26,20 @@ python -m pip install -r requirements.txt
 
 Em alguns computadores, o comando pode ser `python3` em vez de `python`. Nesse caso, troque `python` por `python3` nos comandos abaixo.
 
-## 2. Crie sua chave gratuita da Groq e configure o provedor
+## 2. Configure o Gemini como provedor padrão
 
-1. Crie uma conta na [GroqCloud](https://console.groq.com/) e abra a página de [chaves de API](https://console.groq.com/keys).
-2. Crie uma chave no plano gratuito e copie-a.
-3. Na pasta principal do Telos, crie `.env` copiando o arquivo `.env.example`, se ainda não existir.
-4. No `.env`, mantenha `AI_PROVIDER=groq` e cole a chave depois de `GROQ_API_KEY=`. Não coloque aspas.
-5. Salve o arquivo. Não compartilhe nem publique a chave. O arquivo `.env` está excluído do Git.
+1. Crie uma chave no [Google AI Studio](https://aistudio.google.com/app/apikey) e copie-a.
+2. Na pasta principal do Telos, crie `.env` copiando o arquivo `.env.example`, se ainda não existir.
+3. Mantenha `AI_PROVIDER=gemini` e cole a chave depois de `GEMINI_API_KEY=`. Não coloque aspas.
+4. Salve o arquivo. Não compartilhe nem publique a chave. O arquivo `.env` está excluído do Git.
 
-O modelo Groq padrão é `openai/gpt-oss-120b`. Se quiser escolher outro modelo compatível com saída estruturada, altere `GROQ_MODEL` no `.env`.
+O modelo Gemini padrão é `gemini-3.1-flash-lite`. Para escolher outro, altere `GEMINI_MODEL`.
 
-### Usar o Gemini como alternativa
+### Configurar a Groq em vez do Gemini
 
-1. Crie uma chave no [Google AI Studio](https://aistudio.google.com/app/apikey).
-2. No `.env`, coloque-a depois de `GEMINI_API_KEY=` e mude para `AI_PROVIDER=gemini`.
-3. O modelo padrão do Gemini é `gemini-3.1-flash-lite`. Para escolher outro, altere `GEMINI_MODEL`.
+1. Crie uma conta na [GroqCloud](https://console.groq.com/) e crie uma chave de API.
+2. No `.env`, coloque-a depois de `GROQ_API_KEY=` e mude para `AI_PROVIDER=groq`.
+3. O modelo padrão é `openai/gpt-oss-120b`. Para escolher outro compatível com saída estruturada, altere `GROQ_MODEL`.
 
 ## 3. Configure a busca do TJSP
 
@@ -47,10 +48,12 @@ Ao iniciar, o Telos faz buscas automáticas usando os métodos estáveis do `jus
 - `cjpg`: decisões e sentenças de primeiro grau; o texto da decisão é analisado.
 - `cjsg`: acórdãos de segundo grau; nesta versão, o Telos analisa somente a ementa, não baixa o acórdão completo. O aviso do resultado informa quando a análise usou apenas a ementa.
 
-Os termos iniciais cobrem juros em empréstimos, dívidas de cartão e garantias em financiamentos, conforme os casos de exemplo. Para alterá-los, acrescente ao `.env` uma linha com termos separados por ponto e vírgula. Cada termo pode ter até 120 caracteres:
+O Telos não limita a busca a uma área do Direito. A área acompanhada depende das descrições em `casos/` e dos termos em `TJSP_SEARCH_TERMS` no `.env`: adicione os assuntos que quer acompanhar e cadastre os casos correspondentes. Direito Bancário é apenas o exemplo inicial. Se nenhum termo estiver configurado, a busca automática não é executada.
+
+O `.env.example` traz termos de exemplo para empréstimos, cartão de crédito, garantias em financiamentos, cobertura de cirurgia por plano de saúde e cancelamento de voos. Você pode editar a linha do `.env` para incluir, remover ou substituir temas, mantendo os termos separados por ponto e vírgula. Cada termo pode ter até 120 caracteres:
 
 ```text
-TJSP_SEARCH_TERMS=juros de empréstimo;cartão de crédito negativação;garantia financiamento
+TJSP_SEARCH_TERMS=juros contrato empréstimo bancário;cartão de crédito dívida negativação pagamento;garantia contrato financiamento bancário;plano de saúde negativa cobertura cirurgia rol ANS;plano de saúde procedimento cirurgia rol ANS;cancelamento de voo companhia aérea danos morais;cancelamento de voo sem aviso reacomodação indenização
 ```
 
 Os resultados são salvos como arquivos `auto_*.txt` na pasta `decisoes/`, com o texto disponível e a referência oficial da consulta. Para sentenças de primeiro grau, o Telos monta o endereço da consulta de processo do e-SAJ com o código do processo e o número CNJ fornecidos pelo TJSP. Para acórdãos, monta o endereço oficial do e-SAJ a partir dos códigos do acórdão e do foro fornecidos pelo TJSP. Esses endereços são links para a consulta oficial do TJSP; o acesso pode depender das regras e da disponibilidade do próprio tribunal. Arquivos automáticos são locais e ficam fora do Git.
@@ -61,7 +64,7 @@ Se a busca automática falhar ou você quiser incluir outra decisão, coloque o 
 
 Se o arquivo manual trouxer apenas a ementa de um acórdão, identifique isso no começo do texto, em uma linha como `Tipo de conteúdo: ementa (ementa apenas; inteiro teor não incluído)`. O Telos então exibirá o aviso correspondente na análise.
 
-Os arquivos de exemplo em `casos/` correspondem aos três casos descritos para esta primeira versão. Você pode editá-los ou substituí-los por arquivos `.txt` com descrições curtas.
+Os arquivos em `casos/` contêm cinco casos de exemplo: três bancários, um sobre cobertura de cirurgia por plano de saúde e um sobre cancelamento de voo. Você pode editar, remover ou substituir esses arquivos `.txt` por descrições curtas; as áreas acompanhadas mudam conforme esses casos e os termos de busca configurados.
 
 ## 5. Rode o programa
 
