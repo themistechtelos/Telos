@@ -75,7 +75,13 @@ def is_official_tjsp_link(candidate: str) -> bool:
         host = (parsed.hostname or "").lower()
     except ValueError:
         return False
-    return parsed.scheme == "https" and (host == "tjsp.jus.br" or host.endswith(".tjsp.jus.br"))
+    path = parsed.path.lower()
+    has_decision_route = any(segment in path for segment in ("/cjsg/", "/cjpg/", "/cpopg/", "/cposg/"))
+    return (
+        parsed.scheme == "https"
+        and (host == "tjsp.jus.br" or host.endswith(".tjsp.jus.br"))
+        and has_decision_route
+    )
 
 
 def find_official_link(text: str) -> str | None:
@@ -121,18 +127,18 @@ def to_text(value: object) -> str:
 
 def find_result_link(record: dict, raw_path: Path | None) -> str | None:
     """Find a TJSP URL attached to this exact row; never synthesize a URL."""
-    for key, value in record.items():
-        if "link" in str(key).lower() or "url" in str(key).lower():
-            for candidate in URL_PATTERN.findall(to_text(value)):
-                candidate = candidate.rstrip(".,;:!?\"')")
-                if is_official_tjsp_link(candidate):
-                    return candidate
-
     identifiers = [
         to_text(record.get(key))
         for key in ("id_processo", "processo", "cd_acordao", "cd_processo")
         if to_text(record.get(key))
     ]
+    for key, value in record.items():
+        if "link" in str(key).lower() or "url" in str(key).lower():
+            for candidate in URL_PATTERN.findall(to_text(value)):
+                candidate = candidate.rstrip(".,;:!?\"')")
+                if is_official_tjsp_link(candidate) and any(identifier in candidate for identifier in identifiers):
+                    return candidate
+
     if not raw_path or BeautifulSoup is None or not identifiers:
         return None
 
@@ -148,15 +154,9 @@ def find_result_link(record: dict, raw_path: Path | None) -> str | None:
             link = urljoin("https://esaj.tjsp.jus.br/", href)
             if not is_official_tjsp_link(link):
                 continue
-            evidence = [href, anchor.get_text(" ", strip=True)]
-            parent = anchor
-            for _ in range(4):
-                parent = getattr(parent, "parent", None)
-                if parent is None:
-                    break
-                evidence.append(parent.get_text(" ", strip=True))
-            context = " ".join(evidence)
-            if any(identifier and identifier in context for identifier in identifiers):
+            # Only accept a URL that itself identifies this result. Page-level
+            # links and neighboring rows are not decision links.
+            if any(identifier and identifier in href for identifier in identifiers):
                 return link
     return None
 
@@ -184,6 +184,7 @@ def search_tjsp(quiet: bool = False) -> list[Path]:
     saved: list[Path] = []
     seen_content: set[str] = set()
     found = 0
+    missing_link = 0
     failed = 0
 
     for search_term in search_terms:
@@ -226,16 +227,8 @@ def search_tjsp(quiet: bool = False) -> list[Path]:
                 continue
 
             for record in records:
-                found += 1
                 body = to_text(record.get(text_column))
                 if not body:
-                    continue
-
-                # Resolve a link only from the exact result row or its raw TJSP HTML.
-                link = find_result_link(record, downloaded_path)
-                if not link:
-                    # The data frame versions that only expose metadata/ementa do not
-                    # provide a per-decision official URL; never manufacture one.
                     continue
 
                 process_number = to_text(
@@ -245,6 +238,15 @@ def search_tjsp(quiet: bool = False) -> list[Path]:
                 if signature in seen_content:
                     continue
                 seen_content.add(signature)
+                found += 1
+
+                # Resolve a link only from the exact result row or its raw TJSP HTML.
+                link = find_result_link(record, downloaded_path)
+                if not link:
+                    # The data frame versions that only expose metadata/ementa do not
+                    # provide a per-decision official URL; never manufacture one.
+                    missing_link += 1
+                    continue
 
                 filename = f"auto_{method_name}_{signature[:16]}.txt"
                 output_path = DECISIONS_DIR / filename
@@ -264,10 +266,12 @@ def search_tjsp(quiet: bool = False) -> list[Path]:
 
             temporary.cleanup()
 
-    if saved:
-        print(f"Busca TJSP: {len(saved)} arquivo(s) novo(s) salvo(s) em decisoes/.")
-    elif found and not failed:
-        print("A busca encontrou resultados, mas o juscraper não forneceu links oficiais individuais verificáveis. Nenhum arquivo automático foi criado; você pode adicionar decisões manualmente.")
+    total_saved = len(list(DECISIONS_DIR.glob("auto_*.txt")))
+    if found:
+        print(
+            f"Busca TJSP: {found} resultado(s) único(s) encontrado(s); {len(saved)} novo(s) salvo(s); "
+            f"{missing_link} sem link individual verificável. Total automático na pasta: {total_saved}."
+        )
     elif failed:
         print("A busca automática falhou ou ficou incompleta. O Telos continuará com as decisões que já estão em decisoes/.")
     elif not quiet:
