@@ -28,7 +28,7 @@ Em alguns computadores, o comando pode ser `python3` em vez de `python`. Nesse c
 4. Dentro dele, escreva `GEMINI_API_KEY=` seguido da chave, sem aspas. Por exemplo: `GEMINI_API_KEY=sua_chave_aqui`.
 5. Salve o arquivo. Não compartilhe nem publique a chave. O arquivo `.env` está excluído do Git.
 
-O modelo padrão é `gemini-2.5-flash`. Se quiser usar outro modelo disponível para sua conta, acrescente uma linha `GEMINI_MODEL=nome-do-modelo` ao `.env`.
+O modelo padrão é `gemini-3.5-flash-lite`, escolhido por estar disponível no nível gratuito e aceitar respostas estruturadas. Se quiser usar outro modelo disponível para sua conta, acrescente uma linha `GEMINI_MODEL=nome-do-modelo` ao `.env`.
 
 ## 3. Configure a busca do TJSP
 
@@ -43,7 +43,7 @@ Os termos iniciais cobrem juros em empréstimos, dívidas de cartão e garantias
 TJSP_SEARCH_TERMS=juros de empréstimo;cartão de crédito negativação;garantia financiamento
 ```
 
-Os resultados são salvos como arquivos `auto_*.txt` na pasta `decisoes/`, com o texto disponível e um link oficial encontrado na própria resposta ou página do TJSP. O Telos não cria links por conta própria. Resultados sem link individual verificável não são salvos e são informados no Terminal. Arquivos automáticos são locais e ficam fora do Git.
+Os resultados são salvos como arquivos `auto_*.txt` na pasta `decisoes/`, com o texto disponível e a referência oficial da consulta. Para sentenças de primeiro grau, o Telos monta o endereço da consulta de processo do e-SAJ com o código do processo e o número CNJ fornecidos pelo TJSP. Para acórdãos, monta o endereço oficial do e-SAJ a partir dos códigos do acórdão e do foro fornecidos pelo TJSP. Esses endereços são links para a consulta oficial do TJSP; o acesso pode depender das regras e da disponibilidade do próprio tribunal. Arquivos automáticos são locais e ficam fora do Git.
 
 ## 4. Adicione decisões manualmente, se necessário
 
@@ -61,7 +61,7 @@ Com o Terminal aberto na pasta principal do Telos, execute:
 python telos.py
 ```
 
-O programa busca decisões primeiro e depois analisa os arquivos em `decisoes/`, sejam automáticos ou manuais. Se a busca automática estiver indisponível, o Telos ainda tenta analisar os arquivos que já existem na pasta. Para analisar apenas os arquivos locais, sem consultar o TJSP, rode:
+O programa busca decisões primeiro e depois analisa os arquivos em `decisoes/`, sejam automáticos ou manuais. Cada rodada envia no máximo cinco decisões ao Gemini e espera seis segundos entre chamadas. As análises concluídas ficam registradas localmente para que a próxima execução continue com as decisões pendentes; uma decisão alterada é considerada nova. Se houver mais de cinco pendentes, rode o Telos novamente para iniciar outra rodada. Se a busca automática estiver indisponível, o Telos ainda tenta analisar os arquivos que já existem na pasta. Para analisar apenas os arquivos locais, sem consultar o TJSP, rode:
 
 ```bash
 python telos.py --sem-busca
@@ -71,6 +71,6 @@ Para cada decisão, o Telos mostra os casos possivelmente afetados, um resumo si
 
 ## Como a análise funciona e seus limites
 
-O Telos envia o texto da decisão ou a ementa e as descrições dos casos à Gemini API. O modelo pode cometer erros ou deixar passar relações. O programa exige trechos que apareçam no documento para sustentar uma relação confirmada, mas esses trechos não garantem que a interpretação jurídica esteja correta. Confira a decisão oficial e peça revisão profissional antes de tomar qualquer providência.
+O Telos envia o texto da decisão ou a ementa e as descrições dos casos à Gemini API. A resposta é solicitada num formato JSON com campos e categorias definidos, e validada antes de ser exibida. O modelo pode cometer erros ou deixar passar relações. O programa exige trechos que apareçam no documento para sustentar uma relação confirmada, mas esses trechos não garantem que a interpretação jurídica esteja correta. Confira a decisão oficial e peça revisão profissional antes de tomar qualquer providência.
 
 Na análise de acórdãos, uma ementa pode não trazer todos os fatos ou fundamentos presentes no acórdão completo. Por isso, o Telos destaca quando analisou apenas a ementa e pode responder “não tenho certeza” se ela não der base suficiente. O download do inteiro teor de acórdãos não faz parte desta versão.

@@ -9,6 +9,7 @@ import os
 import re
 import sys
 import tempfile
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -35,7 +36,10 @@ BASE_DIR = Path(__file__).resolve().parent
 DECISIONS_DIR = BASE_DIR / "decisoes"
 CASES_DIR = BASE_DIR / "casos"
 ENV_FILE = BASE_DIR / ".env"
-DEFAULT_MODEL = "gemini-2.5-flash"
+DEFAULT_MODEL = "gemini-3.5-flash-lite"
+MAX_DECISIONS_PER_RUN = 5
+GEMINI_PAUSE_SECONDS = 6
+ANALYSIS_STATE_FILE = BASE_DIR / ".telos_processadas.json"
 URL_PATTERN = re.compile(r"https?://[^\s<>\]\[\)\}\"']+", re.IGNORECASE)
 DEFAULT_SEARCHES = (
     "juros contrato empréstimo bancário",
@@ -126,7 +130,30 @@ def to_text(value: object) -> str:
 
 
 def find_result_link(record: dict, raw_path: Path | None) -> str | None:
-    """Find a TJSP URL attached to this exact row; never synthesize a URL."""
+    """Build the official TJSP consultation URL from identifiers in this row."""
+    cnj_number = to_text(record.get("id_processo") or record.get("processo"))
+    process_code = to_text(record.get("cd_processo"))
+    if cnj_number and process_code:
+        match = re.fullmatch(r"\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.(\d{4})", cnj_number)
+        if match:
+            forum = str(int(match.group(1)))
+            query = urllib.parse.urlencode({
+                "processo.codigo": process_code,
+                "processo.foro": forum,
+                "processo.numero": cnj_number,
+                "gateway": "true",
+            })
+            return f"https://esaj.tjsp.jus.br/cpopg/show.do?{query}"
+
+    agreement_code = to_text(record.get("cd_acordao"))
+    agreement_forum = to_text(record.get("cd_foro"))
+    if agreement_code and agreement_forum:
+        query = urllib.parse.urlencode({
+            "cdAcordao": agreement_code,
+            "cdForo": agreement_forum,
+        })
+        return f"https://esaj.tjsp.jus.br/cjsg/getArquivo.do?{query}"
+
     identifiers = [
         to_text(record.get(key))
         for key in ("id_processo", "processo", "cd_acordao", "cd_processo")
@@ -237,14 +264,11 @@ def search_tjsp(quiet: bool = False) -> list[Path]:
                 signature = hashlib.sha256((method_name + process_number + body).encode("utf-8")).hexdigest()
                 if signature in seen_content:
                     continue
-                seen_content.add(signature)
                 found += 1
 
-                # Resolve a link only from the exact result row or its raw TJSP HTML.
+                # The identifiers above come directly from the juscraper result.
                 link = find_result_link(record, downloaded_path)
                 if not link:
-                    # The data frame versions that only expose metadata/ementa do not
-                    # provide a per-decision official URL; never manufacture one.
                     missing_link += 1
                     continue
 
@@ -286,6 +310,27 @@ def call_gemini(api_key: str, model: str, prompt: str) -> dict:
         "contents": [{"role": "user", "parts": [{"text": prompt}]}],
         "generationConfig": {
             "responseMimeType": "application/json",
+            "responseSchema": {
+                "type": "OBJECT",
+                "properties": {
+                    "casos": {
+                        "type": "ARRAY",
+                        "minItems": 1,
+                        "items": {
+                            "type": "OBJECT",
+                            "properties": {
+                                "arquivo": {"type": "STRING"},
+                                "status": {"type": "STRING", "enum": ["afeta", "nao_afeta", "incerto"]},
+                                "resumo": {"type": "STRING"},
+                                "motivo": {"type": "STRING"},
+                                "evidencias": {"type": "ARRAY", "items": {"type": "STRING"}},
+                            },
+                            "required": ["arquivo", "status", "resumo", "motivo", "evidencias"],
+                        },
+                    }
+                },
+                "required": ["casos"],
+            },
             "temperature": 0.1,
             "maxOutputTokens": 7000,
         },
@@ -318,6 +363,48 @@ def call_gemini(api_key: str, model: str, prompt: str) -> dict:
     if not isinstance(result, dict) or not isinstance(result.get("casos"), list):
         raise RuntimeError("a resposta da Gemini não trouxe a lista esperada de análises")
     return result
+
+
+def decision_fingerprint(path: Path, raw_text: str) -> str:
+    return hashlib.sha256((path.name + "\0" + raw_text).encode("utf-8")).hexdigest()
+
+
+def load_analysis_state() -> set[str]:
+    try:
+        data = json.loads(ANALYSIS_STATE_FILE.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return set()
+    fingerprints = data.get("concluidas", []) if isinstance(data, dict) else []
+    return {item for item in fingerprints if isinstance(item, str)}
+
+
+def save_analysis_state(completed: set[str]) -> None:
+    ANALYSIS_STATE_FILE.write_text(
+        json.dumps({"concluidas": sorted(completed)}, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+
+def validate_result(result: dict, cases: list[dict]) -> None:
+    expected = {case["arquivo"] for case in cases}
+    received: set[str] = set()
+    for item in result["casos"]:
+        if not isinstance(item, dict):
+            raise RuntimeError("a resposta estruturada contém uma análise inválida")
+        name = item.get("arquivo")
+        if name not in expected or name in received:
+            raise RuntimeError("a resposta estruturada não corresponde exatamente aos casos cadastrados")
+        if item.get("status") not in {"afeta", "nao_afeta", "incerto"}:
+            raise RuntimeError("a resposta estruturada contém um status desconhecido")
+        if not all(isinstance(item.get(field), str) for field in ("resumo", "motivo")):
+            raise RuntimeError("a resposta estruturada contém campos de texto inválidos")
+        if not isinstance(item.get("evidencias"), list) or not all(
+            isinstance(quote, str) for quote in item["evidencias"]
+        ):
+            raise RuntimeError("a resposta estruturada contém evidências inválidas")
+        received.add(name)
+    if received != expected:
+        raise RuntimeError("a resposta estruturada não trouxe uma análise para cada caso")
 
 
 def make_prompt(decision_text: str, content_type: str, cases: list[dict]) -> str:
@@ -383,15 +470,15 @@ def print_decision_result(path: Path, official_link: str, result: dict, decision
             print("  Trechos do material analisado:")
             for quote in item["evidencias"]:
                 print(f"    “{quote.strip()}”")
-        print(f"  Link oficial do TJSP: {official_link}")
+        print(f"  Link da consulta oficial do TJSP: {official_link}")
         if uncertain:
             print(f"  Não tenho certeza sobre: {', '.join(uncertain)}.")
     elif uncertain:
         print("  Não tenho certeza se esta decisão afeta algum caso: não foi possível confirmar a relação com evidências suficientes.")
-        print(f"  Link oficial do TJSP: {official_link}")
+        print(f"  Link da consulta oficial do TJSP: {official_link}")
     else:
         print("  Esta decisão não afeta nenhum dos casos cadastrados, segundo a análise do modelo.")
-        print(f"  Link oficial do TJSP: {official_link}")
+        print(f"  Link da consulta oficial do TJSP: {official_link}")
 
 
 def analyze_decisions(api_key: str, model: str) -> int:
@@ -420,6 +507,8 @@ def analyze_decisions(api_key: str, model: str) -> int:
         print("Nenhuma decisão .txt ou PDF encontrada na pasta decisoes/.")
         return 0
 
+    completed = load_analysis_state()
+    pending: list[tuple[Path, str, str, str, str]] = []
     for path in decision_paths:
         try:
             raw_text = read_document(path)
@@ -433,12 +522,38 @@ def analyze_decisions(api_key: str, model: str) -> int:
         if not link:
             print(f"\nDecisão: {path.name}\n  Não encontrei um link oficial verificável do TJSP no arquivo; não vou inventar um link.")
             continue
+        fingerprint = decision_fingerprint(path, raw_text)
+        if fingerprint in completed:
+            continue
+        pending.append((path, raw_text, text, link, content_type))
+
+    if not pending:
+        print("Não há decisões novas para analisar nesta rodada.")
+        return 0
+
+    selected = pending[:MAX_DECISIONS_PER_RUN]
+    if len(pending) > len(selected):
+        print(f"Há {len(pending)} decisão(ões) pendente(s); esta rodada analisará no máximo {len(selected)}.")
+
+    for index, (path, raw_text, text, link, content_type) in enumerate(selected):
         try:
             result = call_gemini(api_key, model, make_prompt(text, content_type, cases))
+            validate_result(result, cases)
         except RuntimeError as error:
             print(f"\nDecisão: {path.name}\n  A análise não foi concluída: {error}")
-            continue
+            break
         print_decision_result(path, link, result, text, content_type, cases)
+        completed.add(decision_fingerprint(path, raw_text))
+        save_analysis_state(completed)
+        if index < len(selected) - 1:
+            time.sleep(GEMINI_PAUSE_SECONDS)
+
+    remaining = sum(
+        1 for path, raw_text, _text, _link, _content_type in pending
+        if decision_fingerprint(path, raw_text) not in completed
+    )
+    if remaining > 0:
+        print(f"\nRestam até {remaining} decisão(ões) pendente(s). Rode Telos novamente para a próxima rodada.")
     return 0
 
 

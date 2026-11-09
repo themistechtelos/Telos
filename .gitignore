@@ -11,3 +11,4 @@ venv/
 
 # Resultados automáticos baixados localmente pelo Telos
 decisoes/auto_*.txt
+.telos_processadas.json
