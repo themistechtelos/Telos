@@ -47,7 +47,7 @@ DEFAULT_GEMINI_MODEL = "gemini-3.1-flash-lite"
 MAX_DECISIONS_PER_RUN = 5
 PROVIDER_PAUSE_SECONDS = 6
 MAX_GROQ_DECISION_CHARS = 18000
-ANALYSIS_VERSION = 3
+ANALYSIS_VERSION = 4
 ANALYSIS_STATE_FILE = BASE_DIR / ".telos_processadas.json"
 URL_PATTERN = re.compile(r"https?://[^\s<>\]\[\)\}\"']+", re.IGNORECASE)
 DEFAULT_SEARCHES = (
@@ -497,7 +497,7 @@ def call_gemini(api_key: str, model: str, prompt: str) -> dict:
                 },
                 "required": ["casos", "resultado_decisao"],
             },
-            "temperature": 0.1,
+            "temperature": 0.0,
             "maxOutputTokens": 7000,
         },
     }
@@ -507,20 +507,32 @@ def call_gemini(api_key: str, model: str, prompt: str) -> dict:
         headers={"Content-Type": "application/json", "x-goog-api-key": api_key},
         method="POST",
     )
-    try:
-        with urllib.request.urlopen(request, timeout=120) as response:
-            response_data = json.loads(response.read().decode("utf-8"))
-    except urllib.error.HTTPError as error:
-        detail = error.read().decode("utf-8", errors="replace")
+    for attempt in range(5):
         try:
-            message = json.loads(detail).get("error", {}).get("message", "")
-        except json.JSONDecodeError:
-            message = ""
-        if api_key:
-            message = message.replace(api_key, "[chave omitida]")
-        raise RuntimeError(f"a API Gemini recusou a solicitação (HTTP {error.code}). {message}") from None
-    except (urllib.error.URLError, TimeoutError) as error:
-        raise RuntimeError(f"não foi possível conectar à API Gemini: {error}") from None
+            with urllib.request.urlopen(request, timeout=120) as response:
+                response_data = json.loads(response.read().decode("utf-8"))
+            break
+        except urllib.error.HTTPError as error:
+            detail = error.read().decode("utf-8", errors="replace")
+            try:
+                error_data = json.loads(detail)
+                error_body = error_data.get("error", {}) if isinstance(error_data, dict) else {}
+                message = error_body.get("message", "") if isinstance(error_body, dict) else ""
+            except json.JSONDecodeError:
+                message = detail.strip()
+            if api_key:
+                message = message.replace(api_key, "[chave omitida]")
+            if error.code in {429, 500, 502, 503, 504} and attempt < 4:
+                retry_after = error.headers.get("Retry-After", "")
+                try:
+                    delay = float(retry_after)
+                except (TypeError, ValueError):
+                    delay = min(60, 5 * (2 ** attempt))
+                time.sleep(max(1, min(60, delay)))
+                continue
+            raise RuntimeError(f"a API Gemini recusou a solicitação (HTTP {error.code}). {message}") from None
+        except (urllib.error.URLError, TimeoutError) as error:
+            raise RuntimeError(f"não foi possível conectar à API Gemini: {error}") from None
 
     try:
         content = response_data["candidates"][0]["content"]["parts"]
@@ -600,12 +612,12 @@ def make_prompt(decision_text: str, content_type: str, cases: list[dict]) -> str
 O material desta decisão é: {content_type}. Se for apenas uma ementa, não presuma fatos ou fundamentos que possam estar no inteiro teor mas não apareçam nela.
 
 Para cada caso, classifique a relação em uma destas categorias:
-- "direta": a decisão trata da mesma questão jurídica material e de circunstâncias essenciais suficientemente semelhantes às descritas no caso. Só esta categoria autoriza um aviso de impacto.
+- "direta": a decisão efetivamente resolve a mesma questão jurídica material apresentada no caso, em circunstâncias essenciais suficientemente semelhantes. Pergunte-se: o fundamento ou o resultado da decisão responde à questão jurídica específica do cliente? Se a decisão apenas menciona um tema, contrato ou palavra parecida, mas não resolve essa questão, não é relação direta. Só esta categoria autoriza um aviso de impacto.
 - "indireta": há um princípio ou tema próximo, mas para aplicar a decisão ao caso seria necessária analogia, extensão ou adaptação, ou existe diferença material no tipo de contrato, garantia, pedido ou posição das partes. Nunca apresente relação indireta como aviso de impacto.
 - "nenhuma": não há relação jurídica relevante demonstrada pelo texto.
 - "incerta": o material disponível não permite decidir se a relação é direta, indireta ou inexistente.
 
-Não classifique como direta só por haver palavras em comum ou por ambos os casos envolverem bancos/financiamentos. Quando houver qualquer passo analógico para chegar ao caso, classifique como "indireta". Não presuma fatos que não aparecem nos casos. Use trechos literais curtos que comprovem a questão da decisão e a relação. Se não houver evidência literal suficiente, escolha "incerta".
+Não classifique como direta só por haver palavras em comum ou por ambos os casos envolverem bancos/financiamentos. Para ser direta, o texto da decisão deve mostrar que ela resolve a mesma questão jurídica específica do caso, e não apenas tratar de assunto semelhante. Quando houver qualquer passo analógico para chegar ao caso, classifique como "indireta". Não presuma fatos que não aparecem nos casos. Use trechos literais curtos que comprovem a questão da decisão e a relação. Se não houver evidência literal suficiente, escolha "incerta".
 
 Extraia também o resultado da decisão. Use "procedente", "improcedente" ou "parcialmente_procedente" somente se o texto declarar expressamente esse resultado para a ação/pedido. Se o texto disponível só disser, por exemplo, que um recurso foi provido, use "outro_resultado_explicito" e copie a formulação literal em "texto". Se não houver resultado expresso no material disponível, use "nao_identificado" e deixe "texto" e "evidencia" vazios. Não infira o resultado do processo a partir da ementa quando ela não o disser.
 
@@ -624,6 +636,87 @@ CONTEÚDO DA DECISÃO:
 {decision_text}
 </decisao>
 """
+
+
+def valid_quote(quote: object, decision_text: str) -> bool:
+    return isinstance(quote, str) and bool(quote.strip()) and normalized(quote) in normalized(decision_text)
+
+
+def compare_analyses(first: dict, second: dict, decision_text: str, cases: list[dict]) -> tuple[dict | None, list[str]]:
+    """Return a consensus result, or reasons requiring manual review."""
+    issues: list[str] = []
+    first_outcome = first["resultado_decisao"]
+    second_outcome = second["resultado_decisao"]
+    if first_outcome["classificacao"] != second_outcome["classificacao"]:
+        issues.append("as análises discordam sobre o resultado da decisão")
+    elif first_outcome["classificacao"] == "outro_resultado_explicito":
+        if normalized(first_outcome["texto"]) != normalized(second_outcome["texto"]):
+            issues.append("as análises descrevem resultados diferentes para a decisão")
+    elif first_outcome["classificacao"] != "nao_identificado":
+        if not valid_quote(first_outcome["evidencia"], decision_text) or not valid_quote(
+            second_outcome["evidencia"], decision_text
+        ):
+            issues.append("uma das análises não comprovou o resultado com trecho literal verificável")
+
+    first_cases = {item["arquivo"]: item for item in first["casos"]}
+    second_cases = {item["arquivo"]: item for item in second["casos"]}
+    merged_cases = []
+    for case in cases:
+        name = case["arquivo"]
+        left, right = first_cases[name], second_cases[name]
+        if left["relacao"] != right["relacao"]:
+            issues.append(f"as análises discordam sobre a relação com {name}")
+        if left["favorabilidade"] != right["favorabilidade"]:
+            issues.append(f"as análises discordam sobre a favorabilidade para {name}")
+
+        left_evidence = [quote for quote in left["evidencias"] if valid_quote(quote, decision_text)]
+        right_evidence = [quote for quote in right["evidencias"] if valid_quote(quote, decision_text)]
+        if left["relacao"] == right["relacao"] == "direta":
+            if not left_evidence or not right_evidence:
+                issues.append(f"a relação direta com {name} não foi comprovada nas duas análises")
+            if left["favorabilidade"] != "incerta" and (
+                not valid_quote(left["evidencia_favorabilidade"], decision_text)
+                or not valid_quote(right["evidencia_favorabilidade"], decision_text)
+            ):
+                issues.append(f"a favorabilidade para {name} não foi comprovada nas duas análises")
+
+        combined_evidence = []
+        for quote in left_evidence + right_evidence:
+            if normalized(quote) not in {normalized(existing) for existing in combined_evidence}:
+                combined_evidence.append(quote)
+        merged_cases.append({**left, "evidencias": combined_evidence})
+
+    if issues:
+        return None, list(dict.fromkeys(issues))
+    return {"resultado_decisao": first_outcome, "casos": merged_cases}, []
+
+
+def print_manual_review(first: dict, second: dict, reasons: list[str], decision_text: str) -> None:
+    print("  Revisar à mão: as duas análises não chegaram a uma conclusão segura em comum.")
+    for reason in reasons:
+        print(f"    - {reason}")
+
+    def annotated_response(result: dict) -> dict:
+        response = json.loads(json.dumps(result, ensure_ascii=False))
+        outcome = response["resultado_decisao"]
+        outcome["evidencia_conferida_no_arquivo"] = (
+            valid_quote(outcome["evidencia"], decision_text) if outcome["evidencia"].strip() else None
+        )
+        for item in response["casos"]:
+            item["evidencias"] = [
+                {"trecho": quote, "conferida_no_arquivo": valid_quote(quote, decision_text)}
+                for quote in item["evidencias"]
+            ]
+            item["evidencia_favorabilidade_conferida_no_arquivo"] = (
+                valid_quote(item["evidencia_favorabilidade"], decision_text)
+                if item["evidencia_favorabilidade"].strip() else None
+            )
+        return response
+
+    print("\n  Resposta 1 (as citações indicam se foram encontradas no arquivo):")
+    print(json.dumps(annotated_response(first), ensure_ascii=False, indent=2))
+    print("\n  Resposta 2 (as citações indicam se foram encontradas no arquivo):")
+    print(json.dumps(annotated_response(second), ensure_ascii=False, indent=2))
 
 
 def print_decision_result(path: Path, official_link: str, result: dict, decision_text: str, content_type: str, cases: list[dict]) -> None:
@@ -803,13 +896,30 @@ def analyze_decisions(api_key: str, model: str, provider: str) -> int:
         print(f"Há {len(pending)} decisão(ões) pendente(s); esta rodada analisará no máximo {len(selected)}.")
 
     for index, (path, raw_text, full_text, analysis_text, link, content_type) in enumerate(selected):
-        try:
-            result = call_model(provider, api_key, model, make_prompt(analysis_text, content_type, cases))
-            validate_result(result, cases)
-        except RuntimeError as error:
-            print(f"\nDecisão: {path.name}\n  A análise não foi concluída: {error}")
+        prompt = make_prompt(analysis_text, content_type, cases)
+        analyses = []
+        failed = False
+        for analysis_number in (1, 2):
+            try:
+                result = call_model(provider, api_key, model, prompt)
+                validate_result(result, cases)
+                analyses.append(result)
+            except RuntimeError as error:
+                print(f"\nDecisão: {path.name}\n  A análise {analysis_number} de 2 não foi concluída: {error}")
+                failed = True
+                break
+            if analysis_number == 1:
+                time.sleep(PROVIDER_PAUSE_SECONDS)
+        if failed:
             break
-        print_decision_result(path, link, result, full_text, content_type, cases)
+
+        consensus, disagreements = compare_analyses(analyses[0], analyses[1], full_text, cases)
+        if consensus is None:
+            print(f"\nDecisão: {path.name}")
+            print_manual_review(analyses[0], analyses[1], disagreements, full_text)
+            print(f"  Link da consulta oficial do TJSP: {link}")
+        else:
+            print_decision_result(path, link, consensus, full_text, content_type, cases)
         completed.add(decision_fingerprint(path, raw_text))
         save_analysis_state(completed)
         if index < len(selected) - 1:
