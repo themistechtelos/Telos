@@ -1,0 +1,10 @@
+# Chave de API e segredos locais
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
