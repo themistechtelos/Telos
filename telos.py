@@ -36,9 +36,10 @@ BASE_DIR = Path(__file__).resolve().parent
 DECISIONS_DIR = BASE_DIR / "decisoes"
 CASES_DIR = BASE_DIR / "casos"
 ENV_FILE = BASE_DIR / ".env"
-DEFAULT_MODEL = "gemini-3.5-flash-lite"
+DEFAULT_MODEL = "gemini-3.1-flash-lite"
 MAX_DECISIONS_PER_RUN = 5
 GEMINI_PAUSE_SECONDS = 6
+ANALYSIS_VERSION = 2
 ANALYSIS_STATE_FILE = BASE_DIR / ".telos_processadas.json"
 URL_PATTERN = re.compile(r"https?://[^\s<>\]\[\)\}\"']+", re.IGNORECASE)
 DEFAULT_SEARCHES = (
@@ -324,12 +325,36 @@ def call_gemini(api_key: str, model: str, prompt: str) -> dict:
                                 "resumo": {"type": "STRING"},
                                 "motivo": {"type": "STRING"},
                                 "evidencias": {"type": "ARRAY", "items": {"type": "STRING"}},
+                                "favorabilidade": {
+                                    "type": "STRING",
+                                    "enum": ["favoravel", "desfavoravel", "mista", "incerta"],
+                                },
+                                "motivo_favorabilidade": {"type": "STRING"},
+                                "evidencia_favorabilidade": {"type": "STRING"},
                             },
-                            "required": ["arquivo", "status", "resumo", "motivo", "evidencias"],
+                            "required": [
+                                "arquivo", "status", "resumo", "motivo", "evidencias",
+                                "favorabilidade", "motivo_favorabilidade", "evidencia_favorabilidade",
+                            ],
                         },
-                    }
+                    },
+                    "resultado_decisao": {
+                        "type": "OBJECT",
+                        "properties": {
+                            "classificacao": {
+                                "type": "STRING",
+                                "enum": [
+                                    "procedente", "improcedente", "parcialmente_procedente",
+                                    "outro_resultado_explicito", "nao_identificado",
+                                ],
+                            },
+                            "texto": {"type": "STRING"},
+                            "evidencia": {"type": "STRING"},
+                        },
+                        "required": ["classificacao", "texto", "evidencia"],
+                    },
                 },
-                "required": ["casos"],
+                "required": ["casos", "resultado_decisao"],
             },
             "temperature": 0.1,
             "maxOutputTokens": 7000,
@@ -366,7 +391,9 @@ def call_gemini(api_key: str, model: str, prompt: str) -> dict:
 
 
 def decision_fingerprint(path: Path, raw_text: str) -> str:
-    return hashlib.sha256((path.name + "\0" + raw_text).encode("utf-8")).hexdigest()
+    return hashlib.sha256(
+        (str(ANALYSIS_VERSION) + "\0" + path.name + "\0" + raw_text).encode("utf-8")
+    ).hexdigest()
 
 
 def load_analysis_state() -> set[str]:
@@ -386,6 +413,16 @@ def save_analysis_state(completed: set[str]) -> None:
 
 
 def validate_result(result: dict, cases: list[dict]) -> None:
+    decision_outcome = result.get("resultado_decisao")
+    if not isinstance(decision_outcome, dict):
+        raise RuntimeError("a resposta estruturada não trouxe o resultado da decisão")
+    if decision_outcome.get("classificacao") not in {
+        "procedente", "improcedente", "parcialmente_procedente",
+        "outro_resultado_explicito", "nao_identificado",
+    } or not all(isinstance(decision_outcome.get(field), str) for field in ("texto", "evidencia")):
+        raise RuntimeError("o resultado da decisão veio num formato inválido")
+    if decision_outcome.get("classificacao") != "nao_identificado" and not decision_outcome.get("evidencia", "").strip():
+        raise RuntimeError("o resultado declarado não veio acompanhado de trecho comprobatório")
     expected = {case["arquivo"] for case in cases}
     received: set[str] = set()
     for item in result["casos"]:
@@ -396,8 +433,12 @@ def validate_result(result: dict, cases: list[dict]) -> None:
             raise RuntimeError("a resposta estruturada não corresponde exatamente aos casos cadastrados")
         if item.get("status") not in {"afeta", "nao_afeta", "incerto"}:
             raise RuntimeError("a resposta estruturada contém um status desconhecido")
-        if not all(isinstance(item.get(field), str) for field in ("resumo", "motivo")):
+        if not all(isinstance(item.get(field), str) for field in (
+            "resumo", "motivo", "motivo_favorabilidade", "evidencia_favorabilidade"
+        )):
             raise RuntimeError("a resposta estruturada contém campos de texto inválidos")
+        if item.get("favorabilidade") not in {"favoravel", "desfavoravel", "mista", "incerta"}:
+            raise RuntimeError("a resposta estruturada contém uma favorabilidade desconhecida")
         if not isinstance(item.get("evidencias"), list) or not all(
             isinstance(quote, str) for quote in item["evidencias"]
         ):
@@ -415,10 +456,14 @@ def make_prompt(decision_text: str, content_type: str, cases: list[dict]) -> str
 
 O material desta decisão é: {content_type}. Se for apenas uma ementa, não presuma fatos ou fundamentos que possam estar no inteiro teor mas não apareçam nela. Para cada caso, avalie se o texto realmente apresenta uma regra jurídica relevante para os fatos descritos. Não conclua que afeta só porque há palavras em comum. Não presuma fatos que não aparecem nos casos. Se não houver base clara para uma conclusão, escolha "incerto". Use "nao_afeta" apenas quando a distinção estiver clara no conteúdo analisado.
 
-Responda somente JSON válido neste formato:
-{{"casos":[{{"arquivo":"nome exato do arquivo do caso","status":"afeta|nao_afeta|incerto","resumo":"resumo simples em português, baseado no documento; vazio se incerto","motivo":"relação concreta ou razão da distinção; vazio se incerto","evidencias":["um ou mais trechos literais e curtos copiados do texto da decisão"]}}]}}
+Extraia também o resultado da decisão. Use "procedente", "improcedente" ou "parcialmente_procedente" somente se o texto declarar expressamente esse resultado para a ação/pedido. Se o texto disponível só disser, por exemplo, que um recurso foi provido, use "outro_resultado_explicito" e copie a formulação literal em "texto". Se não houver resultado expresso no material disponível, use "nao_identificado" e deixe "texto" e "evidencia" vazios. Não infira o resultado do processo a partir da ementa quando ela não o disser.
 
-Inclua exatamente uma entrada para cada arquivo de caso abaixo. Nunca invente citações. Se não houver trecho útil que sustente sua conclusão, use "incerto". Não indique número de processo, data, tese ou resultado que não estejam no texto.
+Avalie a favorabilidade à posição descrita para o cliente em cada caso, não à posição de uma parte cujo papel processual não foi informado. Use "favoravel" ou "desfavoravel" somente se o próprio texto trouxer trecho que sustente claramente essa leitura; use "mista" se beneficiar e prejudicar a posição descrita em aspectos relevantes; caso contrário, use "incerta". A favorabilidade não determina por si só se a decisão afeta o caso.
+
+Responda somente JSON válido neste formato:
+{{"resultado_decisao":{{"classificacao":"procedente|improcedente|parcialmente_procedente|outro_resultado_explicito|nao_identificado","texto":"formulação literal curta do resultado; vazio se não identificado","evidencia":"trecho literal curto que comprova o resultado; vazio se não identificado"}},"casos":[{{"arquivo":"nome exato do arquivo do caso","status":"afeta|nao_afeta|incerto","resumo":"resumo simples em português, baseado no documento; vazio se incerto","motivo":"relação concreta ou razão da distinção; vazio se incerto","evidencias":["trechos literais curtos que sustentam a relação"],"favorabilidade":"favoravel|desfavoravel|mista|incerta","motivo_favorabilidade":"por que o trecho favorece, desfavorece, tem efeito misto ou é inconclusivo para a posição do cliente","evidencia_favorabilidade":"trecho literal curto que comprova a avaliação; vazio somente quando incerta"}}]}}
+
+Inclua exatamente uma entrada para cada arquivo de caso abaixo. Nunca invente citações. Todas as evidências devem ser copiadas literalmente do material da decisão. Não indique número de processo, data, tese ou resultado que não estejam no texto. Se a fonte for apenas uma ementa, trate-a como o único material disponível para a análise.
 
 CASOS:
 {case_lines}
@@ -461,12 +506,52 @@ def print_decision_result(path: Path, official_link: str, result: dict, decision
     if content_type.lower().startswith("ementa"):
         print("  Atenção: a análise foi feita somente com a ementa do acórdão, não com o inteiro teor.")
     if confirmed:
+        outcome = result["resultado_decisao"]
+        outcome_class = outcome["classificacao"]
+        outcome_quote = outcome["evidencia"].strip()
+        valid_outcome_quote = bool(outcome_quote and normalized(outcome_quote) in normalized(decision_text))
+        outcome_labels = {
+            "procedente": "procedente",
+            "improcedente": "improcedente",
+            "parcialmente_procedente": "parcialmente procedente",
+        }
+        if outcome_class == "nao_identificado" or not valid_outcome_quote:
+            if content_type.lower().startswith("ementa"):
+                outcome_message = "O resultado não está indicado na ementa disponível."
+            else:
+                outcome_message = "Não identifiquei o resultado da decisão no texto disponível."
+        elif outcome_class == "outro_resultado_explicito":
+            outcome_message = f"Outro resultado expresso no texto: {outcome_quote}."
+        else:
+            outcome_message = outcome_labels[outcome_class].capitalize() + "."
+
         for item in confirmed:
             case_number = re.search(r"\d+", item["arquivo"])
             label = f"Caso {case_number.group(0)}" if case_number else item["arquivo"]
             print(f"\n- {label}")
             print(f"  Resumo: {item.get('resumo', '').strip() or 'não informado'}")
             print(f"  Por que afeta: {item.get('motivo', '').strip() or 'não informado'}")
+            print(f"  Resultado da decisão: {outcome_message}")
+            if valid_outcome_quote and outcome_class != "nao_identificado":
+                print(f"  Trecho sobre o resultado: “{outcome_quote}”")
+            favorability = item.get("favorabilidade", "incerta")
+            favorability_quote = item.get("evidencia_favorabilidade", "").strip()
+            valid_favorability_quote = bool(
+                favorability_quote and normalized(favorability_quote) in normalized(decision_text)
+            )
+            favorability_labels = {
+                "favoravel": "favorável",
+                "desfavoravel": "desfavorável",
+                "mista": "mista",
+            }
+            if favorability in favorability_labels and valid_favorability_quote:
+                print(f"  Posição do cliente: a decisão é {favorability_labels[favorability]} à posição descrita do cliente.")
+                print(f"  Motivo: {item.get('motivo_favorabilidade', '').strip() or 'não informado'}")
+                print(f"  Trecho comprobatório: “{favorability_quote}”")
+            else:
+                print("  Posição do cliente: não tenho certeza se a decisão é favorável ou desfavorável com base no texto disponível.")
+                if item.get("motivo_favorabilidade", "").strip():
+                    print(f"  Motivo: {item['motivo_favorabilidade'].strip()}")
             print("  Trechos do material analisado:")
             for quote in item["evidencias"]:
                 print(f"    “{quote.strip()}”")

@@ -28,7 +28,7 @@ Em alguns computadores, o comando pode ser `python3` em vez de `python`. Nesse c
 4. Dentro dele, escreva `GEMINI_API_KEY=` seguido da chave, sem aspas. Por exemplo: `GEMINI_API_KEY=sua_chave_aqui`.
 5. Salve o arquivo. Não compartilhe nem publique a chave. O arquivo `.env` está excluído do Git.
 
-O modelo padrão é `gemini-3.5-flash-lite`, escolhido por estar disponível no nível gratuito e aceitar respostas estruturadas. Se quiser usar outro modelo disponível para sua conta, acrescente uma linha `GEMINI_MODEL=nome-do-modelo` ao `.env`.
+O modelo padrão é `gemini-3.1-flash-lite`, escolhido por estar disponível no nível gratuito e aceitar respostas estruturadas. Se quiser usar outro modelo disponível para sua conta, acrescente uma linha `GEMINI_MODEL=nome-do-modelo` ao `.env`.
 
 ## 3. Configure a busca do TJSP
 
@@ -67,10 +67,10 @@ O programa busca decisões primeiro e depois analisa os arquivos em `decisoes/`,
 python telos.py --sem-busca
 ```
 
-Para cada decisão, o Telos mostra os casos possivelmente afetados, um resumo simples, a justificativa, trechos encontrados no material e o link oficial. Quando a base for apenas a ementa, isso será indicado. Se a análise for inconclusiva ou não tiver evidência verificável, o resultado dirá “não tenho certeza”.
+Para cada decisão, o Telos mostra os casos possivelmente afetados, um resumo simples, a justificativa, trechos encontrados no material e o link oficial. Também informa o resultado da decisão quando ele estiver expresso no texto e avalia se ele favorece ou desfavorece a posição descrita para o cliente, sempre com um trecho literal de apoio. Se não conseguir identificar o resultado, informa isso; quando a análise usar apenas a ementa, diz expressamente que o resultado não aparece na ementa disponível. Se a favorabilidade ou a relação for inconclusiva, o resultado dirá “não tenho certeza”.
 
 ## Como a análise funciona e seus limites
 
-O Telos envia o texto da decisão ou a ementa e as descrições dos casos à Gemini API. A resposta é solicitada num formato JSON com campos e categorias definidos, e validada antes de ser exibida. O modelo pode cometer erros ou deixar passar relações. O programa exige trechos que apareçam no documento para sustentar uma relação confirmada, mas esses trechos não garantem que a interpretação jurídica esteja correta. Confira a decisão oficial e peça revisão profissional antes de tomar qualquer providência.
+O Telos envia o texto da decisão ou a ementa e as descrições dos casos à Gemini API. A resposta é solicitada num formato JSON com campos e categorias definidos, e validada antes de ser exibida. Os trechos que sustentam a relação, o resultado e a favorabilidade precisam existir literalmente no material analisado; se não existir trecho para sustentar a favorabilidade, o Telos diz que não tem certeza. O modelo pode cometer erros ou deixar passar relações, e citações literais não garantem que a interpretação jurídica esteja correta. Confira a decisão oficial e peça revisão profissional antes de tomar qualquer providência.
 
 Na análise de acórdãos, uma ementa pode não trazer todos os fatos ou fundamentos presentes no acórdão completo. Por isso, o Telos destaca quando analisou apenas a ementa e pode responder “não tenho certeza” se ela não der base suficiente. O download do inteiro teor de acórdãos não faz parte desta versão.
