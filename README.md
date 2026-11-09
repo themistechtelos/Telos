@@ -1,18 +1,18 @@
 # Telos — Themis Tech
 
-O Telos analisa decisões do Superior Tribunal de Justiça (STJ) e aponta, com apoio de inteligência artificial, possíveis relações com casos do escritório. A ferramenta é um apoio à pesquisa: não substitui a leitura da decisão nem a avaliação de uma advogada ou advogado.
+O Telos busca decisões do Tribunal de Justiça de São Paulo (TJSP) em Direito Bancário e usa o Gemini para apontar possíveis relações com os casos do escritório. A ferramenta é um apoio à pesquisa: não substitui a leitura da decisão nem a avaliação de uma advogada ou advogado.
 
 ## O que você precisa
 
 - Python 3.10 ou mais recente.
 - Uma chave da Gemini API, criada gratuitamente no [Google AI Studio](https://aistudio.google.com/app/apikey).
-- Internet para enviar os textos à API do Gemini.
+- Internet para consultar o TJSP e enviar os textos à API do Gemini.
 
-O nível gratuito tem limites que podem mudar. No nível gratuito, o Google informa que os dados enviados podem ser usados para melhorar os produtos. Não envie informações sigilosas, dados pessoais de clientes ou conteúdo protegido sem antes confirmar que isso é permitido pelo escritório e adequado às obrigações de confidencialidade. Mais informações: [preços e condições](https://ai.google.dev/gemini-api/docs/pricing) e [limites de uso](https://ai.google.dev/gemini-api/docs/rate-limits).
+O nível gratuito da Gemini tem limites que podem mudar. O Google informa que, no nível gratuito, os dados enviados podem ser usados para melhorar os produtos. Não envie informações sigilosas, dados pessoais de clientes ou conteúdo protegido sem confirmar que isso é permitido pelo escritório. Mais informações: [preços e condições](https://ai.google.dev/gemini-api/docs/pricing) e [limites de uso](https://ai.google.dev/gemini-api/docs/rate-limits).
 
 ## 1. Instale o Python e prepare o Telos
 
-Se ainda não tiver Python, baixe-o em [python.org/downloads](https://www.python.org/downloads/) e instale. Abra o Terminal (no Mac) ou Prompt de Comando/PowerShell (no Windows), entre na pasta do Telos e instale a dependência usada para ler PDFs:
+Se ainda não tiver Python, baixe-o em [python.org/downloads](https://www.python.org/downloads/) e instale. Abra o Terminal (no Mac) ou Prompt de Comando/PowerShell (no Windows), entre na pasta do Telos e instale as dependências:
 
 ```bash
 python -m pip install -r requirements.txt
@@ -26,18 +26,34 @@ Em alguns computadores, o comando pode ser `python3` em vez de `python`. Nesse c
 2. Crie uma chave de API para um projeto habilitado para o nível gratuito da Gemini API e copie a chave.
 3. Na pasta principal do Telos, crie um arquivo chamado `.env` (o nome começa com ponto).
 4. Dentro dele, escreva `GEMINI_API_KEY=` seguido da chave, sem aspas. Por exemplo: `GEMINI_API_KEY=sua_chave_aqui`.
-5. Salve o arquivo. Não compartilhe nem publique a chave. O arquivo `.env` está excluído do Git para evitar que seja enviado ao GitHub.
+5. Salve o arquivo. Não compartilhe nem publique a chave. O arquivo `.env` está excluído do Git.
 
-O modelo padrão é `gemini-2.5-flash`. Se quiser configurar outro modelo disponível para sua conta, acrescente ao `.env` uma linha `GEMINI_MODEL=nome-do-modelo`. A disponibilidade e as cotas dependem do projeto e podem mudar.
+O modelo padrão é `gemini-2.5-flash`. Se quiser usar outro modelo disponível para sua conta, acrescente uma linha `GEMINI_MODEL=nome-do-modelo` ao `.env`.
 
-## 3. Adicione os arquivos
+## 3. Configure a busca do TJSP
 
-- Coloque cada decisão em `decisoes/`, como arquivo `.txt` ou PDF com texto selecionável. Inclua no próprio arquivo o endereço oficial da decisão do STJ. Para PDF, o endereço precisa estar no texto extraível do documento; se estiver apenas escrito à mão ou como imagem, o Telos não o encontrará.
-- Coloque cada caso como arquivo `.txt` em `casos/`. Já existem três exemplos correspondentes aos casos descritos para esta primeira versão; edite-os ou substitua-os conforme necessário.
+Ao iniciar, o Telos faz buscas automáticas usando os métodos estáveis do `juscraper` para o TJSP. A primeira versão consulta uma página por termo em cada tipo de busca, para limitar o volume de consultas:
 
-O Telos não busca decisões na internet. Ele analisa somente os arquivos que você colocou nessas pastas. PDFs digitalizados como imagem, sem camada de texto, não são analisados.
+- `cjpg`: decisões e sentenças de primeiro grau; o texto da decisão é analisado.
+- `cjsg`: acórdãos de segundo grau; nesta versão, o Telos analisa somente a ementa, não baixa o acórdão completo. O aviso do resultado informa quando a análise usou apenas a ementa.
 
-## 4. Rode o programa
+Os termos iniciais cobrem juros em empréstimos, dívidas de cartão e garantias em financiamentos, conforme os casos de exemplo. Para alterá-los, acrescente ao `.env` uma linha com termos separados por ponto e vírgula. Cada termo pode ter até 120 caracteres:
+
+```text
+TJSP_SEARCH_TERMS=juros de empréstimo;cartão de crédito negativação;garantia financiamento
+```
+
+Os resultados são salvos como arquivos `auto_*.txt` na pasta `decisoes/`, com o texto disponível e um link oficial encontrado na própria resposta ou página do TJSP. O Telos não cria links por conta própria. Resultados sem link individual verificável não são salvos e são informados no Terminal. Arquivos automáticos são locais e ficam fora do Git.
+
+## 4. Adicione decisões manualmente, se necessário
+
+Se a busca automática falhar ou você quiser incluir outra decisão, coloque o arquivo `.txt` ou PDF com texto selecionável em `decisoes/`. Inclua o link oficial do TJSP no próprio arquivo. O Telos aceita endereços HTTPS de `tjsp.jus.br` e seus subdomínios. PDFs digitalizados como imagem, sem camada de texto, não são analisados.
+
+Se o arquivo manual trouxer apenas a ementa de um acórdão, identifique isso no começo do texto, em uma linha como `Tipo de conteúdo: ementa (ementa apenas; inteiro teor não incluído)`. O Telos então exibirá o aviso correspondente na análise.
+
+Os arquivos de exemplo em `casos/` correspondem aos três casos descritos para esta primeira versão. Você pode editá-los ou substituí-los por arquivos `.txt` com descrições curtas.
+
+## 5. Rode o programa
 
 Com o Terminal aberto na pasta principal do Telos, execute:
 
@@ -45,10 +61,16 @@ Com o Terminal aberto na pasta principal do Telos, execute:
 python telos.py
 ```
 
-O resultado aparece no próprio Terminal. Para cada decisão, o Telos mostra os casos que a IA considera afetados, um resumo simples, a justificativa, trechos copiados da decisão e o link que encontrou no arquivo. Se não houver relação confirmada, informa isso; se a análise for inconclusiva ou os trechos não puderem ser confirmados no arquivo, mostra “não tenho certeza”.
+O programa busca decisões primeiro e depois analisa os arquivos em `decisoes/`, sejam automáticos ou manuais. Se a busca automática estiver indisponível, o Telos ainda tenta analisar os arquivos que já existem na pasta. Para analisar apenas os arquivos locais, sem consultar o TJSP, rode:
+
+```bash
+python telos.py --sem-busca
+```
+
+Para cada decisão, o Telos mostra os casos possivelmente afetados, um resumo simples, a justificativa, trechos encontrados no material e o link oficial. Quando a base for apenas a ementa, isso será indicado. Se a análise for inconclusiva ou não tiver evidência verificável, o resultado dirá “não tenho certeza”.
 
 ## Como a análise funciona e seus limites
 
-O Telos envia o texto da decisão e as descrições dos casos à Gemini API para análise. O modelo pode interpretar contexto jurídico melhor que uma busca por palavras, mas pode cometer erros ou deixar passar relações. O programa exige trechos que apareçam literalmente no documento para sustentar uma relação indicada como confirmada; ainda assim, esses trechos não garantem que a interpretação esteja correta. Confira sempre a decisão oficial e peça revisão profissional antes de tomar qualquer providência jurídica.
+O Telos envia o texto da decisão ou a ementa e as descrições dos casos à Gemini API. O modelo pode cometer erros ou deixar passar relações. O programa exige trechos que apareçam no documento para sustentar uma relação confirmada, mas esses trechos não garantem que a interpretação jurídica esteja correta. Confira a decisão oficial e peça revisão profissional antes de tomar qualquer providência.
 
-O programa não inventa links: só exibe um endereço encontrado no arquivo da decisão. Se a chave estiver ausente, o documento não puder ser lido ou a resposta não trouxer evidência verificável, o Telos explica o problema ou indica incerteza.
+Na análise de acórdãos, uma ementa pode não trazer todos os fatos ou fundamentos presentes no acórdão completo. Por isso, o Telos destaca quando analisou apenas a ementa e pode responder “não tenho certeza” se ela não der base suficiente. O download do inteiro teor de acórdãos não faz parte desta versão.
