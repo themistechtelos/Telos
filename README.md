@@ -1,14 +1,16 @@
 # Telos — Themis Tech
 
-O Telos busca decisões do Tribunal de Justiça de São Paulo (TJSP) em Direito Bancário e usa o Gemini para apontar possíveis relações com os casos do escritório. A ferramenta é um apoio à pesquisa: não substitui a leitura da decisão nem a avaliação de uma advogada ou advogado.
+O Telos busca decisões do Tribunal de Justiça de São Paulo (TJSP) em Direito Bancário e usa um modelo de IA para apontar possíveis relações com os casos do escritório. A Groq é o provedor padrão; o Gemini continua disponível como alternativa. A ferramenta é um apoio à pesquisa: não substitui a leitura da decisão nem a avaliação de uma advogada ou advogado.
 
 ## O que você precisa
 
 - Python 3.10 ou mais recente.
-- Uma chave da Gemini API, criada gratuitamente no [Google AI Studio](https://aistudio.google.com/app/apikey).
-- Internet para consultar o TJSP e enviar os textos à API do Gemini.
+- Uma chave de API da [GroqCloud](https://console.groq.com/keys), com acesso ao plano gratuito. O Gemini também pode ser usado como alternativa, com uma chave do [Google AI Studio](https://aistudio.google.com/app/apikey).
+- Internet para consultar o TJSP e enviar os textos ao provedor escolhido.
 
-O nível gratuito da Gemini tem limites que podem mudar. O Google informa que, no nível gratuito, os dados enviados podem ser usados para melhorar os produtos. Não envie informações sigilosas, dados pessoais de clientes ou conteúdo protegido sem confirmar que isso é permitido pelo escritório. Mais informações: [preços e condições](https://ai.google.dev/gemini-api/docs/pricing) e [limites de uso](https://ai.google.dev/gemini-api/docs/rate-limits).
+O modelo padrão é `openai/gpt-oss-120b`: ele aparece nos limites do plano gratuito da Groq, é multilíngue e teve 85,3% na avaliação MMMLU em português no nível alto de raciocínio. A Groq também oferece JSON Schema estrito para esse modelo. Os limites de uso gratuito podem mudar; ao atingir um limite, a API recusa chamadas até a renovação da cota. Confira os [modelos e limites da Groq](https://console.groq.com/docs/rate-limits), os [formatos estruturados compatíveis](https://console.groq.com/docs/structured-outputs) e o [cartão do modelo com o resultado em português](https://openai.com/index/gpt-oss-model-card/).
+
+A Groq informa que não mantém por padrão os dados enviados para inferência, mas pode registrar temporariamente entradas e saídas para investigar problemas de confiabilidade ou abuso. Não envie informações sigilosas, dados pessoais de clientes ou conteúdo protegido sem confirmar que isso é permitido pelo escritório. Consulte [como a Groq trata os dados](https://console.groq.com/docs/your-data).
 
 ## 1. Instale o Python e prepare o Telos
 
@@ -20,15 +22,21 @@ python -m pip install -r requirements.txt
 
 Em alguns computadores, o comando pode ser `python3` em vez de `python`. Nesse caso, troque `python` por `python3` nos comandos abaixo.
 
-## 2. Crie sua chave gratuita e configure-a
+## 2. Crie sua chave gratuita da Groq e configure o provedor
 
-1. Acesse [Google AI Studio — API keys](https://aistudio.google.com/app/apikey) com uma conta Google.
-2. Crie uma chave de API para um projeto habilitado para o nível gratuito da Gemini API e copie a chave.
-3. Na pasta principal do Telos, crie um arquivo chamado `.env` (o nome começa com ponto).
-4. Dentro dele, escreva `GEMINI_API_KEY=` seguido da chave, sem aspas. Por exemplo: `GEMINI_API_KEY=sua_chave_aqui`.
+1. Crie uma conta na [GroqCloud](https://console.groq.com/) e abra a página de [chaves de API](https://console.groq.com/keys).
+2. Crie uma chave no plano gratuito e copie-a.
+3. Na pasta principal do Telos, crie `.env` copiando o arquivo `.env.example`, se ainda não existir.
+4. No `.env`, mantenha `AI_PROVIDER=groq` e cole a chave depois de `GROQ_API_KEY=`. Não coloque aspas.
 5. Salve o arquivo. Não compartilhe nem publique a chave. O arquivo `.env` está excluído do Git.
 
-O modelo padrão é `gemini-3.1-flash-lite`, escolhido por estar disponível no nível gratuito e aceitar respostas estruturadas. Se quiser usar outro modelo disponível para sua conta, acrescente uma linha `GEMINI_MODEL=nome-do-modelo` ao `.env`.
+O modelo Groq padrão é `openai/gpt-oss-120b`. Se quiser escolher outro modelo compatível com saída estruturada, altere `GROQ_MODEL` no `.env`.
+
+### Usar o Gemini como alternativa
+
+1. Crie uma chave no [Google AI Studio](https://aistudio.google.com/app/apikey).
+2. No `.env`, coloque-a depois de `GEMINI_API_KEY=` e mude para `AI_PROVIDER=gemini`.
+3. O modelo padrão do Gemini é `gemini-3.1-flash-lite`. Para escolher outro, altere `GEMINI_MODEL`.
 
 ## 3. Configure a busca do TJSP
 
@@ -61,7 +69,7 @@ Com o Terminal aberto na pasta principal do Telos, execute:
 python telos.py
 ```
 
-O programa busca decisões primeiro e depois analisa os arquivos em `decisoes/`, sejam automáticos ou manuais. Cada rodada envia no máximo cinco decisões ao Gemini e espera seis segundos entre chamadas. As análises concluídas ficam registradas localmente para que a próxima execução continue com as decisões pendentes; uma decisão alterada é considerada nova. Se houver mais de cinco pendentes, rode o Telos novamente para iniciar outra rodada. Se a busca automática estiver indisponível, o Telos ainda tenta analisar os arquivos que já existem na pasta. Para analisar apenas os arquivos locais, sem consultar o TJSP, rode:
+O programa busca decisões primeiro e depois analisa os arquivos em `decisoes/`, sejam automáticos ou manuais. Cada rodada envia no máximo cinco decisões ao provedor escolhido e espera seis segundos entre chamadas. As análises concluídas ficam registradas localmente para que a próxima execução continue com as decisões pendentes; uma decisão alterada é considerada nova. Se houver mais de cinco pendentes, rode o Telos novamente para iniciar outra rodada. Se a busca automática estiver indisponível, o Telos ainda tenta analisar os arquivos que já existem na pasta. Para analisar apenas os arquivos locais, sem consultar o TJSP, rode:
 
 ```bash
 python telos.py --sem-busca
@@ -71,6 +79,6 @@ Para cada decisão, o Telos mostra os casos possivelmente afetados, um resumo si
 
 ## Como a análise funciona e seus limites
 
-O Telos envia o texto da decisão ou a ementa e as descrições dos casos à Gemini API. A resposta é solicitada num formato JSON com campos e categorias definidos, e validada antes de ser exibida. Os trechos que sustentam a relação, o resultado e a favorabilidade precisam existir literalmente no material analisado; se não existir trecho para sustentar a favorabilidade, o Telos diz que não tem certeza. O modelo pode cometer erros ou deixar passar relações, e citações literais não garantem que a interpretação jurídica esteja correta. Confira a decisão oficial e peça revisão profissional antes de tomar qualquer providência.
+O Telos envia o texto da decisão ou a ementa e as descrições dos casos ao provedor selecionado em `AI_PROVIDER`. A resposta é solicitada num formato JSON Schema e validada antes de ser exibida. Os trechos que sustentam a relação, o resultado e a favorabilidade precisam existir literalmente no material analisado; se não existir trecho para sustentar a favorabilidade, o Telos diz que não tem certeza. O modelo pode cometer erros ou deixar passar relações, e citações literais não garantem que a interpretação jurídica esteja correta. Confira a decisão oficial e peça revisão profissional antes de tomar qualquer providência.
 
 Na análise de acórdãos, uma ementa pode não trazer todos os fatos ou fundamentos presentes no acórdão completo. Por isso, o Telos destaca quando analisou apenas a ementa e pode responder “não tenho certeza” se ela não der base suficiente. O download do inteiro teor de acórdãos não faz parte desta versão.

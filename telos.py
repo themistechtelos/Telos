@@ -36,7 +36,8 @@ BASE_DIR = Path(__file__).resolve().parent
 DECISIONS_DIR = BASE_DIR / "decisoes"
 CASES_DIR = BASE_DIR / "casos"
 ENV_FILE = BASE_DIR / ".env"
-DEFAULT_MODEL = "gemini-3.1-flash-lite"
+DEFAULT_GROQ_MODEL = "openai/gpt-oss-120b"
+DEFAULT_GEMINI_MODEL = "gemini-3.1-flash-lite"
 MAX_DECISIONS_PER_RUN = 5
 GEMINI_PAUSE_SECONDS = 6
 ANALYSIS_VERSION = 2
@@ -265,6 +266,7 @@ def search_tjsp(quiet: bool = False) -> list[Path]:
                 signature = hashlib.sha256((method_name + process_number + body).encode("utf-8")).hexdigest()
                 if signature in seen_content:
                     continue
+                seen_content.add(signature)
                 found += 1
 
                 # The identifiers above come directly from the juscraper result.
@@ -302,6 +304,105 @@ def search_tjsp(quiet: bool = False) -> list[Path]:
     elif not quiet:
         print("A busca automática não encontrou decisões novas para os termos definidos.")
     return saved
+
+
+def groq_response_schema() -> dict:
+    case_schema = {
+        "type": "object",
+        "properties": {
+            "arquivo": {"type": "string"},
+            "status": {"type": "string", "enum": ["afeta", "nao_afeta", "incerto"]},
+            "resumo": {"type": "string"},
+            "motivo": {"type": "string"},
+            "evidencias": {"type": "array", "items": {"type": "string"}},
+            "favorabilidade": {"type": "string", "enum": ["favoravel", "desfavoravel", "mista", "incerta"]},
+            "motivo_favorabilidade": {"type": "string"},
+            "evidencia_favorabilidade": {"type": "string"},
+        },
+        "required": [
+            "arquivo", "status", "resumo", "motivo", "evidencias",
+            "favorabilidade", "motivo_favorabilidade", "evidencia_favorabilidade",
+        ],
+        "additionalProperties": False,
+    }
+    outcome_schema = {
+        "type": "object",
+        "properties": {
+            "classificacao": {
+                "type": "string",
+                "enum": [
+                    "procedente", "improcedente", "parcialmente_procedente",
+                    "outro_resultado_explicito", "nao_identificado",
+                ],
+            },
+            "texto": {"type": "string"},
+            "evidencia": {"type": "string"},
+        },
+        "required": ["classificacao", "texto", "evidencia"],
+        "additionalProperties": False,
+    }
+    return {
+        "type": "object",
+        "properties": {
+            "resultado_decisao": outcome_schema,
+            "casos": {"type": "array", "items": case_schema},
+        },
+        "required": ["casos", "resultado_decisao"],
+        "additionalProperties": False,
+    }
+
+
+def call_groq(api_key: str, model: str, prompt: str) -> dict:
+    url = "https://api.groq.com/openai/v1/chat/completions"
+    payload = {
+        "model": model,
+        "messages": [{"role": "user", "content": prompt}],
+        "reasoning_effort": "medium",
+        "max_completion_tokens": 7000,
+        "response_format": {
+            "type": "json_schema",
+            "json_schema": {
+                "name": "telos_analise_juridica",
+                "strict": True,
+                "schema": groq_response_schema(),
+            },
+        },
+    }
+    request = urllib.request.Request(
+        url,
+        data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+        headers={"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=180) as response:
+            response_data = json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as error:
+        detail = error.read().decode("utf-8", errors="replace")
+        try:
+            message = json.loads(detail).get("error", {}).get("message", "")
+        except json.JSONDecodeError:
+            message = ""
+        if api_key:
+            message = message.replace(api_key, "[chave omitida]")
+        raise RuntimeError(f"a API Groq recusou a solicitação (HTTP {error.code}). {message}") from None
+    except (urllib.error.URLError, TimeoutError) as error:
+        raise RuntimeError(f"não foi possível conectar à API Groq: {error}") from None
+
+    try:
+        content = response_data["choices"][0]["message"]["content"]
+        result = json.loads(content)
+    except (KeyError, IndexError, TypeError, json.JSONDecodeError):
+        raise RuntimeError("a API Groq não retornou uma resposta estruturada que o Telos consiga ler") from None
+    if not isinstance(result, dict) or not isinstance(result.get("casos"), list):
+        raise RuntimeError("a resposta da Groq não trouxe a lista esperada de análises")
+    return result
+
+
+def call_model(provider: str, api_key: str, model: str, prompt: str) -> dict:
+    if provider == "groq":
+        return call_groq(api_key, model, prompt)
+    return call_gemini(api_key, model, prompt)
 
 
 def call_gemini(api_key: str, model: str, prompt: str) -> dict:
@@ -375,6 +476,8 @@ def call_gemini(api_key: str, model: str, prompt: str) -> dict:
             message = json.loads(detail).get("error", {}).get("message", "")
         except json.JSONDecodeError:
             message = ""
+        if api_key:
+            message = message.replace(api_key, "[chave omitida]")
         raise RuntimeError(f"a API Gemini recusou a solicitação (HTTP {error.code}). {message}") from None
     except (urllib.error.URLError, TimeoutError) as error:
         raise RuntimeError(f"não foi possível conectar à API Gemini: {error}") from None
@@ -566,7 +669,7 @@ def print_decision_result(path: Path, official_link: str, result: dict, decision
         print(f"  Link da consulta oficial do TJSP: {official_link}")
 
 
-def analyze_decisions(api_key: str, model: str) -> int:
+def analyze_decisions(api_key: str, model: str, provider: str) -> int:
     case_paths = sorted(path for path in CASES_DIR.glob("*.txt") if path.is_file())
     if not case_paths:
         print("Nenhum caso .txt encontrado na pasta casos/.")
@@ -622,7 +725,7 @@ def analyze_decisions(api_key: str, model: str) -> int:
 
     for index, (path, raw_text, text, link, content_type) in enumerate(selected):
         try:
-            result = call_gemini(api_key, model, make_prompt(text, content_type, cases))
+            result = call_model(provider, api_key, model, make_prompt(text, content_type, cases))
             validate_result(result, cases)
         except RuntimeError as error:
             print(f"\nDecisão: {path.name}\n  A análise não foi concluída: {error}")
@@ -648,15 +751,25 @@ def main() -> int:
     args = parser.parse_args()
 
     load_env_file()
-    api_key = os.environ.get("GEMINI_API_KEY", "").strip()
-    model = os.environ.get("GEMINI_MODEL", DEFAULT_MODEL).strip() or DEFAULT_MODEL
+    provider = os.environ.get("AI_PROVIDER", "groq").strip().lower() or "groq"
+    if provider not in {"groq", "gemini"}:
+        print('Provedor inválido. Defina AI_PROVIDER como "groq" ou "gemini" no arquivo .env.')
+        return 1
+    if provider == "groq":
+        api_key = os.environ.get("GROQ_API_KEY", "").strip()
+        model = os.environ.get("GROQ_MODEL", DEFAULT_GROQ_MODEL).strip() or DEFAULT_GROQ_MODEL
+        provider_name = "Groq"
+    else:
+        api_key = os.environ.get("GEMINI_API_KEY", "").strip()
+        model = os.environ.get("GEMINI_MODEL", DEFAULT_GEMINI_MODEL).strip() or DEFAULT_GEMINI_MODEL
+        provider_name = "Gemini"
     if not api_key:
-        print("Chave da Gemini API não encontrada. Crie o arquivo .env conforme as instruções do README.")
+        print(f"Chave da API {provider_name} não encontrada. Configure-a no arquivo .env conforme as instruções do README.")
         return 1
 
     if not args.sem_busca:
         search_tjsp()
-    return analyze_decisions(api_key, model)
+    return analyze_decisions(api_key, model, provider)
 
 
 if __name__ == "__main__":
