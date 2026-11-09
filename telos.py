@@ -17,6 +17,11 @@ from pathlib import Path
 from urllib.parse import urljoin
 
 try:
+    from groq import APIConnectionError, APIStatusError, Groq
+except ImportError:
+    APIConnectionError = APIStatusError = Groq = None
+
+try:
     from pypdf import PdfReader
 except ImportError:
     PdfReader = None
@@ -37,9 +42,11 @@ DECISIONS_DIR = BASE_DIR / "decisoes"
 CASES_DIR = BASE_DIR / "casos"
 ENV_FILE = BASE_DIR / ".env"
 DEFAULT_GROQ_MODEL = "openai/gpt-oss-120b"
+GROQ_SCHEMA_FALLBACK_MODEL = "openai/gpt-oss-20b"
 DEFAULT_GEMINI_MODEL = "gemini-3.1-flash-lite"
 MAX_DECISIONS_PER_RUN = 5
 PROVIDER_PAUSE_SECONDS = 6
+MAX_GROQ_DECISION_CHARS = 18000
 ANALYSIS_VERSION = 3
 ANALYSIS_STATE_FILE = BASE_DIR / ".telos_processadas.json"
 URL_PATTERN = re.compile(r"https?://[^\s<>\]\[\)\}\"']+", re.IGNORECASE)
@@ -353,57 +360,82 @@ def groq_response_schema() -> dict:
 
 
 def call_groq(api_key: str, model: str, prompt: str) -> dict:
-    url = "https://api.groq.com/openai/v1/chat/completions"
-    payload = {
-        "model": model,
-        "messages": [{"role": "user", "content": prompt}],
-        "temperature": 0,
-        "seed": 20261109,
-        "reasoning_effort": "medium",
-        "max_completion_tokens": 7000,
-        "response_format": {
-            "type": "json_schema",
-            "json_schema": {
-                "name": "telos_analise_juridica",
-                "strict": True,
-                "schema": groq_response_schema(),
-            },
-        },
-    }
-    request = urllib.request.Request(
-        url,
-        data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
-        headers={"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"},
-        method="POST",
-    )
-    try:
-        with urllib.request.urlopen(request, timeout=180) as response:
-            response_data = json.loads(response.read().decode("utf-8"))
-    except urllib.error.HTTPError as error:
-        detail = error.read().decode("utf-8", errors="replace")
-        try:
-            message = json.loads(detail).get("error", {}).get("message", "")
-        except json.JSONDecodeError:
-            message = ""
+    if Groq is None:
+        raise RuntimeError("falta instalar a biblioteca oficial groq; instale as dependências do requirements.txt")
+
+    def safe_message(value: object) -> str:
+        if isinstance(value, dict):
+            error_data = value.get("error", value)
+            if isinstance(error_data, dict):
+                value = error_data.get("message") or json.dumps(error_data, ensure_ascii=False)
+        message = str(value or "").strip()
         if api_key:
             message = message.replace(api_key, "[chave omitida]")
+        message = re.sub(r"\bgsk_[A-Za-z0-9_-]+", "[chave omitida]", message)
+        return message[:1200] + ("…" if len(message) > 1200 else "")
+
+    client = Groq(api_key=api_key, timeout=180, max_retries=5)
+
+    def request_completion(selected_model: str):
+        return client.chat.completions.create(
+            model=selected_model,
+            messages=[
+                {
+                    "role": "system",
+                    "content": "Você é um analisador jurídico em português. Cumpra o JSON Schema da resposta. A raiz da resposta deve ser um objeto JSON, nunca uma lista ou um bloco de texto.",
+                },
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0,
+            seed=20261109,
+            reasoning_effort="medium",
+            max_completion_tokens=3500 if len(prompt) > 28000 else 7000,
+            response_format={
+                "type": "json_schema",
+                "json_schema": {
+                    "name": "telos_analise_juridica",
+                    "strict": True,
+                    "schema": groq_response_schema(),
+                },
+            },
+        )
+
+    used_fallback = False
+    try:
+        try:
+            response = request_completion(model)
+        except APIStatusError as error:
+            error_message = safe_message(getattr(error, "body", None)).lower()
+            if error.status_code != 400 or "does not match the expected schema" not in error_message:
+                raise
+            response = request_completion(GROQ_SCHEMA_FALLBACK_MODEL)
+            used_fallback = True
+    except APIStatusError as error:
+        message = safe_message(getattr(error, "body", None))
         if not message:
             message = {
                 401: "a Groq não aceitou a chave configurada.",
                 403: "a Groq recusou o acesso à API para esta chave ou conta.",
                 429: "o limite de uso da Groq foi atingido; tente novamente após a renovação da cota.",
-            }.get(error.code, "a resposta de erro da Groq não trouxe detalhes legíveis.")
-        raise RuntimeError(f"a API Groq recusou a solicitação (HTTP {error.code}). {message}") from None
-    except (urllib.error.URLError, TimeoutError) as error:
-        raise RuntimeError(f"não foi possível conectar à API Groq: {error}") from None
+            }.get(error.status_code, "a resposta de erro da Groq não trouxe detalhes legíveis.")
+        raise RuntimeError(f"a API Groq recusou a solicitação (HTTP {error.status_code}). {message}") from None
+    except APIConnectionError as error:
+        message = safe_message(error)
+        raise RuntimeError(f"não foi possível conectar à API Groq: {message}") from None
+    finally:
+        client.close()
 
     try:
-        content = response_data["choices"][0]["message"]["content"]
+        content = response.choices[0].message.content
+        if not isinstance(content, str):
+            raise TypeError
         result = json.loads(content)
-    except (KeyError, IndexError, TypeError, json.JSONDecodeError):
+    except (IndexError, TypeError, json.JSONDecodeError):
         raise RuntimeError("a API Groq não retornou uma resposta estruturada que o Telos consiga ler") from None
     if not isinstance(result, dict) or not isinstance(result.get("casos"), list):
         raise RuntimeError("a resposta da Groq não trouxe a lista esperada de análises")
+    if used_fallback:
+        result["_telos_modelo_alternativo"] = GROQ_SCHEMA_FALLBACK_MODEL
     return result
 
 
@@ -626,8 +658,12 @@ def print_decision_result(path: Path, official_link: str, result: dict, decision
 
     uncertain.extend(name for name in by_name if name not in seen)
     print(f"\nDecisão: {path.name}")
+    if result.get("_telos_modelo_alternativo"):
+        print(f"  Nota: o modelo padrão rejeitou a estrutura; a análise foi refeita com {result['_telos_modelo_alternativo']}.")
     if content_type.lower().startswith("ementa"):
         print("  Atenção: a análise foi feita somente com a ementa do acórdão, não com o inteiro teor.")
+    if "parte do texto foi omitida" in content_type.lower():
+        print("  Atenção: por limite da API gratuita, a análise usou trechos do início e do final; a parte intermediária não foi analisada.")
     if direct:
         print("  Avisos de impacto (relações diretas):")
         outcome = result["resultado_decisao"]
@@ -728,7 +764,7 @@ def analyze_decisions(api_key: str, model: str, provider: str) -> int:
         return 0
 
     completed = load_analysis_state()
-    pending: list[tuple[Path, str, str, str, str]] = []
+    pending: list[tuple[Path, str, str, str, str, str]] = []
     for path in decision_paths:
         try:
             raw_text = read_document(path)
@@ -745,7 +781,18 @@ def analyze_decisions(api_key: str, model: str, provider: str) -> int:
         fingerprint = decision_fingerprint(path, raw_text)
         if fingerprint in completed:
             continue
-        pending.append((path, raw_text, text, link, content_type))
+        if provider == "groq" and len(text) > MAX_GROQ_DECISION_CHARS:
+            start_chars = MAX_GROQ_DECISION_CHARS * 2 // 3
+            end_chars = MAX_GROQ_DECISION_CHARS - start_chars
+            analysis_text = (
+                text[:start_chars]
+                + "\n\n[... trecho intermediário omitido para caber no limite da API gratuita ...]\n\n"
+                + text[-end_chars:]
+            )
+            content_type += " (trechos inicial e final; parte do texto foi omitida para caber no limite do provedor)"
+        else:
+            analysis_text = text
+        pending.append((path, raw_text, text, analysis_text, link, content_type))
 
     if not pending:
         print("Não há decisões novas para analisar nesta rodada.")
@@ -755,21 +802,21 @@ def analyze_decisions(api_key: str, model: str, provider: str) -> int:
     if len(pending) > len(selected):
         print(f"Há {len(pending)} decisão(ões) pendente(s); esta rodada analisará no máximo {len(selected)}.")
 
-    for index, (path, raw_text, text, link, content_type) in enumerate(selected):
+    for index, (path, raw_text, full_text, analysis_text, link, content_type) in enumerate(selected):
         try:
-            result = call_model(provider, api_key, model, make_prompt(text, content_type, cases))
+            result = call_model(provider, api_key, model, make_prompt(analysis_text, content_type, cases))
             validate_result(result, cases)
         except RuntimeError as error:
             print(f"\nDecisão: {path.name}\n  A análise não foi concluída: {error}")
             break
-        print_decision_result(path, link, result, text, content_type, cases)
+        print_decision_result(path, link, result, full_text, content_type, cases)
         completed.add(decision_fingerprint(path, raw_text))
         save_analysis_state(completed)
         if index < len(selected) - 1:
             time.sleep(PROVIDER_PAUSE_SECONDS)
 
     remaining = sum(
-        1 for path, raw_text, _text, _link, _content_type in pending
+        1 for path, raw_text, _full_text, _analysis_text, _link, _content_type in pending
         if decision_fingerprint(path, raw_text) not in completed
     )
     if remaining > 0:

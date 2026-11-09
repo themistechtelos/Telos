@@ -10,6 +10,8 @@ O Telos busca decisões do Tribunal de Justiça de São Paulo (TJSP) em Direito 
 
 O modelo padrão é `openai/gpt-oss-120b`: ele aparece nos limites do plano gratuito da Groq, é multilíngue e teve 85,3% na avaliação MMMLU em português no nível alto de raciocínio. A Groq também oferece JSON Schema estrito para esse modelo. O Telos usa temperatura zero e uma semente fixa para reduzir variações; a Groq ressalva que a repetibilidade é uma tentativa, não uma garantia, e pode mudar se o backend do modelo mudar. Os limites de uso gratuito também podem mudar; ao atingir um limite, a API recusa chamadas até a renovação da cota. Confira os [modelos e limites da Groq](https://console.groq.com/docs/rate-limits), os [formatos estruturados compatíveis](https://console.groq.com/docs/structured-outputs), os [parâmetros de consistência](https://console.groq.com/docs/prompting) e o [cartão do modelo com o resultado em português](https://openai.com/index/gpt-oss-model-card/).
 
+O cliente usa o SDK oficial `groq` para Python. Se o modelo padrão rejeitar uma resposta por formato JSON incompatível, o Telos tenta uma vez com `openai/gpt-oss-20b`, também disponível no plano gratuito, e identifica essa troca no aviso.
+
 A Groq informa que não mantém por padrão os dados enviados para inferência, mas pode registrar temporariamente entradas e saídas para investigar problemas de confiabilidade ou abuso. Não envie informações sigilosas, dados pessoais de clientes ou conteúdo protegido sem confirmar que isso é permitido pelo escritório. Consulte [como a Groq trata os dados](https://console.groq.com/docs/your-data).
 
 ## 1. Instale o Python e prepare o Telos
@@ -69,7 +71,7 @@ Com o Terminal aberto na pasta principal do Telos, execute:
 python telos.py
 ```
 
-O programa busca decisões primeiro e depois analisa os arquivos em `decisoes/`, sejam automáticos ou manuais. Cada rodada envia no máximo cinco decisões ao provedor escolhido e espera seis segundos entre chamadas. As análises concluídas ficam registradas localmente para que a próxima execução continue com as decisões pendentes; uma decisão alterada é considerada nova. Se houver mais de cinco pendentes, rode o Telos novamente para iniciar outra rodada. Se a busca automática estiver indisponível, o Telos ainda tenta analisar os arquivos que já existem na pasta. Para analisar apenas os arquivos locais, sem consultar o TJSP, rode:
+O programa busca decisões primeiro e depois analisa os arquivos em `decisoes/`, sejam automáticos ou manuais. Cada rodada envia no máximo cinco decisões ao provedor escolhido e espera seis segundos entre chamadas. Para caber no limite gratuito da Groq, documentos muito longos são enviados em trechos do início e do final; o aviso informa quando isso ocorrer e as citações continuam sendo conferidas contra o arquivo completo. Nesses casos, a parte não enviada pode conter informação relevante, então confira o texto integral. As análises concluídas ficam registradas localmente para que a próxima execução continue com as decisões pendentes; uma decisão alterada é considerada nova. Se houver mais de cinco pendentes, rode o Telos novamente para iniciar outra rodada. Se a busca automática estiver indisponível, o Telos ainda tenta analisar os arquivos que já existem na pasta. Para analisar apenas os arquivos locais, sem consultar o TJSP, rode:
 
 ```bash
 python telos.py --sem-busca
