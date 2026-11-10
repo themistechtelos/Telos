@@ -7,12 +7,16 @@ import hashlib
 import json
 import os
 import re
+import smtplib
+import ssl
 import sys
 import tempfile
 import time
 import urllib.error
 import urllib.parse
 import urllib.request
+from email.message import EmailMessage
+from email.utils import formatdate
 from pathlib import Path
 from urllib.parse import urljoin
 
@@ -686,35 +690,35 @@ def compare_analyses(first: dict, second: dict, decision_text: str, cases: list[
     return {"resultado_decisao": first_outcome, "casos": merged_cases}, []
 
 
+def annotate_review_response(result: dict, decision_text: str) -> dict:
+    response = json.loads(json.dumps(result, ensure_ascii=False))
+    outcome = response["resultado_decisao"]
+    outcome["evidencia_conferida_no_arquivo"] = (
+        valid_quote(outcome["evidencia"], decision_text) if outcome["evidencia"].strip() else None
+    )
+    for item in response["casos"]:
+        item["evidencias"] = [
+            {"trecho": quote, "conferida_no_arquivo": valid_quote(quote, decision_text)}
+            for quote in item["evidencias"]
+        ]
+        item["evidencia_favorabilidade_conferida_no_arquivo"] = (
+            valid_quote(item["evidencia_favorabilidade"], decision_text)
+            if item["evidencia_favorabilidade"].strip() else None
+        )
+    return response
+
+
 def print_manual_review(first: dict, second: dict, reasons: list[str], decision_text: str) -> None:
     print("  Revisar à mão: as duas análises não chegaram a uma conclusão segura em comum.")
     for reason in reasons:
         print(f"    - {reason}")
-
-    def annotated_response(result: dict) -> dict:
-        response = json.loads(json.dumps(result, ensure_ascii=False))
-        outcome = response["resultado_decisao"]
-        outcome["evidencia_conferida_no_arquivo"] = (
-            valid_quote(outcome["evidencia"], decision_text) if outcome["evidencia"].strip() else None
-        )
-        for item in response["casos"]:
-            item["evidencias"] = [
-                {"trecho": quote, "conferida_no_arquivo": valid_quote(quote, decision_text)}
-                for quote in item["evidencias"]
-            ]
-            item["evidencia_favorabilidade_conferida_no_arquivo"] = (
-                valid_quote(item["evidencia_favorabilidade"], decision_text)
-                if item["evidencia_favorabilidade"].strip() else None
-            )
-        return response
-
     print("\n  Resposta 1 (as citações indicam se foram encontradas no arquivo):")
-    print(json.dumps(annotated_response(first), ensure_ascii=False, indent=2))
+    print(json.dumps(annotate_review_response(first, decision_text), ensure_ascii=False, indent=2))
     print("\n  Resposta 2 (as citações indicam se foram encontradas no arquivo):")
-    print(json.dumps(annotated_response(second), ensure_ascii=False, indent=2))
+    print(json.dumps(annotate_review_response(second, decision_text), ensure_ascii=False, indent=2))
 
 
-def print_decision_result(path: Path, official_link: str, result: dict, decision_text: str, content_type: str, cases: list[dict]) -> None:
+def print_decision_result(path: Path, official_link: str, result: dict, decision_text: str, content_type: str, cases: list[dict]) -> list[dict]:
     by_name = {case["arquivo"]: case for case in cases}
     seen: set[str] = set()
     direct: list[dict] = []
@@ -745,6 +749,7 @@ def print_decision_result(path: Path, official_link: str, result: dict, decision
             uncertain.append(name)
 
     uncertain.extend(name for name in by_name if name not in seen)
+    email_alerts: list[dict] = []
     print(f"\nDecisão: {path.name}")
     if result.get("_telos_modelo_alternativo"):
         print(f"  Nota: o modelo padrão rejeitou a estrutura; a análise foi refeita com {result['_telos_modelo_alternativo']}.")
@@ -793,16 +798,40 @@ def print_decision_result(path: Path, official_link: str, result: dict, decision
                 "mista": "mista",
             }
             if favorability in favorability_labels and valid_favorability_quote:
+                if favorability == "favoravel":
+                    position_message = "Favorável à posição descrita do cliente."
+                elif favorability == "desfavoravel":
+                    position_message = "Desfavorável à posição descrita do cliente."
+                else:
+                    position_message = "A decisão tem efeitos mistos para a posição descrita do cliente."
+                position_reason = item.get("motivo_favorabilidade", "").strip() or "não informado"
                 print(f"  Posição do cliente: a decisão é {favorability_labels[favorability]} à posição descrita do cliente.")
-                print(f"  Motivo: {item.get('motivo_favorabilidade', '').strip() or 'não informado'}")
+                print(f"  Motivo: {position_reason}")
                 print(f"  Trecho comprobatório: “{favorability_quote}”")
             else:
+                position_message = "Não tenho certeza se é favorável ou desfavorável com base no texto disponível."
+                position_reason = item.get("motivo_favorabilidade", "").strip() or ""
                 print("  Posição do cliente: não tenho certeza se a decisão é favorável ou desfavorável com base no texto disponível.")
-                if item.get("motivo_favorabilidade", "").strip():
-                    print(f"  Motivo: {item['motivo_favorabilidade'].strip()}")
+                if position_reason:
+                    print(f"  Motivo: {position_reason}")
             print("  Trechos do material analisado:")
             for quote in item["evidencias"]:
                 print(f"    “{quote.strip()}”")
+            email_alerts.append({
+                "decisao": path.name,
+                "caso": label,
+                "resumo": item.get("resumo", "").strip() or "não informado",
+                "motivo_relacao": item.get("motivo", "").strip() or "não informado",
+                "resultado": outcome_message,
+                "trecho_resultado": outcome_quote if valid_outcome_quote and outcome_class != "nao_identificado" else "",
+                "posicao_cliente": position_message,
+                "motivo_favorabilidade": position_reason,
+                "trecho_favorabilidade": favorability_quote if valid_favorability_quote else "",
+                "trechos_relacao": item["evidencias"],
+                "link_oficial": official_link,
+                "somente_ementa": content_type.lower().startswith("ementa"),
+                "texto_parcial": "parte do texto foi omitida" in content_type.lower(),
+            })
     else:
         print("  Nenhum aviso de impacto por relação direta nesta decisão.")
 
@@ -823,6 +852,100 @@ def print_decision_result(path: Path, official_link: str, result: dict, decision
     if not direct and not indirect and not uncertain:
         print("  Esta decisão não tem relação relevante com nenhum dos casos cadastrados.")
     print(f"  Link da consulta oficial do TJSP: {official_link}")
+    return email_alerts
+
+
+def format_round_email(
+    alerts: list[dict],
+    reviews: list[dict],
+    completed_count: int,
+    selected_count: int,
+    interrupted: bool,
+) -> str:
+    lines = [
+        "Resumo da rodada do Telos",
+        f"Decisões concluídas com dois pareceres: {completed_count} de {selected_count}.",
+    ]
+    if interrupted:
+        lines.append("A rodada foi interrompida antes de concluir todas as decisões selecionadas.")
+
+    lines.extend(["", "AVISOS DIRETOS"])
+    if not alerts:
+        lines.append("Nenhum aviso direto nesta rodada.")
+    for alert in alerts:
+        lines.extend([
+            "",
+            f"{alert['caso']} — decisão {alert['decisao']}",
+            f"Resumo: {alert['resumo']}",
+            f"Motivo da relação direta: {alert['motivo_relacao']}",
+            f"Resultado da decisão: {alert['resultado']}",
+        ])
+        if alert["trecho_resultado"]:
+            lines.append(f"Trecho sobre o resultado: “{alert['trecho_resultado']}”")
+        lines.append(f"Posição do cliente: {alert['posicao_cliente']}")
+        if alert["motivo_favorabilidade"]:
+            lines.append(f"Motivo: {alert['motivo_favorabilidade']}")
+        if alert["trecho_favorabilidade"]:
+            lines.append(f"Trecho comprobatório: “{alert['trecho_favorabilidade']}”")
+        lines.append("Trechos que comprovam a relação:")
+        lines.extend(f"- “{quote}”" for quote in alert["trechos_relacao"])
+        if alert["somente_ementa"]:
+            lines.append("A análise usou somente a ementa do acórdão, não o inteiro teor.")
+        if alert["texto_parcial"]:
+            lines.append("A análise usou trechos iniciais e finais; a parte intermediária não foi enviada ao modelo.")
+        lines.append(f"Link oficial da consulta do TJSP: {alert['link_oficial']}")
+
+    lines.extend(["", "REVISAR À MÃO"])
+    if not reviews:
+        lines.append("Nenhum item para revisão manual nesta rodada.")
+    for review in reviews:
+        lines.extend([
+            "",
+            f"Decisão: {review['decisao']}",
+            f"Link oficial da consulta do TJSP: {review['link_oficial']}",
+            "Motivos da divergência:",
+            *(f"- {reason}" for reason in review["motivos"]),
+            "Resposta 1 (citações marcadas como conferidas ou não conferidas no arquivo):",
+            json.dumps(review["resposta_1"], ensure_ascii=False, indent=2),
+            "Resposta 2 (citações marcadas como conferidas ou não conferidas no arquivo):",
+            json.dumps(review["resposta_2"], ensure_ascii=False, indent=2),
+        ])
+    return "\n".join(lines)
+
+
+def send_round_email(
+    alerts: list[dict],
+    reviews: list[dict],
+    completed_count: int,
+    selected_count: int,
+    interrupted: bool,
+) -> None:
+    sender = os.environ.get("GMAIL_SENDER", "").strip()
+    app_password = os.environ.get("GMAIL_APP_PASSWORD", "").strip().replace(" ", "")
+    recipient = os.environ.get("GMAIL_RECIPIENT", "").strip()
+    if not sender and not app_password and not recipient:
+        return
+    if not sender or not app_password or not recipient:
+        print("\nE-mail não enviado: preencha GMAIL_SENDER, GMAIL_APP_PASSWORD e GMAIL_RECIPIENT no .env.")
+        return
+
+    try:
+        message = EmailMessage()
+        message["From"] = sender
+        message["To"] = recipient
+        message["Subject"] = f"Telos — {len(alerts)} aviso(s), {len(reviews)} item(ns) para revisar"
+        message["Date"] = formatdate(localtime=True)
+        message.set_content(format_round_email(alerts, reviews, completed_count, selected_count, interrupted))
+        with smtplib.SMTP("smtp.gmail.com", 587, timeout=30) as smtp:
+            smtp.starttls(context=ssl.create_default_context())
+            smtp.login(sender, app_password)
+            smtp.send_message(message)
+    except smtplib.SMTPAuthenticationError:
+        print("\nNão foi possível autenticar no Gmail. Confira o remetente e a senha de app no .env.")
+    except (smtplib.SMTPException, OSError, ValueError) as error:
+        print(f"\nNão foi possível enviar o e-mail pelo Gmail ({type(error).__name__}). Os resultados continuam disponíveis na tela.")
+    else:
+        print("\nResumo da rodada enviado pelo Gmail.")
 
 
 def analyze_decisions(api_key: str, model: str, provider: str) -> int:
@@ -890,6 +1013,10 @@ def analyze_decisions(api_key: str, model: str, provider: str) -> int:
     if len(pending) > len(selected):
         print(f"Há {len(pending)} decisão(ões) pendente(s); esta rodada analisará no máximo {len(selected)}.")
 
+    round_alerts: list[dict] = []
+    round_reviews: list[dict] = []
+    completed_count = 0
+    interrupted = False
     for index, (path, raw_text, full_text, analysis_text, link, content_type) in enumerate(selected):
         prompt = make_prompt(analysis_text, content_type, cases)
         analyses = []
@@ -906,6 +1033,7 @@ def analyze_decisions(api_key: str, model: str, provider: str) -> int:
             if analysis_number == 1:
                 time.sleep(PROVIDER_PAUSE_SECONDS)
         if failed:
+            interrupted = True
             break
 
         consensus, disagreements = compare_analyses(analyses[0], analyses[1], full_text, cases)
@@ -913,8 +1041,18 @@ def analyze_decisions(api_key: str, model: str, provider: str) -> int:
             print(f"\nDecisão: {path.name}")
             print_manual_review(analyses[0], analyses[1], disagreements, full_text)
             print(f"  Link da consulta oficial do TJSP: {link}")
+            round_reviews.append({
+                "decisao": path.name,
+                "link_oficial": link,
+                "motivos": disagreements,
+                "resposta_1": annotate_review_response(analyses[0], full_text),
+                "resposta_2": annotate_review_response(analyses[1], full_text),
+            })
         else:
-            print_decision_result(path, link, consensus, full_text, content_type, cases)
+            round_alerts.extend(
+                print_decision_result(path, link, consensus, full_text, content_type, cases)
+            )
+        completed_count += 1
         completed.add(decision_fingerprint(path, raw_text))
         save_analysis_state(completed)
         if index < len(selected) - 1:
@@ -926,6 +1064,7 @@ def analyze_decisions(api_key: str, model: str, provider: str) -> int:
     )
     if remaining > 0:
         print(f"\nRestam até {remaining} decisão(ões) pendente(s). Rode Telos novamente para a próxima rodada.")
+    send_round_email(round_alerts, round_reviews, completed_count, len(selected), interrupted)
     return 0
 
 

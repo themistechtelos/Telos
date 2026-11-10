@@ -77,6 +77,24 @@ Se `python` não funcionar, tente `python3`.
 
 Crie uma chave na [GroqCloud](https://console.groq.com/keys), cole-a depois de `GROQ_API_KEY=` no `.env` e altere `AI_PROVIDER=groq`. O modelo padrão é `openai/gpt-oss-120b`. Se ele rejeitar uma resposta por formato incompatível, o Telos tenta uma vez com `openai/gpt-oss-20b` e informa a troca. O Telos usa o SDK oficial `groq` para Python.
 
+### Receber os avisos pelo Gmail
+
+O envio é opcional. Se `GMAIL_SENDER`, `GMAIL_APP_PASSWORD` e `GMAIL_RECIPIENT` estiverem vazios, o Telos funciona como antes e não tenta enviar e-mail. Quando os três estiverem preenchidos, cada rodada envia um resumo: os avisos diretos ficam numa seção e os itens de “Revisar à mão”, com as duas respostas, ficam em outra.
+
+Para criar a senha de app do Gmail:
+
+1. Ative a [Verificação em duas etapas](https://support.google.com/accounts/answer/185839?hl=pt-BR) na sua Conta Google.
+2. Abra a página de [senhas de app](https://myaccount.google.com/apppasswords), entre na conta que enviará os avisos e crie uma senha para o Telos. O Google mostra a senha uma única vez; guarde-a para o próximo passo.
+3. No `.env`, preencha os três campos. Use o endereço Gmail que criou a senha em `GMAIL_SENDER`, a senha gerada em `GMAIL_APP_PASSWORD` e o endereço que deve receber as mensagens em `GMAIL_RECIPIENT`:
+
+   ```text
+   GMAIL_SENDER=seu-endereco@gmail.com
+   GMAIL_APP_PASSWORD=senha-de-app-do-google
+   GMAIL_RECIPIENT=destino@exemplo.com
+   ```
+
+   O Telos envia pelo servidor seguro do Gmail (`smtp.gmail.com`, TLS na porta 587). A senha de app requer Verificação em duas etapas; algumas contas de trabalho/escola, contas com Proteção Avançada ou contas que usam somente chaves de segurança podem não oferecer essa opção. Veja a [ajuda oficial do Google sobre senhas de app](https://support.google.com/accounts/answer/185833?hl=pt-BR) e os [parâmetros SMTP do Gmail](https://support.google.com/mail/answer/7104828?hl=pt-BR).
+
 ### Rodar o Telos
 
 Com o Terminal ou PowerShell aberto na pasta principal, execute:
@@ -85,7 +103,7 @@ Com o Terminal ou PowerShell aberto na pasta principal, execute:
 python telos.py
 ```
 
-O Telos busca decisões no TJSP e analisa as decisões pendentes. Para analisar somente os arquivos que já estão em `decisoes/`, sem fazer uma nova busca, execute:
+O Telos busca decisões no TJSP e analisa as decisões pendentes. Ao fim da rodada, envia o e-mail se os três campos do Gmail estiverem configurados. Para analisar somente os arquivos que já estão em `decisoes/`, sem fazer uma nova busca, execute:
 
 ```bash
 python telos.py --sem-busca
