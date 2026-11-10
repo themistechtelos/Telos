@@ -347,15 +347,32 @@ def find_result_link(record: dict, raw_path: Path | None) -> str | None:
     return None
 
 
-def search_tjsp(quiet: bool = False) -> list[Path]:
+def search_tjsp(
+    quiet: bool = False,
+    progress_callback=None,
+    search_terms_override: str | None = None,
+) -> list[Path]:
     """Collect one first page per configured query from stable TJSP search methods."""
     if jus is None:
         print("Busca automática indisponível: instale as dependências do requirements.txt.")
         return []
 
+    grouped_terms = ";".join(
+        value
+        for value in (
+            os.environ.get("TJSP_SEARCH_TERMS_IMOBILIARIO", ""),
+            os.environ.get("TJSP_SEARCH_TERMS_EMPRESARIAL", ""),
+        )
+        if value.strip()
+    )
+    raw_search_terms = (
+        search_terms_override
+        if search_terms_override is not None
+        else grouped_terms or os.environ.get("TJSP_SEARCH_TERMS", "")
+    )
     search_terms = [
         term.strip()
-        for term in os.environ.get("TJSP_SEARCH_TERMS", "").split(";")
+        for term in raw_search_terms.split(";")
         if term.strip()
     ]
     search_terms = [term for term in search_terms if len(term) <= 120]
@@ -363,9 +380,12 @@ def search_tjsp(quiet: bool = False) -> list[Path]:
         print("Nenhum termo de busca TJSP configurado. Defina TJSP_SEARCH_TERMS no arquivo .env; cada termo pode ter até 120 caracteres.")
         return []
     if len(search_terms) < len(
-        [term for term in os.environ.get("TJSP_SEARCH_TERMS", "").split(";") if term.strip()]
+        [term for term in raw_search_terms.split(";") if term.strip()]
     ):
         print("Alguns termos foram ignorados porque excedem o limite de 120 caracteres do TJSP.")
+
+    if progress_callback:
+        progress_callback("searching", 0, len(search_terms))
 
     saved: list[Path] = []
     seen_content: set[str] = set()
@@ -373,7 +393,9 @@ def search_tjsp(quiet: bool = False) -> list[Path]:
     missing_link = 0
     failed = 0
 
-    for search_term in search_terms:
+    for term_index, search_term in enumerate(search_terms, start=1):
+        if progress_callback:
+            progress_callback("searching", term_index, len(search_terms))
         for method_name, text_column, content_type in (
             ("cjpg", "decisao", "sentença/decisão de primeiro grau (texto disponível na busca)"),
             ("cjsg", "ementa", "ementa do acórdão (ementa apenas; inteiro teor não baixado)"),
@@ -1613,16 +1635,24 @@ def send_round_email(
     completed_count: int,
     selected_count: int,
     interrupted: bool,
-) -> None:
+    extra_recipients: str | None = None,
+) -> bool | None:
     sender = os.environ.get("GMAIL_SENDER", "").strip()
     app_password = os.environ.get("GMAIL_APP_PASSWORD", "").strip().replace(" ", "")
     recipient_field = os.environ.get("GMAIL_RECIPIENT", "").strip()
     recipients = list(dict.fromkeys(address.strip() for address in recipient_field.split(",") if address.strip()))
+    if extra_recipients and extra_recipients.strip():
+        recipients.extend(
+            address.strip()
+            for address in extra_recipients.split(",")
+            if address.strip()
+        )
+        recipients = list(dict.fromkeys(recipients))
     if not sender and not app_password and not recipients:
-        return
+        return None
     if not sender or not app_password or not recipients:
         print("\nE-mail não enviado: preencha GMAIL_SENDER, GMAIL_APP_PASSWORD e GMAIL_RECIPIENT no .env.")
-        return
+        return False
 
     try:
         message = EmailMessage()
@@ -1644,20 +1674,34 @@ def send_round_email(
             refused = smtp.send_message(message, from_addr=sender, to_addrs=recipients)
         if refused:
             print("\nO Gmail recusou um ou mais destinatários; não foi possível confirmar o envio para todos.")
-            return
+            return False
     except smtplib.SMTPAuthenticationError:
         print("\nNão foi possível autenticar no Gmail. Confira o remetente e a senha de app no .env.")
+        return False
     except smtplib.SMTPRecipientsRefused:
         print("\nO Gmail recusou o envio para os destinatários configurados.")
+        return False
     except EmailJSONLeakError:
         print("\nE-mail não enviado: a verificação detectou chaves de resposta em JSON.")
+        return False
     except (smtplib.SMTPException, OSError, ValueError) as error:
         print(f"\nNão foi possível enviar o e-mail pelo Gmail ({type(error).__name__}). Os resultados continuam disponíveis na tela.")
+        return False
     else:
         print("\nResumo da rodada enviado pelo Gmail.")
+        return True
 
 
-def analyze_decisions(api_key: str, model: str, provider: str) -> int:
+def analyze_decisions(
+    api_key: str,
+    model: str,
+    provider: str,
+    *,
+    max_decisions: int | None = None,
+    extra_recipients: str | None = None,
+    progress_callback=None,
+    result_callback=None,
+) -> int:
     case_paths = sorted(path for path in CASES_DIR.glob("*.txt") if path.is_file())
     if not case_paths:
         print("Nenhum caso .txt encontrado na pasta casos/.")
@@ -1718,7 +1762,9 @@ def analyze_decisions(api_key: str, model: str, provider: str) -> int:
         print("Não há decisões novas para analisar nesta rodada.")
         return 0
 
-    selected = pending[:MAX_DECISIONS_PER_RUN]
+    decision_limit = max_decisions if max_decisions is not None else MAX_DECISIONS_PER_RUN
+    decision_limit = max(1, min(5, int(decision_limit)))
+    selected = pending[:decision_limit]
     if len(pending) > len(selected):
         print(f"Há {len(pending)} decisão(ões) pendente(s); esta rodada analisará no máximo {len(selected)}.")
 
@@ -1727,10 +1773,14 @@ def analyze_decisions(api_key: str, model: str, provider: str) -> int:
     completed_count = 0
     interrupted = False
     for index, (path, raw_text, full_text, analysis_text, link, content_type) in enumerate(selected):
+        if progress_callback:
+            progress_callback("analyzing", index + 1, len(selected))
         prompt = make_prompt(analysis_text, content_type, cases)
         analyses = []
         failed = False
         for analysis_number in (1, 2):
+            if progress_callback:
+                progress_callback("second_opinion" if analysis_number == 2 else "first_opinion", index + 1, len(selected))
             try:
                 result = call_model(provider, api_key, model, prompt)
                 validate_result(result, cases)
@@ -1774,7 +1824,27 @@ def analyze_decisions(api_key: str, model: str, provider: str) -> int:
     )
     if remaining > 0:
         print(f"\nRestam até {remaining} decisão(ões) pendente(s). Rode Telos novamente para a próxima rodada.")
-    send_round_email(round_alerts, round_reviews, completed_count, len(selected), interrupted)
+    if progress_callback:
+        progress_callback("sending_email", completed_count, len(selected))
+    email_sent = send_round_email(
+        round_alerts,
+        round_reviews,
+        completed_count,
+        len(selected),
+        interrupted,
+        extra_recipients=extra_recipients,
+    )
+    if progress_callback:
+        progress_callback("email_result", email_sent, len(selected))
+    if result_callback:
+        result_callback({
+            "alerts": round_alerts,
+            "reviews": round_reviews,
+            "completed_count": completed_count,
+            "selected_count": len(selected),
+            "interrupted": interrupted,
+            "email_sent": email_sent,
+        })
     return 0
 
 

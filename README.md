@@ -23,7 +23,7 @@ A prévia [email_exemplo.html](email_exemplo.html) foi gerada com os avisos da r
 
 ## 5. Como mudar a área vigiada
 
-Nesta configuração, o Telos acompanha Direito Imobiliário e Direito Empresarial. A área depende dos casos cadastrados na pasta `casos/` e dos termos em `TJSP_SEARCH_TERMS` no arquivo `.env`. Para mudar o foco, edite as descrições dos casos e troque ou acrescente termos de busca, separados por ponto e vírgula. O Caso 13 (horas extras) é um caso de controle e não tem termo de busca.
+Nesta configuração, o Telos acompanha Direito Imobiliário e Direito Empresarial. A área depende dos casos cadastrados na pasta `casos/` e dos termos em `TJSP_SEARCH_TERMS_IMOBILIARIO` e `TJSP_SEARCH_TERMS_EMPRESARIAL` no arquivo `.env`. Para mudar o foco, edite as descrições dos casos e os termos correspondentes, separados por ponto e vírgula. O Caso 13 (horas extras) é um caso de controle e não tem termo de busca.
 
 ## 6. Limitações
 
@@ -51,7 +51,33 @@ Sigilo. O site prometia criptografia do início ao fim. Uma criptografia complet
 
 Próximos passos. Novas fontes, começando pelo Superior Tribunal de Justiça e pelos diários oficiais; execução automática diária em servidor; leitura do acórdão completo; cadastro de contratos inteiros; e envio de cada aviso apenas ao advogado responsável pelo caso.
 
-## 8. Instalação e uso
+## 8. Interface web
+
+A interface é uma página simples para demonstração ao vivo. Ela permite escolher Direito Imobiliário, Direito Empresarial ou todas as áreas; analisar de uma a cinco decisões; e informar, se quiser, um e-mail extra para receber os avisos da rodada. Esse endereço é somado aos destinatários configurados e fica oculto dos demais. As chaves e senhas não são enviadas à página.
+
+Para abrir no seu computador:
+
+1. Instale as dependências conforme a seção seguinte e configure as chaves no `.env`.
+2. No Terminal, entre na pasta do Telos e execute:
+
+   ```bash
+   python webapp.py
+   ```
+
+   Se necessário, use `python3 webapp.py`. O programa usa a porta indicada por `PORT`; no computador, sem essa variável, usa a porta 5000.
+3. Abra `http://127.0.0.1:5000` no navegador. Se `TELOS_ACCESS_CODE` estiver vazio, a rodada pode começar sem código. Se estiver preenchido, digite o mesmo código no campo da página.
+
+O andamento aparece na própria tela enquanto o trabalho continua em segundo plano. Uma nova rodada não pode começar enquanto outra estiver ativa. A página inicial também mostra a última rodada salva; no computador, ela fica em `.telos_web_data/` e continua disponível mesmo depois de fechar e abrir o programa. A página **Casos do escritório** lista os casos que estão na pasta `casos/`.
+
+### Hospedar gratuitamente
+
+O projeto inclui `render.yaml` para criar um serviço web gratuito no Render. Envie o repositório ao GitHub e, no Render, crie um **Blueprint** conectado a esse repositório. Escolha o plano gratuito. No painel de variáveis do serviço, informe `GEMINI_API_KEY` (ou `GROQ_API_KEY` se mudar `AI_PROVIDER`), `TELOS_ACCESS_CODE` e, se usar e-mail, `GMAIL_SENDER`, `GMAIL_APP_PASSWORD` e `GMAIL_RECIPIENT`. Os campos marcados como secretos são guardados pelo serviço; não coloque esses valores no código nem envie o `.env` ao GitHub. Os termos separados por área já vêm no `render.yaml` e podem ser alterados no painel. O Render fornece `PORT`, usado pelo comando de inicialização; para hospedagem, as dependências do servidor ficam em `requirements-hosting.txt`.
+
+Configure um código em `TELOS_ACCESS_CODE` na hospedagem: sem ele, o servidor hospedado bloqueia o início das rodadas. Depois que o serviço for criado, copie o endereço `*.onrender.com` e acrescente ao site de apresentação um botão que aponte para esse endereço.
+
+Há duas limitações importantes do plano gratuito do Render para esta demonstração: ele apaga arquivos locais quando o serviço para, reinicia ou é publicado novamente, então a cópia da última rodada pode se perder; e bloqueia conexões SMTP de saída na porta 587, usada pelo envio atual via Gmail. Assim, a interface e a análise podem ser hospedadas, mas o e-mail via Gmail funciona no computador e não pelo serviço gratuito do Render. Para manter a última rodada no servidor após reinícios e enviar e-mail hospedado, será necessário adicionar armazenamento persistente e um serviço de e-mail compatível com a hospedagem. Veja as [limitações oficiais do plano gratuito](https://render.com/docs/free) e o [guia oficial de Flask no Render](https://render.com/docs/deploy-flask).
+
+## 9. Instalação e uso
 
 ### Instalar
 
@@ -83,7 +109,7 @@ Crie uma chave na [GroqCloud](https://console.groq.com/keys), cole-a depois de `
 
 ### Receber os avisos pelo Gmail
 
-O envio é opcional. Se `GMAIL_SENDER`, `GMAIL_APP_PASSWORD` e `GMAIL_RECIPIENT` estiverem vazios, o Telos funciona como antes e não tenta enviar e-mail. Quando os três estiverem preenchidos, cada rodada envia um resumo: os avisos diretos ficam em cartões separados e os itens de “Revisar à mão”, com os pareceres em frases simples lado a lado, ficam em uma seção lilás própria. Cada aviso mostra um título curto para o caso e, quando constam no material, o número do processo, o foro, a vara e a data da decisão. Campos ausentes são identificados como não informados. O resumo descreve o que o tribunal decidiu. O assunto ajusta singular e plural. O visual usa o azul-marinho e a lavanda do site de apresentação da Themis Tech. A mensagem inclui uma versão HTML compatível com o Gmail e uma alternativa em texto simples.
+O envio é opcional. Para enviar, configure `GMAIL_SENDER` e `GMAIL_APP_PASSWORD`, mais pelo menos um destinatário em `GMAIL_RECIPIENT` ou no campo de e-mail extra da interface. Cada rodada envia um resumo: os avisos diretos ficam em cartões separados e os itens de “Revisar à mão”, com os pareceres em frases simples lado a lado, ficam em uma seção lilás própria. Cada aviso mostra um título curto para o caso e, quando constam no material, o número do processo, o foro, a vara e a data da decisão. Campos ausentes são identificados como não informados. O resumo descreve o que o tribunal decidiu. O assunto ajusta singular e plural. O visual usa o azul-marinho e a lavanda do site de apresentação da Themis Tech. A mensagem inclui uma versão HTML compatível com o Gmail e uma alternativa em texto simples.
 
 Você pode abrir [email_exemplo.html](email_exemplo.html) no navegador para ver uma prévia. O arquivo usa resultados de uma rodada anterior, sem nomes das partes do processo.
 

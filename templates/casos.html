@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#171827"><title>Casos do escritório — Telos</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Telos, página inicial"><span class="brand-mark">T</span><span><strong>TELOS</strong><small>THEMIS TECH</small></span></a>
+    <nav><a href="/">Visão geral</a><a class="active" href="/casos">Casos do escritório</a></nav>
+    <span class="live-tag"><i></i> TJSP</span>
+  </header>
+  <main class="page-wrap cases-page">
+    <section class="hero compact-hero"><p class="eyebrow">BASE DE COMPARAÇÃO</p><h1>Casos do escritório</h1><p class="hero-copy">Descrições curtas usadas pelo Telos para comparar decisões novas com os assuntos acompanhados.</p></section>
+    <div class="case-grid">
+      {% for item in cases %}
+      <article class="panel case-card">
+        <span class="case-area">{{ item.area }}</span>
+        <h2>{{ item.titulo }}</h2>
+        <p>{{ item.descricao }}</p>
+      </article>
+      {% else %}
+      <div class="empty-state">Nenhum caso cadastrado na pasta <code>casos/</code>.</div>
+      {% endfor %}
+    </div>
+    <footer class="footer"><a href="/">← Voltar à vigilância</a><span>TELOS · THEMIS TECH</span></footer>
+  </main>
+</body>
+</html>

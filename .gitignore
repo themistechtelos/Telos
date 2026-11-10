@@ -13,3 +13,6 @@ venv/
 # Resultados automáticos baixados localmente pelo Telos
 decisoes/auto_*.txt
 .telos_processadas.json
+
+# Estado local da interface web
+.telos_web_data/

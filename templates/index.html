@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#171827">
+  <title>Telos — Themis Tech</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script defer src="{{ url_for('static', filename='app.js') }}"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Telos, página inicial">
+      <span class="brand-mark">T</span>
+      <span><strong>TELOS</strong><small>THEMIS TECH</small></span>
+    </a>
+    <nav><a class="active" href="/">Visão geral</a><a href="/casos">Casos do escritório</a></nav>
+    <span class="live-tag"><i></i> TJSP</span>
+  </header>
+
+  <main class="page-wrap">
+    <section class="hero">
+      <p class="eyebrow">VIGILÂNCIA JURISPRUDENCIAL</p>
+      <h1>A lei mudou.<br><em>Seus casos já sabem.</em></h1>
+      <p class="hero-copy">Encontre decisões novas no TJSP e veja, em poucos passos, quais casos do escritório podem ser afetados.</p>
+    </section>
+
+    <section class="watch-layout" aria-labelledby="watch-title">
+      <div class="panel watch-panel">
+        <div class="panel-heading">
+          <div><p class="eyebrow">NOVA RODADA</p><h2 id="watch-title">O que vamos vigiar?</h2></div>
+          <span class="sparkle" aria-hidden="true">✳</span>
+        </div>
+        <form id="watch-form">
+          <label for="area">Área do Direito</label>
+          <select id="area" name="area">
+            <option value="imobiliario">Direito Imobiliário</option>
+            <option value="empresarial">Direito Empresarial</option>
+            <option value="todas">Todas as áreas</option>
+          </select>
+
+          <label for="decision-count">Quantas decisões analisar?</label>
+          <select id="decision-count" name="decision_count">
+            <option value="1">1 decisão</option><option value="2">2 decisões</option>
+            <option value="3">3 decisões</option><option value="4">4 decisões</option>
+            <option value="5" selected>5 decisões</option>
+          </select>
+
+          <label for="extra-email">E-mail extra <span>(opcional)</span></label>
+          <input id="extra-email" name="extra_email" type="email" autocomplete="email" placeholder="voce@escritorio.com.br">
+          <p class="field-note">Também receberá os avisos enviados aos destinatários configurados.</p>
+
+          <label for="access-code">Código de acesso</label>
+          <input id="access-code" name="access_code" type="password" autocomplete="current-password" placeholder="Digite o código, se solicitado">
+          <p class="field-note">No computador local, o código pode ficar vazio. Na hospedagem, configure um código para iniciar rodadas.</p>
+
+          <button class="button primary watch-button" type="submit" id="watch-button"><span>Vigiar agora</span><span aria-hidden="true">→</span></button>
+          <p id="form-error" class="form-error" role="alert" hidden></p>
+        </form>
+      </div>
+
+      <aside class="panel how-panel">
+        <p class="eyebrow">EM TRÊS PASSOS</p>
+        <ol class="steps">
+          <li><span>01</span><div><strong>Busca no TJSP</strong><p>O Telos consulta decisões pelos termos da área escolhida.</p></div></li>
+          <li><span>02</span><div><strong>Dois pareceres</strong><p>A IA compara cada decisão com os casos selecionados.</p></div></li>
+          <li><span>03</span><div><strong>Aviso com fonte</strong><p>Você confere o resumo, o trecho e o link oficial.</p></div></li>
+        </ol>
+        <div class="privacy-note"><span aria-hidden="true">✦</span><p>A chave da IA e as senhas ficam no servidor, fora desta página.</p></div>
+      </aside>
+    </section>
+
+    <section class="progress-panel" id="progress-panel" hidden aria-live="polite">
+      <div class="progress-symbol" id="progress-symbol">✳</div>
+      <div class="progress-copy"><strong id="progress-title">Preparando a rodada…</strong><p id="progress-message">O andamento será atualizado aqui.</p></div>
+      <div class="progress-track"><span id="progress-bar"></span></div>
+    </section>
+
+    <section class="last-round section-block" aria-labelledby="last-round-title">
+      <div class="section-title-row">
+        <div><p class="eyebrow">SEUS RESULTADOS</p><h2 id="last-round-title">Última rodada</h2></div>
+        <span class="last-round-date" id="last-round-date"></span>
+      </div>
+      <div id="last-round-content" aria-live="polite"></div>
+    </section>
+
+    <footer class="footer"><span class="footer-brand">TELOS <b>·</b> THEMIS TECH</span><span>Decisões públicas. Fonte oficial. Análise para conferência.</span></footer>
+  </main>
+  <script>window.TELOS_INITIAL_STATE = {{ initial_state|tojson }};</script>
+</body>
+</html>
