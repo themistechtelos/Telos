@@ -55,6 +55,38 @@ MAX_GROQ_DECISION_CHARS = 18000
 ANALYSIS_VERSION = 5
 ANALYSIS_STATE_FILE = BASE_DIR / ".telos_processadas.json"
 URL_PATTERN = re.compile(r"https?://[^\s<>\]\[\)\}\"']+", re.IGNORECASE)
+EMAIL_JSON_KEYS = re.compile(
+    r'''(?i)(?:["']\s*(?:casos|relacao|arquivo)\s*["']\s*:|(?:^|[\{\[,\n])\s*(?:casos|relacao|arquivo)\s*:)'''
+)
+UNREADABLE_OPINION = "Não foi possível ler este parecer, confira a decisão no link oficial"
+
+
+class EmailJSONLeakError(ValueError):
+    """Raised when a generated email contains raw JSON response keys."""
+
+
+def email_contains_json_keys(*contents: str) -> bool:
+    return any(EMAIL_JSON_KEYS.search(html.unescape(content)) for content in contents)
+
+
+def verify_email_has_no_json_keys(*contents: str) -> None:
+    if email_contains_json_keys(*contents):
+        raise EmailJSONLeakError("O conteúdo do e-mail contém chaves de resposta em JSON.")
+
+
+def is_readable_model_phrase(value: object) -> bool:
+    if not isinstance(value, str):
+        return False
+    stripped = value.strip()
+    if EMAIL_JSON_KEYS.search(stripped):
+        return False
+    if stripped.startswith(("{", "[")):
+        try:
+            if isinstance(json.loads(stripped), (dict, list)):
+                return False
+        except json.JSONDecodeError:
+            pass
+    return True
 
 
 def load_env_file() -> None:
@@ -1013,6 +1045,55 @@ OUTCOME_LABELS = {
 }
 
 
+def direct_alert_is_readable(alert: dict) -> bool:
+    scalar_fields = (
+        "resumo", "motivo_relacao", "resultado", "trecho_resultado", "posicao_cliente",
+        "motivo_favorabilidade", "trecho_favorabilidade",
+    )
+    if any(not is_readable_model_phrase(alert.get(key, "")) for key in scalar_fields):
+        return False
+    quotes = alert.get("trechos_relacao", [])
+    return isinstance(quotes, list) and all(is_readable_model_phrase(quote) for quote in quotes)
+
+
+def model_response_is_readable(response: object) -> bool:
+    if not isinstance(response, dict):
+        return False
+    outcome = response.get("resultado_decisao")
+    cases = response.get("casos")
+    if not isinstance(outcome, dict) or not isinstance(cases, list):
+        return False
+    if outcome.get("classificacao") not in {*OUTCOME_LABELS, "outro_resultado_explicito"}:
+        return False
+    if not all(is_readable_model_phrase(outcome.get(key, "")) for key in ("texto", "evidencia")):
+        return False
+    for case in cases:
+        if not isinstance(case, dict):
+            return False
+        if not isinstance(case.get("arquivo"), str):
+            return False
+        if case.get("relacao") not in RELATION_LABELS or case.get("favorabilidade") not in FAVORABILITY_LABELS:
+            return False
+        for key in ("resumo", "motivo", "motivo_favorabilidade", "evidencia_favorabilidade"):
+            if not is_readable_model_phrase(case.get(key, "")):
+                return False
+        evidence = case.get("evidencias", [])
+        if not isinstance(evidence, list):
+            return False
+        for quote in evidence:
+            if isinstance(quote, dict):
+                quote = quote.get("trecho")
+            if not is_readable_model_phrase(quote):
+                return False
+    return True
+
+
+def review_pair_is_readable(review: dict) -> bool:
+    return model_response_is_readable(review.get("resposta_1")) and model_response_is_readable(
+        review.get("resposta_2")
+    )
+
+
 def review_cases(review: dict) -> list[dict]:
     first = review.get("resposta_1", {})
     second = review.get("resposta_2", {})
@@ -1114,6 +1195,8 @@ def review_disagreement_text(review: dict, cases: list[dict]) -> str:
 
 
 def format_review_opinion(label: str, opinion: dict, outcome: dict) -> str:
+    if not model_response_is_readable({"resultado_decisao": outcome, "casos": [opinion]}):
+        return UNREADABLE_OPINION
     relation = RELATION_LABELS.get(opinion.get("relacao", "incerta"), "incerta")
     relation_reason = str(opinion.get("motivo", "")).strip()
     favorability = FAVORABILITY_LABELS.get(opinion.get("favorabilidade", "incerta"), "não foi possível confirmar")
@@ -1150,6 +1233,15 @@ def format_round_email(
     if not alerts:
         lines.append("Nenhum aviso direto nesta rodada.")
     for alert in alerts:
+        if not direct_alert_is_readable(alert):
+            lines.extend([
+                "",
+                str(alert.get("caso", "Caso")),
+                decision_metadata_text(alert),
+                UNREADABLE_OPINION,
+                f"Link da consulta oficial do TJSP: {alert['link_oficial']}",
+            ])
+            continue
         lines.extend([
             "",
             alert["caso"],
@@ -1175,6 +1267,14 @@ def format_round_email(
     if not reviews:
         lines.append("Nenhum item para revisão manual nesta rodada.")
     for review in reviews:
+        if not review_pair_is_readable(review):
+            lines.extend([
+                "",
+                decision_metadata_text(review),
+                UNREADABLE_OPINION,
+                f"Link da consulta oficial do TJSP: {review['link_oficial']}",
+            ])
+            continue
         cases = review_cases(review)
         lines.extend(["", decision_metadata_text(review)])
         if not cases:
@@ -1187,7 +1287,9 @@ def format_round_email(
                 format_review_opinion("Parecer 2", item["parecer_2"], item["resultado_2"]),
             ])
         lines.extend([review_disagreement_text(review, cases), f"Link da consulta oficial do TJSP: {review['link_oficial']}"])
-    return "\n".join(lines)
+    content = "\n".join(lines)
+    verify_email_has_no_json_keys(content)
+    return content
 
 
 def _email_escape(value: object) -> str:
@@ -1207,6 +1309,11 @@ def _email_button(url: str, label: str) -> str:
 
 
 def render_review_opinion_html(label: str, opinion: dict, outcome: dict) -> str:
+    if not model_response_is_readable({"resultado_decisao": outcome, "casos": [opinion]}):
+        return (
+            f'<div style="font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:18px;'
+            f'color:#24263a;">{_email_escape(UNREADABLE_OPINION)}</div>'
+        )
     relation = RELATION_LABELS.get(opinion.get("relacao", "incerta"), "incerta")
     reason = str(opinion.get("motivo", "")).strip()
     favorability = FAVORABILITY_LABELS.get(opinion.get("favorabilidade", "incerta"), "não foi possível confirmar")
@@ -1293,6 +1400,22 @@ def render_round_email_html(
             f'font-size:14px;line-height:21px;color:{muted};">Nenhum aviso direto nesta rodada.</td></tr>'
         )
     for alert in alerts:
+        if not direct_alert_is_readable(alert):
+            parts.extend([
+                '<tr><td style="padding:7px 20px;"><table role="presentation" width="100%" cellpadding="0" '
+                'cellspacing="0" border="0" bgcolor="#ffffff" style="background-color:#ffffff;'
+                'border:1px solid #e2e2ec;border-radius:8px;"><tr><td style="padding:20px;">',
+                f'<div style="font-family:Arial,Helvetica,sans-serif;font-size:18px;font-weight:bold;'
+                f'line-height:24px;color:{ink};">{_email_escape(alert.get("caso", "Caso"))}</div>',
+                f'<div style="padding-top:6px;font-family:Arial,Helvetica,sans-serif;font-size:12px;'
+                f'line-height:18px;color:{muted};">{_email_escape(decision_metadata_text(alert))}</div>',
+                f'<div style="padding-top:13px;font-family:Arial,Helvetica,sans-serif;font-size:13px;'
+                f'line-height:20px;color:{ink};">{_email_escape(UNREADABLE_OPINION)}</div>',
+                '<div style="padding-top:18px;">',
+                _email_button(alert.get("link_oficial", ""), "Ver a decisão no site oficial do TJSP"),
+                '</div></td></tr></table></td></tr>',
+            ])
+            continue
         position = str(alert.get("posicao_cliente", "")).strip()
         favorable = "desfavor" not in position.casefold()
         badge_text = "FAVORÁVEL AO CLIENTE" if favorable else "DESFAVORÁVEL AO CLIENTE"
@@ -1361,6 +1484,20 @@ def render_round_email_html(
             f'font-size:14px;line-height:21px;color:{muted};">Nenhum item para revisão manual nesta rodada.</td></tr>'
         )
     for review in reviews:
+        if not review_pair_is_readable(review):
+            parts.extend([
+                '<tr><td style="padding:7px 20px;"><table role="presentation" width="100%" cellpadding="0" '
+                'cellspacing="0" border="0" bgcolor="#f0f0ff" style="background-color:#f0f0ff;'
+                'border:1px solid #d8d8ef;border-radius:8px;"><tr><td style="padding:19px 20px;">',
+                f'<div style="font-family:Arial,Helvetica,sans-serif;font-size:17px;font-weight:bold;'
+                f'line-height:23px;color:{ink};">Decisão sob revisão</div>',
+                f'<div style="padding-top:8px;font-family:Arial,Helvetica,sans-serif;font-size:13px;'
+                f'line-height:20px;color:{ink};">{_email_escape(UNREADABLE_OPINION)}</div>',
+                '<div style="padding-top:16px;">',
+                _email_button(review.get("link_oficial", ""), "Ver a decisão no site oficial do TJSP"),
+                '</div></td></tr></table></td></tr>',
+            ])
+            continue
         cases = review_cases(review)
         parts.extend([
             '<tr><td style="padding:7px 20px;">',
@@ -1407,7 +1544,9 @@ def render_round_email_html(
         'Confira a decisão na consulta oficial antes de tomar qualquer providência.</td></tr>',
         '</table></td></tr></table></body></html>',
     ])
-    return "".join(parts)
+    content = "".join(parts)
+    verify_email_has_no_json_keys(content)
+    return content
 
 
 def send_round_email(
@@ -1432,19 +1571,23 @@ def send_round_email(
         message["From"] = sender
         message["To"] = "undisclosed-recipients:;"
         message["Bcc"] = ", ".join(recipients)
-        message["Subject"] = round_email_subject(len(alerts), len(reviews))
+        subject = round_email_subject(len(alerts), len(reviews))
+        message["Subject"] = subject
         message["Date"] = formatdate(localtime=True)
-        message.set_content(format_round_email(alerts, reviews, completed_count, selected_count, interrupted))
-        message.add_alternative(
-            render_round_email_html(alerts, reviews, completed_count, selected_count, interrupted),
-            subtype="html",
-        )
+        plain_body = format_round_email(alerts, reviews, completed_count, selected_count, interrupted)
+        html_body = render_round_email_html(alerts, reviews, completed_count, selected_count, interrupted)
+        verify_email_has_no_json_keys(subject, plain_body, html_body)
+        message.set_content(plain_body)
+        message.add_alternative(html_body, subtype="html")
+        print("Verificação sem JSON aprovada para as versões HTML e texto simples.")
         with smtplib.SMTP("smtp.gmail.com", 587, timeout=30) as smtp:
             smtp.starttls(context=ssl.create_default_context())
             smtp.login(sender, app_password)
             smtp.send_message(message, from_addr=sender, to_addrs=recipients)
     except smtplib.SMTPAuthenticationError:
         print("\nNão foi possível autenticar no Gmail. Confira o remetente e a senha de app no .env.")
+    except EmailJSONLeakError:
+        print("\nE-mail não enviado: a verificação detectou chaves de resposta em JSON.")
     except (smtplib.SMTPException, OSError, ValueError) as error:
         print(f"\nNão foi possível enviar o e-mail pelo Gmail ({type(error).__name__}). Os resultados continuam disponíveis na tela.")
     else:
