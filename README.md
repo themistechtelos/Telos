@@ -30,12 +30,14 @@ Nesta configuração, o Telos acompanha Direito Imobiliário e Direito Empresari
 - Por enquanto, as buscas automáticas são feitas somente no TJSP.
 - A busca consulta uma página por termo em cada tipo de decisão.
 - Para decisões de primeiro grau, o Telos analisa o texto disponível na busca. Para acórdãos, analisa somente a ementa; não baixa o acórdão completo.
-- Cada rodada analisa até cinco decisões. O plano gratuito do provedor de IA também tem limites de uso.
+- Cada rodada analisa até cinco decisões. O custo e os limites de uso dependem do provedor configurado; a OpenAI cobra pelos tokens usados.
 - O Telos ajuda a localizar decisões que merecem atenção, mas não substitui a leitura da decisão nem a análise de uma advogada ou advogado.
 
-## 7. Por que usamos o Gemini
+## 7. Provedor de IA
 
-No teste anterior, feito com os casos e as decisões das áreas então acompanhadas (bancário, saúde e aviação), o Gemini produziu respostas idênticas nas duas rodadas para as mesmas cinco decisões. No teste equivalente com a Groq, as respostas foram diferentes em quatro das cinco decisões. Por esse resultado observado, o Gemini é o provedor padrão; a Groq continua disponível como alternativa. Esse registro se refere aos casos antigos, não aos atuais de Direito Imobiliário e Empresarial, e não garante que respostas futuras serão sempre iguais.
+O provedor padrão agora é a OpenAI, com o modelo **GPT-6 Luna**. A OpenAI o descreve como eficiente para tarefas focadas e de alto volume; ele aceita respostas estruturadas e faz parte da geração atual com recursos multilíngues. Isso combina com o Telos, que compara decisões e precisa receber campos em um formato verificável. Ainda não fizemos uma avaliação comparativa específica de qualidade em português no Telos. O preço publicado é de US$ 0,10 por milhão de tokens de entrada e US$ 0,50 por milhão de tokens de saída; cada decisão recebe dois pareceres, e o custo real depende do tamanho do texto e da resposta. Consulte a [página do modelo](https://developers.openai.com/api/docs/models/gpt-6-luna), o [catálogo de modelos](https://developers.openai.com/api/docs/models) e os [preços atuais da API](https://developers.openai.com/api/docs/pricing), que podem mudar.
+
+Gemini e Groq continuam disponíveis como alternativas configuráveis no `.env`. Um teste anterior comparou os dois provedores usando os casos antigos de Direito Bancário, Saúde e Aviação: o Gemini deu respostas idênticas nas duas rodadas para as mesmas cinco decisões, enquanto a Groq variou em quatro de cinco. Esse resultado histórico não é um teste do GPT-6 Luna nem dos casos atuais de Direito Imobiliário e Empresarial, e não garante que respostas futuras serão sempre iguais.
 
 ## Do pitch ao produto
 
@@ -45,9 +47,9 @@ O que foi entregue. O Telos busca sozinho decisões novas no Tribunal de Justiç
 
 O que entregamos além do prometido. Cada aviso informa o resultado da decisão e se ela é favorável ou desfavorável ao cliente. Criamos ainda um "segundo parecer": cada decisão é analisada duas vezes, e só vira aviso quando as duas análises concordam. Quando discordam, a decisão vai para "Revisar à mão". Fizemos isso depois de medir que um dos modelos testados dava respostas diferentes para a mesma decisão.
 
-O que foi simplificado, e por quê. O site prometia vigiar leis, o Supremo Tribunal Federal, o Superior Tribunal de Justiça, o Banco Central, o Cade e a Receita. Esta versão vigia só o Tribunal de Justiça de São Paulo, porque a biblioteca pública que usamos para buscar decisões não cobre o Superior Tribunal de Justiça, e cada nova fonte exige um buscador próprio. O site prometia avisos na hora, por e-mail ou WhatsApp. Esta versão envia por e-mail ao final de cada execução. O WhatsApp exige um acesso oficial pago, e a execução automática diária depende de um computador ou servidor ligado. O site mostrava a escolha do que vigiar escrevendo em linguagem natural. Aqui, isso é feito editando os termos de busca no arquivo de configuração. O site mostrava contratos completos. Aqui, cada caso é uma descrição curta. Os acórdãos de segundo grau são analisados apenas pela ementa, e cada execução analisa cinco decisões, por causa dos limites do plano gratuito.
+O que foi simplificado, e por quê. O site prometia vigiar leis, o Supremo Tribunal Federal, o Superior Tribunal de Justiça, o Banco Central, o Cade e a Receita. Esta versão vigia só o Tribunal de Justiça de São Paulo, porque a biblioteca pública que usamos para buscar decisões não cobre o Superior Tribunal de Justiça, e cada nova fonte exige um buscador próprio. O site prometia avisos na hora, por e-mail ou WhatsApp. Esta versão envia por e-mail ao final de cada execução. O WhatsApp exige um acesso oficial pago, e a execução automática diária depende de um computador ou servidor ligado. O site mostrava a escolha do que vigiar escrevendo em linguagem natural. Aqui, isso é feito editando os termos de busca no arquivo de configuração. O site mostrava contratos completos. Aqui, cada caso é uma descrição curta. Os acórdãos de segundo grau são analisados apenas pela ementa, e esta primeira versão limita cada execução a cinco decisões.
 
-Sigilo. O site prometia criptografia do início ao fim. Uma criptografia completa não é possível quando uma inteligência artificial precisa ler o texto para analisá-lo. Nesta versão, usamos apenas casos inventados e decisões públicas, e o plano gratuito do Gemini pode usar os textos enviados para melhorar os produtos do Google. Em uso real, o caminho seria um plano pago, que não usa os dados para treinamento, e manter o nome do cliente apenas no computador do escritório, enviando à inteligência artificial só um código e a descrição do caso.
+Sigilo. O site prometia criptografia do início ao fim. Uma criptografia completa não é possível quando uma inteligência artificial precisa ler o texto para analisá-lo. Nesta versão, usamos casos inventados e decisões públicas. Os textos são enviados ao provedor escolhido; as regras de retenção e uso dos dados variam conforme o provedor e as configurações da conta. Em uso real, mantenha o nome do cliente no computador do escritório e envie à inteligência artificial apenas um código e a descrição do caso.
 
 Próximos passos. Novas fontes, começando pelo Superior Tribunal de Justiça e pelos diários oficiais; execução automática diária em servidor; leitura do acórdão completo; cadastro de contratos inteiros; e envio de cada aviso apenas ao advogado responsável pelo caso.
 
@@ -71,7 +73,7 @@ O andamento aparece na própria tela enquanto o trabalho continua em segundo pla
 
 ### Hospedar gratuitamente
 
-O projeto inclui `render.yaml` para criar um serviço web gratuito no Render. Envie o repositório ao GitHub e, no Render, crie um **Blueprint** conectado a esse repositório. Escolha o plano gratuito. No painel de variáveis do serviço, informe `GEMINI_API_KEY` (ou `GROQ_API_KEY` se mudar `AI_PROVIDER`), `TELOS_ACCESS_CODE` e, se usar e-mail, `GMAIL_SENDER`, `GMAIL_APP_PASSWORD` e `GMAIL_RECIPIENT`. Os campos marcados como secretos são guardados pelo serviço; não coloque esses valores no código nem envie o `.env` ao GitHub. Os termos separados por área já vêm no `render.yaml` e podem ser alterados no painel. O Render fornece `PORT`, usado pelo comando de inicialização; para hospedagem, as dependências do servidor ficam em `requirements-hosting.txt`.
+O projeto inclui `render.yaml` para criar um serviço web gratuito no Render. Envie o repositório ao GitHub e, no Render, crie um **Blueprint** conectado a esse repositório. Escolha o plano gratuito. No painel de variáveis do serviço, informe `OPENAI_API_KEY` (ou a chave do provedor alternativo escolhido), `TELOS_ACCESS_CODE` e, se usar e-mail, `GMAIL_SENDER`, `GMAIL_APP_PASSWORD` e `GMAIL_RECIPIENT`. Os campos marcados como secretos são guardados pelo serviço; não coloque esses valores no código nem envie o `.env` ao GitHub. Os termos separados por área já vêm no `render.yaml` e podem ser alterados no painel. O Render fornece `PORT`, usado pelo comando de inicialização; para hospedagem, as dependências do servidor ficam em `requirements-hosting.txt`.
 
 Configure um código em `TELOS_ACCESS_CODE` na hospedagem: sem ele, o servidor hospedado bloqueia o início das rodadas. Depois que o serviço for criado, copie o endereço `*.onrender.com` e acrescente ao site de apresentação um botão que aponte para esse endereço.
 
@@ -89,9 +91,9 @@ python -m pip install -r requirements.txt
 
 Se `python` não funcionar, tente `python3`.
 
-### Configurar a chave do Gemini
+### Configurar a OpenAI (provedor padrão)
 
-1. Crie uma chave no [Google AI Studio](https://aistudio.google.com/app/apikey).
+1. Crie uma chave na [página de chaves da API OpenAI](https://platform.openai.com/api-keys). A API é paga por uso; confira os preços atuais antes de rodar análises.
 2. Na pasta principal do Telos, crie o arquivo `.env` a partir do `.env.example`:
 
    ```bash
@@ -100,8 +102,12 @@ Se `python` não funcionar, tente `python3`.
 
    No Windows PowerShell, use `Copy-Item .env.example .env`.
 
-3. Abra `.env`, mantenha `AI_PROVIDER=gemini` e cole a chave depois de `GEMINI_API_KEY=`. O modelo padrão é `gemini-3.1-flash-lite`.
+3. Abra `.env`, mantenha `AI_PROVIDER=openai` e cole sua chave depois de `OPENAI_API_KEY=`. O modelo padrão é `gpt-6-luna`.
 4. Salve o arquivo. Não compartilhe a chave: `.env` fica fora do Git.
+
+### Usar o Gemini como alternativa
+
+Crie uma chave no [Google AI Studio](https://aistudio.google.com/app/apikey), cole-a depois de `GEMINI_API_KEY=` no `.env` e mude `AI_PROVIDER=openai` para `AI_PROVIDER=gemini`. O modelo padrão é `gemini-3.1-flash-lite`.
 
 ### Usar a Groq como alternativa
 

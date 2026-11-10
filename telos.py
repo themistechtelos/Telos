@@ -27,6 +27,15 @@ except ImportError:
     APIConnectionError = APIStatusError = Groq = None
 
 try:
+    from openai import (
+        APIConnectionError as OpenAIAPIConnectionError,
+        APIStatusError as OpenAIAPIStatusError,
+        OpenAI,
+    )
+except ImportError:
+    OpenAIAPIConnectionError = OpenAIAPIStatusError = OpenAI = None
+
+try:
     from pypdf import PdfReader
 except ImportError:
     PdfReader = None
@@ -49,8 +58,8 @@ ENV_FILE = BASE_DIR / ".env"
 DEFAULT_GROQ_MODEL = "openai/gpt-oss-120b"
 GROQ_SCHEMA_FALLBACK_MODEL = "openai/gpt-oss-20b"
 DEFAULT_GEMINI_MODEL = "gemini-3.1-flash-lite"
+DEFAULT_OPENAI_MODEL = "gpt-6-luna"
 MAX_DECISIONS_PER_RUN = 5
-PROVIDER_PAUSE_SECONDS = 6
 MAX_GROQ_DECISION_CHARS = 18000
 ANALYSIS_VERSION = 5
 ANALYSIS_STATE_FILE = BASE_DIR / ".telos_processadas.json"
@@ -492,7 +501,7 @@ def search_tjsp(
     return saved
 
 
-def groq_response_schema() -> dict:
+def structured_analysis_schema() -> dict:
     case_schema = {
         "type": "object",
         "properties": {
@@ -574,7 +583,7 @@ def call_groq(api_key: str, model: str, prompt: str) -> dict:
                 "json_schema": {
                     "name": "telos_analise_juridica",
                     "strict": True,
-                    "schema": groq_response_schema(),
+                    "schema": structured_analysis_schema(),
                 },
             },
         )
@@ -621,7 +630,72 @@ def call_groq(api_key: str, model: str, prompt: str) -> dict:
 def call_model(provider: str, api_key: str, model: str, prompt: str) -> dict:
     if provider == "groq":
         return call_groq(api_key, model, prompt)
-    return call_gemini(api_key, model, prompt)
+    if provider == "gemini":
+        return call_gemini(api_key, model, prompt)
+    if provider == "openai":
+        return call_openai(api_key, model, prompt)
+    raise RuntimeError("provedor de IA não reconhecido")
+
+
+def call_openai(api_key: str, model: str, prompt: str) -> dict:
+    if OpenAI is None:
+        raise RuntimeError("falta instalar a biblioteca openai; instale as dependências do requirements.txt")
+
+    def safe_message(error: Exception) -> str:
+        body = getattr(error, "body", None)
+        if isinstance(body, dict):
+            detail = body.get("error", body)
+            if isinstance(detail, dict):
+                body = detail.get("message", "")
+        message = str(body or error).strip()
+        if api_key:
+            message = message.replace(api_key, "[chave omitida]")
+        message = re.sub(r"\bsk-(?:proj-)?[A-Za-z0-9_-]+", "[chave omitida]", message)
+        return message[:1200] + ("…" if len(message) > 1200 else "")
+
+    client = OpenAI(api_key=api_key, timeout=180, max_retries=2)
+    try:
+        response = client.responses.create(
+            model=model,
+            instructions=(
+                "Você é um analisador jurídico em português. Analise apenas os documentos fornecidos. "
+                "Siga estritamente o formato estruturado solicitado. Não invente decisões, links ou trechos."
+            ),
+            input=prompt,
+            reasoning={"effort": "low"},
+            max_output_tokens=7000,
+            text={
+                "format": {
+                    "type": "json_schema",
+                    "name": "telos_analise_juridica",
+                    "strict": True,
+                    "schema": structured_analysis_schema(),
+                }
+            },
+        )
+    except OpenAIAPIStatusError as error:
+        message = safe_message(error)
+        if not message:
+            message = {
+                401: "a OpenAI não aceitou a chave configurada.",
+                403: "a OpenAI recusou o acesso à API para esta chave ou conta.",
+                429: "o limite ou saldo da API OpenAI foi atingido; confira o faturamento e a cota da conta.",
+            }.get(error.status_code, "a resposta de erro da OpenAI não trouxe detalhes legíveis.")
+        raise RuntimeError(f"a API OpenAI recusou a solicitação (HTTP {error.status_code}). {message}") from None
+    except OpenAIAPIConnectionError as error:
+        message = safe_message(error)
+        raise RuntimeError(f"não foi possível conectar à API OpenAI: {message}") from None
+    finally:
+        client.close()
+
+    try:
+        response_text = response.output_text
+        result = json.loads(response_text)
+    except (AttributeError, TypeError, json.JSONDecodeError):
+        raise RuntimeError("a API OpenAI não retornou uma resposta estruturada que o Telos consiga ler") from None
+    if not isinstance(result, dict) or not isinstance(result.get("casos"), list):
+        raise RuntimeError("a resposta da OpenAI não trouxe a lista esperada de análises")
+    return result
 
 
 def call_gemini(api_key: str, model: str, prompt: str) -> dict:
@@ -1789,8 +1863,6 @@ def analyze_decisions(
                 print(f"\nDecisão: {path.name}\n  A análise {analysis_number} de 2 não foi concluída: {error}")
                 failed = True
                 break
-            if analysis_number == 1:
-                time.sleep(PROVIDER_PAUSE_SECONDS)
         if failed:
             interrupted = True
             break
@@ -1815,8 +1887,6 @@ def analyze_decisions(
         completed_count += 1
         completed.add(decision_fingerprint(path, raw_text))
         save_analysis_state(completed)
-        if index < len(selected) - 1:
-            time.sleep(PROVIDER_PAUSE_SECONDS)
 
     remaining = sum(
         1 for path, raw_text, _full_text, _analysis_text, _link, _content_type in pending
@@ -1854,11 +1924,15 @@ def main() -> int:
     args = parser.parse_args()
 
     load_env_file()
-    provider = os.environ.get("AI_PROVIDER", "gemini").strip().lower() or "gemini"
-    if provider not in {"groq", "gemini"}:
-        print('Provedor inválido. Defina AI_PROVIDER como "groq" ou "gemini" no arquivo .env.')
+    provider = os.environ.get("AI_PROVIDER", "openai").strip().lower() or "openai"
+    if provider not in {"groq", "gemini", "openai"}:
+        print('Provedor inválido. Defina AI_PROVIDER como "openai", "gemini" ou "groq" no arquivo .env.')
         return 1
-    if provider == "groq":
+    if provider == "openai":
+        api_key = os.environ.get("OPENAI_API_KEY", "").strip()
+        model = os.environ.get("OPENAI_MODEL", DEFAULT_OPENAI_MODEL).strip() or DEFAULT_OPENAI_MODEL
+        provider_name = "OpenAI"
+    elif provider == "groq":
         api_key = os.environ.get("GROQ_API_KEY", "").strip()
         model = os.environ.get("GROQ_MODEL", DEFAULT_GROQ_MODEL).strip() or DEFAULT_GROQ_MODEL
         provider_name = "Groq"

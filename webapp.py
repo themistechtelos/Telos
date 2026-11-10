@@ -77,7 +77,12 @@ def update_run(**changes) -> None:
 
 
 def current_provider_settings() -> tuple[str, str, str]:
-    provider = os.environ.get("AI_PROVIDER", "gemini").strip().lower() or "gemini"
+    provider = os.environ.get("AI_PROVIDER", "openai").strip().lower() or "openai"
+    if provider == "openai":
+        return provider, os.environ.get("OPENAI_API_KEY", "").strip(), (
+            os.environ.get("OPENAI_MODEL", telos.DEFAULT_OPENAI_MODEL).strip()
+            or telos.DEFAULT_OPENAI_MODEL
+        )
     if provider == "groq":
         return provider, os.environ.get("GROQ_API_KEY", "").strip(), (
             os.environ.get("GROQ_MODEL", telos.DEFAULT_GROQ_MODEL).strip()
@@ -291,7 +296,7 @@ def run_round(area: str, decision_count: int, extra_email: str) -> None:
     original_max = telos.MAX_DECISIONS_PER_RUN
     provider, api_key, model = current_provider_settings()
     try:
-        if provider not in {"gemini", "groq"} or not api_key:
+        if provider not in {"openai", "gemini", "groq"} or not api_key:
             raise RuntimeError("O provedor de IA não está configurado.")
         terms = configured_terms(area)
         if not terms:
