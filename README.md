@@ -47,6 +47,20 @@ A área acompanhada depende dos casos cadastrados na pasta `casos/` e dos termos
 
 Nas mesmas cinco decisões analisadas duas vezes, o Gemini produziu respostas idênticas nas duas rodadas. No teste equivalente com a Groq, as respostas foram diferentes em quatro das cinco decisões. Por esse resultado observado, o Gemini é o provedor padrão; a Groq continua disponível como alternativa. Esse teste é limitado e não garante que respostas futuras serão sempre iguais.
 
+## Do pitch ao produto
+
+Na primeira fase, apresentamos o Telos em um site (https://themistech.netlify.app) com a visão completa do produto. Nesta segunda fase, construímos uma versão real e reduzida. Esta seção mostra, com honestidade, o que foi entregue, o que foi simplificado e o que fica para uma próxima versão.
+
+O que foi entregue. O Telos busca sozinho decisões novas no Tribunal de Justiça de São Paulo, compara cada uma com os casos do escritório e avisa quais casos foram afetados, com o que mudou e o link oficial para conferir, como prometido no site. Também mantivemos a promessa central de nunca entregar informação sem fonte oficial: o link é montado pelo programa a partir dos dados do tribunal, e cada trecho citado pela inteligência artificial é conferido no texto da decisão. O produto serve para qualquer área do Direito, porque a área vigiada depende apenas dos casos cadastrados e dos termos de busca.
+
+O que entregamos além do prometido. Cada aviso informa o resultado da decisão e se ela é favorável ou desfavorável ao cliente. Criamos ainda um "segundo parecer": cada decisão é analisada duas vezes, e só vira aviso quando as duas análises concordam. Quando discordam, a decisão vai para "Revisar à mão". Fizemos isso depois de medir que um dos modelos testados dava respostas diferentes para a mesma decisão.
+
+O que foi simplificado, e por quê. O site prometia vigiar leis, o Supremo Tribunal Federal, o Superior Tribunal de Justiça, o Banco Central, o Cade e a Receita. Esta versão vigia só o Tribunal de Justiça de São Paulo, porque a biblioteca pública que usamos para buscar decisões não cobre o Superior Tribunal de Justiça, e cada nova fonte exige um buscador próprio. O site prometia avisos na hora, por e-mail ou WhatsApp. Esta versão envia por e-mail ao final de cada execução. O WhatsApp exige um acesso oficial pago, e a execução automática diária depende de um computador ou servidor ligado. O site mostrava a escolha do que vigiar escrevendo em linguagem natural. Aqui, isso é feito editando os termos de busca no arquivo de configuração. O site mostrava contratos completos. Aqui, cada caso é uma descrição curta. Os acórdãos de segundo grau são analisados apenas pela ementa, e cada execução analisa cinco decisões, por causa dos limites do plano gratuito.
+
+Sigilo. O site prometia criptografia do início ao fim. Uma criptografia completa não é possível quando uma inteligência artificial precisa ler o texto para analisá-lo. Nesta versão, usamos apenas casos inventados e decisões públicas, e o plano gratuito do Gemini pode usar os textos enviados para melhorar os produtos do Google. Em uso real, o caminho seria um plano pago, que não usa os dados para treinamento, e manter o nome do cliente apenas no computador do escritório, enviando à inteligência artificial só um código e a descrição do caso.
+
+Próximos passos. Novas fontes, começando pelo Superior Tribunal de Justiça e pelos diários oficiais; execução automática diária em servidor; leitura do acórdão completo; cadastro de contratos inteiros; e envio de cada aviso apenas ao advogado responsável pelo caso.
+
 ## 8. Instalação e uso
 
 ### Instalar
