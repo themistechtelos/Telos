@@ -1419,17 +1419,19 @@ def send_round_email(
 ) -> None:
     sender = os.environ.get("GMAIL_SENDER", "").strip()
     app_password = os.environ.get("GMAIL_APP_PASSWORD", "").strip().replace(" ", "")
-    recipient = os.environ.get("GMAIL_RECIPIENT", "").strip()
-    if not sender and not app_password and not recipient:
+    recipient_field = os.environ.get("GMAIL_RECIPIENT", "").strip()
+    recipients = list(dict.fromkeys(address.strip() for address in recipient_field.split(",") if address.strip()))
+    if not sender and not app_password and not recipients:
         return
-    if not sender or not app_password or not recipient:
+    if not sender or not app_password or not recipients:
         print("\nE-mail não enviado: preencha GMAIL_SENDER, GMAIL_APP_PASSWORD e GMAIL_RECIPIENT no .env.")
         return
 
     try:
         message = EmailMessage()
         message["From"] = sender
-        message["To"] = recipient
+        message["To"] = "undisclosed-recipients:;"
+        message["Bcc"] = ", ".join(recipients)
         message["Subject"] = round_email_subject(len(alerts), len(reviews))
         message["Date"] = formatdate(localtime=True)
         message.set_content(format_round_email(alerts, reviews, completed_count, selected_count, interrupted))
@@ -1440,7 +1442,7 @@ def send_round_email(
         with smtplib.SMTP("smtp.gmail.com", 587, timeout=30) as smtp:
             smtp.starttls(context=ssl.create_default_context())
             smtp.login(sender, app_password)
-            smtp.send_message(message)
+            smtp.send_message(message, from_addr=sender, to_addrs=recipients)
     except smtplib.SMTPAuthenticationError:
         print("\nNão foi possível autenticar no Gmail. Confira o remetente e a senha de app no .env.")
     except (smtplib.SMTPException, OSError, ValueError) as error:

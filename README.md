@@ -87,12 +87,12 @@ Para criar a senha de app do Gmail:
 
 1. Ative a [Verificação em duas etapas](https://support.google.com/accounts/answer/185839?hl=pt-BR) na sua Conta Google.
 2. Abra a página de [senhas de app](https://myaccount.google.com/apppasswords), entre na conta que enviará os avisos e crie uma senha para o Telos. O Google mostra a senha uma única vez; guarde-a para o próximo passo.
-3. No `.env`, preencha os três campos. Use o endereço Gmail que criou a senha em `GMAIL_SENDER`, a senha gerada em `GMAIL_APP_PASSWORD` e o endereço que deve receber as mensagens em `GMAIL_RECIPIENT`:
+3. No `.env`, preencha os três campos. Use o endereço Gmail que criou a senha em `GMAIL_SENDER`, a senha gerada em `GMAIL_APP_PASSWORD` e informe em `GMAIL_RECIPIENT` o endereço ou a lista de endereços que receberá as mensagens. Separe vários endereços por vírgula. Todos recebem a mensagem em cópia oculta, sem ver o endereço dos demais:
 
    ```text
    GMAIL_SENDER=seu-endereco@gmail.com
    GMAIL_APP_PASSWORD=senha-de-app-do-google
-   GMAIL_RECIPIENT=destino@exemplo.com
+   GMAIL_RECIPIENT=destino1@exemplo.com,destino2@exemplo.com
    ```
 
    O Telos envia pelo servidor seguro do Gmail (`smtp.gmail.com`, TLS na porta 587). A senha de app requer Verificação em duas etapas; algumas contas de trabalho/escola, contas com Proteção Avançada ou contas que usam somente chaves de segurança podem não oferecer essa opção. Veja a [ajuda oficial do Google sobre senhas de app](https://support.google.com/accounts/answer/185833?hl=pt-BR) e os [parâmetros SMTP do Gmail](https://support.google.com/mail/answer/7104828?hl=pt-BR).
