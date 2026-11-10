@@ -11,7 +11,7 @@
 <body>
   <header class="topbar">
     <a class="brand" href="/" aria-label="Telos, página inicial">
-      <span class="brand-mark">T</span>
+      <img class="brand-mark" src="{{ url_for('static', filename='themis-symbol.svg') }}" alt="Símbolo da Themis Tech">
       <span><strong>TELOS</strong><small>THEMIS TECH</small></span>
     </a>
     <nav><a class="active" href="/">Visão geral</a><a href="/casos">Casos do escritório</a></nav>
@@ -32,6 +32,10 @@
           <span class="sparkle" aria-hidden="true">✳</span>
         </div>
         <form id="watch-form">
+          <label class="demo-toggle" for="use-collected">
+            <input id="use-collected" name="use_collected" type="checkbox" checked>
+            <span class="toggle-copy"><strong>Usar decisões já coletadas</strong><small id="demo-date-note">Modo de demonstração · carregando data da coleta…</small></span>
+          </label>
           <label for="area">Área do Direito</label>
           <select id="area" name="area">
             <option value="imobiliario">Direito Imobiliário</option>

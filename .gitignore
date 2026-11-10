@@ -16,3 +16,7 @@ decisoes/auto_*.txt
 
 # Estado local da interface web
 .telos_web_data/
+
+# Cadastro privado no computador do escritório
+.telos_clientes.json
+casos/cadastrados/

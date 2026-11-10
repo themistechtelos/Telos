@@ -152,11 +152,24 @@ EMAIL_CASE_TITLES = {
     "caso_11.txt": "Caso 11 — Sócio que quer sair",
     "caso_12.txt": "Caso 12 — Crédito na recuperação judicial",
     "caso_13.txt": "Caso 13 — Horas extras",
+    "atraso_alugueis.txt": "Caso demonstração — Lucros cessantes por atraso na entrega",
+    "multa_atraso_obra.txt": "Caso demonstração — Indenização pelo período sem uso",
+    "desistencia_retencao.txt": "Caso demonstração — Retenção na desistência da compra",
+    "defeitos_construcao.txt": "Caso demonstração — Reparos por defeitos construtivos",
+    "despejo_inadimplencia.txt": "Caso demonstração — Despejo e aluguéis vencidos",
+    "retirada_socio.txt": "Caso demonstração — Apuração de haveres na saída de sócio",
+    "credito_recuperacao.txt": "Caso demonstração — Habilitação de crédito na recuperação",
+    "duplicata_servico.txt": "Caso demonstração — Protesto de duplicata sem serviço",
+    "franquia_rescisao.txt": "Caso demonstração — Rescisão de franquia por falta de suporte",
 }
+CASE_DISPLAY_NAMES: dict[str, str] = {}
 
 
 def email_case_title(case_filename: str) -> str:
     """Return a human-readable case heading without exposing its filename."""
+    private_name = CASE_DISPLAY_NAMES.get(Path(case_filename).stem)
+    if private_name:
+        return f"Caso cadastrado — {private_name}"
     known_title = EMAIL_CASE_TITLES.get(Path(case_filename).name)
     if known_title:
         return known_title
@@ -1076,6 +1089,7 @@ def print_decision_result(path: Path, official_link: str, result: dict, decision
                 print(f"    “{quote.strip()}”")
             email_alerts.append({
                 "decisao": path.name,
+                "arquivo_caso": item["arquivo"],
                 "caso": email_case_title(item["arquivo"]),
                 "resumo": item.get("resumo", "").strip() or "não informado",
                 "motivo_relacao": item.get("motivo", "").strip() or "não informado",
@@ -1775,8 +1789,9 @@ def analyze_decisions(
     extra_recipients: str | None = None,
     progress_callback=None,
     result_callback=None,
+    alert_transform=None,
 ) -> int:
-    case_paths = sorted(path for path in CASES_DIR.glob("*.txt") if path.is_file())
+    case_paths = sorted(path for path in CASES_DIR.rglob("*.txt") if path.is_file())
     if not case_paths:
         print("Nenhum caso .txt encontrado na pasta casos/.")
         return 1
@@ -1894,6 +1909,8 @@ def analyze_decisions(
     )
     if remaining > 0:
         print(f"\nRestam até {remaining} decisão(ões) pendente(s). Rode Telos novamente para a próxima rodada.")
+    if alert_transform:
+        round_alerts = alert_transform(round_alerts)
     if progress_callback:
         progress_callback("sending_email", completed_count, len(selected))
     email_sent = send_round_email(

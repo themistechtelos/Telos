@@ -57,6 +57,12 @@ Próximos passos. Novas fontes, começando pelo Superior Tribunal de Justiça e 
 
 A interface é uma página simples para demonstração ao vivo. Ela permite escolher Direito Imobiliário, Direito Empresarial ou todas as áreas; analisar de uma a cinco decisões; e informar, se quiser, um e-mail extra para receber os avisos da rodada. Esse endereço é somado aos destinatários configurados e fica oculto dos demais. As chaves e senhas não são enviadas à página.
 
+O modo **Usar decisões já coletadas** fica ligado por padrão: nesse modo, não há busca no TJSP e o Telos prioriza oito decisões locais marcadas para demonstração (quatro de cada área). A página informa a data de criação dos arquivos coletados. Desligue a opção para fazer uma busca ao vivo. Há nove casos fictícios em `casos/demonstracao/`; dois tratam de indenização pelo atraso da entrega e podem ser relacionados à mesma decisão quando os dois pareceres confirmarem relação direta. A demonstração não garante avisos: divergências entre os pareceres vão para “Revisar à mão”.
+
+Na página **Casos do escritório**, o cadastro fica disponível somente quando o Telos é aberto em `localhost`. O nome do cliente e sua relação com um código ficam no computador, em `.telos_clientes.json` (ignorado pelo Git). A IA recebe somente o código e a descrição do caso. O programa acrescenta o nome localmente aos avisos e e-mails. O novo cadastro passa a participar da próxima rodada. Em hospedagem remota, esse formulário é bloqueado para que o nome não seja enviado ao servidor.
+
+Em uma repetição de teste com três decisões imobiliárias do modo de demonstração, o GPT-6 Luna terminou as duas rodadas em cerca de 2 min 29 s e 3 min 51 s. Os avisos não foram iguais; nenhum aviso direto foi confirmado e uma decisão ficou em “Revisar à mão”. O teste não enviou e-mail. As respostas da IA podem variar entre rodadas, e o Telos mantém a divergência para revisão humana em vez de criar um aviso sem consenso.
+
 Para abrir no seu computador:
 
 1. Instale as dependências conforme a seção seguinte e configure as chaves no `.env`.
@@ -75,7 +81,7 @@ O andamento aparece na própria tela enquanto o trabalho continua em segundo pla
 
 O projeto inclui `render.yaml` para criar um serviço web gratuito no Render. Envie o repositório ao GitHub e, no Render, crie um **Blueprint** conectado a esse repositório. Escolha o plano gratuito. No painel de variáveis do serviço, informe `OPENAI_API_KEY` (ou a chave do provedor alternativo escolhido), `TELOS_ACCESS_CODE` e, se usar e-mail, `GMAIL_SENDER`, `GMAIL_APP_PASSWORD` e `GMAIL_RECIPIENT`. Os campos marcados como secretos são guardados pelo serviço; não coloque esses valores no código nem envie o `.env` ao GitHub. Os termos separados por área já vêm no `render.yaml` e podem ser alterados no painel. O Render fornece `PORT`, usado pelo comando de inicialização; para hospedagem, as dependências do servidor ficam em `requirements-hosting.txt`.
 
-Configure um código em `TELOS_ACCESS_CODE` na hospedagem: sem ele, o servidor hospedado bloqueia o início das rodadas. Depois que o serviço for criado, copie o endereço `*.onrender.com` e acrescente ao site de apresentação um botão que aponte para esse endereço.
+Configure um código em `TELOS_ACCESS_CODE` na hospedagem: sem ele, o servidor hospedado bloqueia o início das rodadas. Depois que o serviço for criado, copie o endereço `*.onrender.com` e acrescente ao site de apresentação um botão que aponte para esse endereço. O formulário de cadastro de cliente é bloqueado fora do computador local.
 
 Há duas limitações importantes do plano gratuito do Render para esta demonstração: ele apaga arquivos locais quando o serviço para, reinicia ou é publicado novamente, então a cópia da última rodada pode se perder; e bloqueia conexões SMTP de saída na porta 587, usada pelo envio atual via Gmail. Assim, a interface e a análise podem ser hospedadas, mas o e-mail via Gmail funciona no computador e não pelo serviço gratuito do Render. Para manter a última rodada no servidor após reinícios e enviar e-mail hospedado, será necessário adicionar armazenamento persistente e um serviço de e-mail compatível com a hospedagem. Veja as [limitações oficiais do plano gratuito](https://render.com/docs/free) e o [guia oficial de Flask no Render](https://render.com/docs/deploy-flask).
 

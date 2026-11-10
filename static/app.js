@@ -40,6 +40,7 @@
     summary.append(node('span', 'summary-chip', `${round.concluidas} de ${round.selecionadas} decisões analisadas`));
     if (round.email_enviado === true) summary.append(node('span', 'summary-chip', 'E-mail enviado'));
     if (round.email_enviado === false) summary.append(node('span', 'summary-chip', 'E-mail não enviado'));
+    if (round.modo_demo) summary.append(node('span', 'summary-chip', `Modo demonstração · coleta ${round.data_coleta || 'data não informada'}`));
     content.append(summary);
     if (round.interrompida) content.append(node('div', 'empty-state', 'A rodada foi interrompida antes de analisar todas as decisões selecionadas.'));
 
@@ -149,6 +150,7 @@
     const formData = new FormData(form);
     const payload = Object.fromEntries(formData.entries());
     payload.decision_count = Number(payload.decision_count);
+    payload.use_collected = formData.has('use_collected');
     button.disabled = true;
     button.querySelector('span:first-child').textContent = 'Preparando…';
     try {
@@ -170,5 +172,9 @@
   });
 
   applyState(window.TELOS_INITIAL_STATE || {});
+  fetch('/api/demo-info', {cache:'no-store'}).then(r=>r.json()).then(info=>{
+    const note=document.getElementById('demo-date-note');
+    if(note) note.textContent=info.collection_date ? `Modo de demonstração · decisões coletadas em ${new Date(`${info.collection_date}T12:00:00`).toLocaleDateString('pt-BR')}` : 'Modo de demonstração · sem decisões marcadas';
+  }).catch(()=>{});
   window.setInterval(refreshState, 1600);
 })();

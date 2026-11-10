@@ -4,15 +4,26 @@
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#171827"><title>Casos do escritório — Telos</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script defer src="{{ url_for('static', filename='cases.js') }}"></script>
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="/" aria-label="Telos, página inicial"><span class="brand-mark">T</span><span><strong>TELOS</strong><small>THEMIS TECH</small></span></a>
+    <a class="brand" href="/" aria-label="Telos, página inicial"><img class="brand-mark" src="{{ url_for('static', filename='themis-symbol.svg') }}" alt="Símbolo da Themis Tech"><span><strong>TELOS</strong><small>THEMIS TECH</small></span></a>
     <nav><a href="/">Visão geral</a><a class="active" href="/casos">Casos do escritório</a></nav>
     <span class="live-tag"><i></i> TJSP</span>
   </header>
   <main class="page-wrap cases-page">
     <section class="hero compact-hero"><p class="eyebrow">BASE DE COMPARAÇÃO</p><h1>Casos do escritório</h1><p class="hero-copy">Descrições curtas usadas pelo Telos para comparar decisões novas com os assuntos acompanhados.</p></section>
+    <div class="cases-action"><button class="button primary" id="open-case-form" {% if not local_only %}disabled title="Abra o Telos neste computador para cadastrar com sigilo"{% endif %}>Cadastrar caso</button>{% if not local_only %}<span class="field-note">O cadastro que guarda nomes fica disponível apenas no Telos aberto neste computador.</span>{% endif %}</div>
+    <section id="case-wizard" class="panel wizard" hidden>
+      <div class="wizard-head"><span class="eyebrow" id="wizard-step-label">ETAPA 1 DE 3</span><button class="quiet-button" id="close-case-form" type="button">Fechar</button></div>
+      <form id="case-form">
+        <div class="wizard-step" data-step="1"><h2>O que vamos acompanhar?</h2><label for="case-kind">Tipo</label><select id="case-kind"><option value="contrato">Contrato</option><option value="processo">Processo</option></select><label for="case-client">Nome do cliente <small>(fica somente neste computador)</small></label><input id="case-client" maxlength="160" required autocomplete="off"><label for="case-description">Descrição do caso</label><textarea id="case-description" maxlength="4000" rows="4" required placeholder="Descreva o assunto jurídico que deseja acompanhar"></textarea><label for="case-area">Área do Direito</label><select id="case-area"><option value="imobiliario">Direito Imobiliário</option><option value="empresarial">Direito Empresarial</option></select><button type="button" class="button primary" id="to-privacy">Continuar</button></div>
+        <div class="wizard-step" data-step="2" hidden><div class="privacy-lock">✦</div><p class="eyebrow">ETAPA 2 DE 3</p><h2>Protegendo seus dados</h2><p>O nome do cliente fica num arquivo local deste computador e não é enviado à inteligência artificial.</p><div class="privacy-columns"><div><strong>Fica neste computador</strong><p>Nome do cliente e o código que o identifica.</p></div><div><strong>Vai para o Telos e a IA</strong><p>Somente o código do caso e a descrição jurídica, para comparação com decisões.</p></div></div><p class="field-note">O nome é acrescentado aos avisos e e-mails aqui no computador. O cadastro vale a partir da próxima rodada.</p><button type="button" class="quiet-button" id="back-to-form">Voltar</button><button type="submit" class="button primary">Cadastrar com sigilo</button></div>
+        <div class="wizard-step" data-step="3" hidden><p class="eyebrow">ETAPA 3 DE 3</p><h2>Caso cadastrado</h2><p id="case-success"></p><button type="button" class="button primary" id="finish-case-form">Concluir</button></div>
+        <p class="form-error" id="case-error" hidden></p>
+      </form>
+    </section>
     <div class="case-grid">
       {% for item in cases %}
       <article class="panel case-card">
