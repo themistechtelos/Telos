@@ -340,6 +340,13 @@ def progress_callback(stage: str, current: int, total: int) -> None:
             progress_current=current,
             progress_total=total,
         )
+    elif stage == "parallel_opinions":
+        update_run(
+            phase="analyzing",
+            message=f"Analisando decisões e emitindo segundos pareceres em paralelo ({current} de {total} análises)…",
+            progress_current=current,
+            progress_total=total,
+        )
     elif stage == "sending_email":
         update_run(
             phase="sending_email",

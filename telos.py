@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import hashlib
 import html
 import json
@@ -911,52 +912,69 @@ def valid_quote(quote: object, decision_text: str) -> bool:
 
 
 def compare_analyses(first: dict, second: dict, decision_text: str, cases: list[dict]) -> tuple[dict | None, list[str]]:
-    """Return a consensus result, or reasons requiring manual review."""
+    """Require relation consensus; flag outcome/favorability uncertainty without discarding a direct match."""
     issues: list[str] = []
     first_outcome = first["resultado_decisao"]
     second_outcome = second["resultado_decisao"]
-    if first_outcome["classificacao"] != second_outcome["classificacao"]:
-        issues.append("as análises discordam sobre o resultado da decisão")
-    elif first_outcome["classificacao"] == "outro_resultado_explicito":
-        if normalized(first_outcome["texto"]) != normalized(second_outcome["texto"]):
-            issues.append("as análises descrevem resultados diferentes para a decisão")
-    elif first_outcome["classificacao"] != "nao_identificado":
-        if not valid_quote(first_outcome["evidencia"], decision_text) or not valid_quote(
-            second_outcome["evidencia"], decision_text
-        ):
-            issues.append("uma das análises não comprovou o resultado com trecho literal verificável")
+    result_disagrees = first_outcome["classificacao"] != second_outcome["classificacao"] or (
+        first_outcome["classificacao"] == "outro_resultado_explicito"
+        and normalized(first_outcome["texto"]) != normalized(second_outcome["texto"])
+    )
+    result_evidence_ok = all(
+        outcome["classificacao"] == "nao_identificado"
+        or valid_quote(outcome["evidencia"], decision_text)
+        for outcome in (first_outcome, second_outcome)
+    )
+    result_uncertain = result_disagrees or not result_evidence_ok
 
     first_cases = {item["arquivo"]: item for item in first["casos"]}
     second_cases = {item["arquivo"]: item for item in second["casos"]}
     merged_cases = []
+    direct_consensus_count = 0
     for case in cases:
         name = case["arquivo"]
         left, right = first_cases[name], second_cases[name]
         if left["relacao"] != right["relacao"]:
             issues.append(f"as análises discordam sobre a relação com {name}")
-        if left["favorabilidade"] != right["favorabilidade"]:
-            issues.append(f"as análises discordam sobre a favorabilidade para {name}")
 
         left_evidence = [quote for quote in left["evidencias"] if valid_quote(quote, decision_text)]
         right_evidence = [quote for quote in right["evidencias"] if valid_quote(quote, decision_text)]
+        favorability_uncertain = left["favorabilidade"] != right["favorabilidade"]
         if left["relacao"] == right["relacao"] == "direta":
             if not left_evidence or not right_evidence:
                 issues.append(f"a relação direta com {name} não foi comprovada nas duas análises")
-            if left["favorabilidade"] != "incerta" and (
-                not valid_quote(left["evidencia_favorabilidade"], decision_text)
-                or not valid_quote(right["evidencia_favorabilidade"], decision_text)
+            else:
+                direct_consensus_count += 1
+            if left["favorabilidade"] != "incerta" and not all(
+                valid_quote(item["evidencia_favorabilidade"], decision_text)
+                for item in (left, right)
             ):
-                issues.append(f"a favorabilidade para {name} não foi comprovada nas duas análises")
+                favorability_uncertain = True
 
         combined_evidence = []
         for quote in left_evidence + right_evidence:
             if normalized(quote) not in {normalized(existing) for existing in combined_evidence}:
                 combined_evidence.append(quote)
-        merged_cases.append({**left, "evidencias": combined_evidence})
+        merged_cases.append({
+            **left,
+            "favorabilidade": left["favorabilidade"] if not favorability_uncertain else "incerta",
+            "_favorabilidade_a_confirmar": favorability_uncertain,
+            "_relacao_consensual_direta": left["relacao"] == right["relacao"] == "direta" and bool(left_evidence and right_evidence),
+            "evidencias": combined_evidence,
+        })
 
-    if issues:
+    if not direct_consensus_count:
         return None, list(dict.fromkeys(issues))
-    return {"resultado_decisao": first_outcome, "casos": merged_cases}, []
+    merged_outcome = first_outcome if not result_uncertain else {
+        "classificacao": "nao_identificado",
+        "texto": "Resultado a confirmar: os pareceres divergiram ou não localizaram prova comum.",
+        "evidencia": "",
+    }
+    return {
+        "resultado_decisao": merged_outcome,
+        "casos": merged_cases,
+        "_favorabilidade_a_confirmar": result_uncertain,
+    }, list(dict.fromkeys(issues))
 
 
 def annotate_review_response(result: dict, decision_text: str) -> dict:
@@ -1054,7 +1072,13 @@ def print_decision_result(path: Path, official_link: str, result: dict, decision
             print(f"\n  - {label}")
             print(f"  Resumo: {item.get('resumo', '').strip() or 'não informado'}")
             print(f"  Por que a relação é direta: {item.get('motivo', '').strip() or 'não informado'}")
-            print(f"  Resultado da decisão: {outcome_message}")
+            confirming = bool(item.get("_favorabilidade_a_confirmar") or result.get("_favorabilidade_a_confirmar"))
+            displayed_outcome = (
+                "Resultado a confirmar: os dois pareceres divergiram."
+                if result.get("_favorabilidade_a_confirmar") and result["resultado_decisao"]["classificacao"] == "nao_identificado"
+                else outcome_message
+            )
+            print(f"  Resultado da decisão: {displayed_outcome}")
             if valid_outcome_quote and outcome_class != "nao_identificado":
                 print(f"  Trecho sobre o resultado: “{outcome_quote}”")
             favorability = item.get("favorabilidade", "incerta")
@@ -1067,7 +1091,14 @@ def print_decision_result(path: Path, official_link: str, result: dict, decision
                 "desfavoravel": "desfavorável",
                 "mista": "mista",
             }
-            if favorability in favorability_labels and valid_favorability_quote:
+            if confirming:
+                position_message = "Favorabilidade a confirmar: os dois pareceres concordaram que a relação é direta, mas divergiram sobre o resultado ou seus efeitos para o cliente."
+                position_reason = "A relação direta foi confirmada pelos dois pareceres; confirme manualmente o resultado ou a favorabilidade no texto oficial."
+                print("  Posição do cliente: FAVORABILIDADE A CONFIRMAR.")
+                print(f"  Motivo: {position_reason}")
+                if valid_favorability_quote:
+                    print(f"  Trecho citado por um dos pareceres: “{favorability_quote}”")
+            elif favorability in favorability_labels and valid_favorability_quote:
                 if favorability == "favoravel":
                     position_message = "Favorável à posição descrita do cliente."
                 elif favorability == "desfavoravel":
@@ -1103,6 +1134,7 @@ def print_decision_result(path: Path, official_link: str, result: dict, decision
                 **email_metadata,
                 "somente_ementa": content_type.lower().startswith("ementa"),
                 "texto_parcial": "parte do texto foi omitida" in content_type.lower(),
+                "favorabilidade_a_confirmar": confirming,
             })
     else:
         print("  Nenhum aviso de impacto por relação direta nesta decisão.")
@@ -1196,6 +1228,8 @@ def affected_case_count_text(count: int) -> str:
 
 def alert_position_label(alert: dict) -> str:
     position = str(alert.get("posicao_cliente", "")).casefold()
+    if alert.get("favorabilidade_a_confirmar") or "a confirmar" in position:
+        return "FAVORABILIDADE A CONFIRMAR"
     if "desfavor" in position:
         return "DESFAVORÁVEL AO CLIENTE"
     if "favor" in position:
@@ -1596,6 +1630,8 @@ def render_round_email_html(
                 badge_color, badge_ink = "#e6f4ee", success
             elif label == "DESFAVORÁVEL AO CLIENTE":
                 badge_color, badge_ink = "#fff0ef", "#9b3434"
+            elif label == "FAVORABILIDADE A CONFIRMAR":
+                badge_color, badge_ink = "#fff5dc", "#805a00"
             else:
                 badge_color, badge_ink = "#f2f2f5", muted
             parts.extend([
@@ -1861,41 +1897,69 @@ def analyze_decisions(
     round_reviews: list[dict] = []
     completed_count = 0
     interrupted = False
-    for index, (path, raw_text, full_text, analysis_text, link, content_type) in enumerate(selected):
-        if progress_callback:
-            progress_callback("analyzing", index + 1, len(selected))
-        prompt = make_prompt(analysis_text, content_type, cases)
-        analyses = []
-        failed = False
-        for analysis_number in (1, 2):
-            if progress_callback:
-                progress_callback("second_opinion" if analysis_number == 2 else "first_opinion", index + 1, len(selected))
-            try:
-                result = call_model(provider, api_key, model, prompt)
-                validate_result(result, cases)
-                analyses.append(result)
-            except RuntimeError as error:
-                print(f"\nDecisão: {path.name}\n  A análise {analysis_number} de 2 não foi concluída: {error}")
-                failed = True
-                break
-        if failed:
-            interrupted = True
-            break
+    prompts = [make_prompt(item[3], item[5], cases) for item in selected]
+    opinions: dict[tuple[int, int], dict] = {}
+    failures: dict[tuple[int, int], str] = {}
+    task_count = len(selected) * 2
+    if progress_callback:
+        progress_callback("parallel_opinions", 0, task_count)
 
-        consensus, disagreements = compare_analyses(analyses[0], analyses[1], full_text, cases)
+    def request_opinion(index: int, number: int) -> dict:
+        result = call_model(provider, api_key, model, prompts[index])
+        validate_result(result, cases)
+        return result
+
+    finished_tasks = 0
+    with ThreadPoolExecutor(max_workers=task_count) as executor:
+        futures = {
+            executor.submit(request_opinion, index, number): (index, number)
+            for index in range(len(selected)) for number in (1, 2)
+        }
+        for future in as_completed(futures):
+            index, number = futures[future]
+            finished_tasks += 1
+            try:
+                opinions[(index, number)] = future.result()
+            except Exception as error:
+                failures[(index, number)] = str(error)
+            if progress_callback:
+                progress_callback("parallel_opinions", finished_tasks, task_count)
+
+    for index, (path, raw_text, full_text, analysis_text, link, content_type) in enumerate(selected):
+        if (index, 1) in failures or (index, 2) in failures:
+            for number in (1, 2):
+                if (index, number) in failures:
+                    print(f"\nDecisão: {path.name}\n  A análise {number} de 2 não foi concluída: {failures[(index, number)]}")
+            interrupted = True
+            continue
+
+        consensus, disagreements = compare_analyses(
+            opinions[(index, 1)], opinions[(index, 2)], full_text, cases
+        )
         if consensus is None:
             print(f"\nDecisão: {path.name}")
-            print_manual_review(analyses[0], analyses[1], disagreements, full_text)
+            print_manual_review(opinions[(index, 1)], opinions[(index, 2)], disagreements, full_text)
             print(f"  Link da consulta oficial do TJSP: {link}")
             round_reviews.append({
                 "decisao": path.name,
                 "link_oficial": link,
                 **decision_email_metadata(full_text, link),
                 "motivos": disagreements,
-                "resposta_1": annotate_review_response(analyses[0], full_text),
-                "resposta_2": annotate_review_response(analyses[1], full_text),
+                "resposta_1": annotate_review_response(opinions[(index, 1)], full_text),
+                "resposta_2": annotate_review_response(opinions[(index, 2)], full_text),
             })
         else:
+            relation_disagreements = [reason for reason in disagreements if "discordam sobre a relação" in reason or "relação direta" in reason]
+            if relation_disagreements:
+                print(f"\nDecisão: {path.name}\n  Há casos que continuam em Revisar à mão: {', '.join(relation_disagreements)}")
+                round_reviews.append({
+                    "decisao": path.name,
+                    "link_oficial": link,
+                    **decision_email_metadata(full_text, link),
+                    "motivos": relation_disagreements,
+                    "resposta_1": annotate_review_response(opinions[(index, 1)], full_text),
+                    "resposta_2": annotate_review_response(opinions[(index, 2)], full_text),
+                })
             round_alerts.extend(
                 print_decision_result(path, link, consensus, full_text, content_type, cases)
             )
