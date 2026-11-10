@@ -10,19 +10,9 @@ O Telos é um vigia de jurisprudência para escritórios de advocacia, criado pe
 2. **Análise:** a inteligência artificial compara o texto encontrado com os casos cadastrados. Cada decisão recebe dois pareceres independentes.
 3. **Aviso:** quando os pareceres concordam que há relação direta, o Telos mostra o resumo, o motivo, o resultado, trechos do documento e o link oficial.
 
-## 3. Exemplo real de aviso
+## 3. Exemplo de aviso
 
-Este aviso foi produzido em uma rodada já realizada. Os nomes das partes foram omitidos:
-
-> **Caso 4 — cobertura de cirurgia por plano de saúde**
->
-> **Resumo:** a decisão reconheceu a cobertura de uma cirurgia que havia sido negada sob a justificativa de que o procedimento não constava no rol da ANS.
->
-> **Resultado:** procedente. **Posição do cliente:** favorável.
->
-> **Trecho da decisão:** “É abusiva a recusa de cobertura de custeio de cirurgia e materiais (prótese) essenciais à saúde do beneficiário, sob o argumento de não estarem previstos no rol de procedimentos da ANS”.
->
-> **Consulta oficial do TJSP:** [abrir a decisão](https://esaj.tjsp.jus.br/cpopg/show.do?processo.codigo=GE000H9WU0000&processo.foro=590&processo.numero=1004083-13.2026.8.26.0590&gateway=true)
+A prévia [email_exemplo.html](email_exemplo.html) foi gerada com os avisos da rodada atual, já configurada para Direito Imobiliário e Direito Empresarial. Ela mostra como o resumo da decisão, os casos afetados, os trechos conferidos e o link oficial aparecem no e-mail.
 
 ## 4. Proteções contra erros da IA
 
@@ -33,7 +23,7 @@ Este aviso foi produzido em uma rodada já realizada. Os nomes das partes foram 
 
 ## 5. Como mudar a área vigiada
 
-A área acompanhada depende dos casos cadastrados na pasta `casos/` e dos termos em `TJSP_SEARCH_TERMS` no arquivo `.env`. Para mudar o foco, edite as descrições dos casos e troque ou acrescente termos de busca, separados por ponto e vírgula. O programa não fica preso a uma área específica: Direito Bancário é apenas o exemplo inicial.
+Nesta configuração, o Telos acompanha Direito Imobiliário e Direito Empresarial. A área depende dos casos cadastrados na pasta `casos/` e dos termos em `TJSP_SEARCH_TERMS` no arquivo `.env`. Para mudar o foco, edite as descrições dos casos e troque ou acrescente termos de busca, separados por ponto e vírgula. O Caso 13 (horas extras) é um caso de controle e não tem termo de busca.
 
 ## 6. Limitações
 
@@ -45,13 +35,13 @@ A área acompanhada depende dos casos cadastrados na pasta `casos/` e dos termos
 
 ## 7. Por que usamos o Gemini
 
-Nas mesmas cinco decisões analisadas duas vezes, o Gemini produziu respostas idênticas nas duas rodadas. No teste equivalente com a Groq, as respostas foram diferentes em quatro das cinco decisões. Por esse resultado observado, o Gemini é o provedor padrão; a Groq continua disponível como alternativa. Esse teste é limitado e não garante que respostas futuras serão sempre iguais.
+No teste anterior, feito com os casos e as decisões das áreas então acompanhadas (bancário, saúde e aviação), o Gemini produziu respostas idênticas nas duas rodadas para as mesmas cinco decisões. No teste equivalente com a Groq, as respostas foram diferentes em quatro das cinco decisões. Por esse resultado observado, o Gemini é o provedor padrão; a Groq continua disponível como alternativa. Esse registro se refere aos casos antigos, não aos atuais de Direito Imobiliário e Empresarial, e não garante que respostas futuras serão sempre iguais.
 
 ## Do pitch ao produto
 
 Na primeira fase, apresentamos o Telos em um site (https://themistech.netlify.app) com a visão completa do produto. Nesta segunda fase, construímos uma versão real e reduzida. Esta seção mostra, com honestidade, o que foi entregue, o que foi simplificado e o que fica para uma próxima versão.
 
-O que foi entregue. O Telos busca sozinho decisões novas no Tribunal de Justiça de São Paulo, compara cada uma com os casos do escritório e avisa quais casos foram afetados, com o que mudou e o link oficial para conferir, como prometido no site. Também mantivemos a promessa central de nunca entregar informação sem fonte oficial: o link é montado pelo programa a partir dos dados do tribunal, e cada trecho citado pela inteligência artificial é conferido no texto da decisão. O produto serve para qualquer área do Direito, porque a área vigiada depende apenas dos casos cadastrados e dos termos de busca.
+O que foi entregue. O Telos busca sozinho decisões novas no Tribunal de Justiça de São Paulo, compara cada uma com os casos do escritório e avisa quais casos foram afetados, com o que mudou e o link oficial para conferir, como prometido no site. Também mantivemos a promessa central de nunca entregar informação sem fonte oficial: o link é montado pelo programa a partir dos dados do tribunal, e cada trecho citado pela inteligência artificial é conferido no texto da decisão. O produto pode ser configurado para qualquer área do Direito, porque a área vigiada depende dos casos cadastrados e dos termos de busca.
 
 O que entregamos além do prometido. Cada aviso informa o resultado da decisão e se ela é favorável ou desfavorável ao cliente. Criamos ainda um "segundo parecer": cada decisão é analisada duas vezes, e só vira aviso quando as duas análises concordam. Quando discordam, a decisão vai para "Revisar à mão". Fizemos isso depois de medir que um dos modelos testados dava respostas diferentes para a mesma decisão.
 

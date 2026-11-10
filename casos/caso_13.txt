@@ -1,0 +1,2 @@
+Caso 13 — Horas extras
+Um empregado demitido quer receber horas extras não pagas. Este é um caso de controle e não possui termo de busca.

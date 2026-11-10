@@ -1,2 +1,2 @@
-Caso 3
-Empresa cliente quer revisar uma cláusula de garantia num contrato de financiamento de equipamentos.
+Caso 3 — Desistência da compra na planta
+O comprador desistiu do imóvel na planta, e a construtora quer reter metade do valor já pago.

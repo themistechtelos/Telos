@@ -1,0 +1,2 @@
+Caso 9 — Cobrança de notas fiscais
+A empresa cliente forneceu mercadorias para outra empresa, que não pagou as notas fiscais, e quer cobrar o valor.

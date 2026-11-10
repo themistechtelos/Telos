@@ -130,11 +130,19 @@ def is_official_tjsp_link(candidate: str) -> bool:
 
 
 EMAIL_CASE_TITLES = {
-    "caso_1.txt": "Caso 1 — Juros acima do combinado",
-    "caso_2.txt": "Caso 2 — Nome negativado após pagamento",
-    "caso_3.txt": "Caso 3 — Garantia em financiamento",
-    "caso_4.txt": "Caso 4 — Cirurgia negada pelo plano",
-    "caso_5.txt": "Caso 5 — Voo cancelado sem reacomodação",
+    "caso_1.txt": "Caso 1 — Apartamento entregue com atraso",
+    "caso_2.txt": "Caso 2 — Correção do saldo durante o atraso",
+    "caso_3.txt": "Caso 3 — Desistência da compra na planta",
+    "caso_4.txt": "Caso 4 — Defeitos no apartamento novo",
+    "caso_5.txt": "Caso 5 — Condomínio em atraso",
+    "caso_6.txt": "Caso 6 — Despejo por falta de pagamento",
+    "caso_7.txt": "Caso 7 — Renovação do aluguel da loja",
+    "caso_8.txt": "Caso 8 — Duplicata protestada sem serviço",
+    "caso_9.txt": "Caso 9 — Cobrança de notas fiscais",
+    "caso_10.txt": "Caso 10 — Saída da franquia",
+    "caso_11.txt": "Caso 11 — Sócio que quer sair",
+    "caso_12.txt": "Caso 12 — Crédito na recuperação judicial",
+    "caso_13.txt": "Caso 13 — Horas extras",
 }
 
 

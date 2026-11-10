@@ -1,2 +1,2 @@
-Caso 2
-Cliente teve o nome negativado por uma dívida de cartão de crédito que diz já ter pago.
+Caso 2 — Correção do saldo durante o atraso
+Outro comprador do mesmo tipo de empreendimento quer impedir que o saldo devedor continue sendo corrigido pelo INCC durante o período de atraso da obra.
