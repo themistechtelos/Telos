@@ -772,7 +772,7 @@ Extraia também o resultado da decisão. Use "procedente", "improcedente" ou "pa
 
 Avalie a favorabilidade à posição descrita para o cliente em cada caso, não à posição de uma parte cujo papel processual não foi informado. Use "favoravel" ou "desfavoravel" somente se o próprio texto trouxer trecho que sustente claramente essa leitura; use "mista" se beneficiar e prejudicar a posição descrita em aspectos relevantes; caso contrário, use "incerta". A favorabilidade não determina por si só se a decisão afeta o caso.
 
-O campo "resumo" deve explicar o que o tribunal decidiu e qual foi o fundamento principal, usando apenas o texto fornecido. Não repita a descrição do caso do cliente, não resuma os fatos do autor como se fossem a decisão e não use frases como "o cliente busca" ou "o cliente teve". Exemplo: "A sentença afastou a cobrança por entender que o contrato não previa a tarifa." Se o texto não permitir dizer o que foi decidido, deixe o resumo vazio.
+O campo "resumo" deve ser uma frase curta em português simples que começa com "O TJSP..." e explica o que o tribunal decidiu e, se estiver claro no texto, o fundamento principal. Não repita a descrição do caso do cliente, não resuma os fatos do autor como se fossem a decisão e não use frases como "o cliente busca" ou "o cliente teve". Exemplo: "O TJSP afastou a cobrança por entender que o contrato não previa a tarifa." Se o texto não permitir dizer o que foi decidido, deixe o resumo vazio.
 
 Responda somente JSON válido neste formato:
 {{"resultado_decisao":{{"classificacao":"procedente|improcedente|parcialmente_procedente|outro_resultado_explicito|nao_identificado","texto":"formulação literal curta do resultado; vazio se não identificado","evidencia":"trecho literal curto que comprova o resultado; vazio se não identificado"}},"casos":[{{"arquivo":"nome exato do arquivo do caso","relacao":"direta|indireta|nenhuma|incerta","resumo":"o que o tribunal decidiu, em linguagem simples; vazio se a relação for nenhuma/incerta ou se não constar no material","motivo":"explica a correspondência direta, a necessidade de analogia, a ausência de relação ou a incerteza","evidencias":["trechos literais curtos que sustentam a classificação"],"favorabilidade":"favoravel|desfavoravel|mista|incerta","motivo_favorabilidade":"por que o resultado favorece, desfavorece, tem efeito misto ou é inconclusivo para a posição do cliente","evidencia_favorabilidade":"trecho literal curto que comprova a avaliação; vazio somente quando incerta"}}]}}
@@ -1050,10 +1050,54 @@ def direct_alert_is_readable(alert: dict) -> bool:
         "resumo", "motivo_relacao", "resultado", "trecho_resultado", "posicao_cliente",
         "motivo_favorabilidade", "trecho_favorabilidade",
     )
-    if any(not is_readable_model_phrase(alert.get(key, "")) for key in scalar_fields):
+    if not str(alert.get("resumo", "")).strip() or any(
+        not is_readable_model_phrase(alert.get(key, "")) for key in scalar_fields
+    ):
         return False
     quotes = alert.get("trechos_relacao", [])
-    return isinstance(quotes, list) and all(is_readable_model_phrase(quote) for quote in quotes)
+    return (
+        isinstance(quotes, list)
+        and all(is_readable_model_phrase(quote) for quote in quotes)
+        and bool(str(alert.get("trecho_favorabilidade") or "").strip() or quotes)
+    )
+
+
+def group_alerts_by_decision(alerts: list[dict]) -> list[list[dict]]:
+    groups: dict[str, list[dict]] = {}
+    for alert in alerts:
+        key = str(alert.get("link_oficial") or alert.get("decisao") or id(alert))
+        groups.setdefault(key, []).append(alert)
+    return list(groups.values())
+
+
+def affected_case_count_text(count: int) -> str:
+    if count == 1:
+        return "1 caso do escritório é afetado."
+    return f"{count} casos do escritório são afetados."
+
+
+def alert_position_label(alert: dict) -> str:
+    position = str(alert.get("posicao_cliente", "")).casefold()
+    if "desfavor" in position:
+        return "DESFAVORÁVEL AO CLIENTE"
+    if "favor" in position:
+        return "FAVORÁVEL AO CLIENTE"
+    return "FAVORABILIDADE INCERTA"
+
+
+def decision_evidence_by_case(group: list[dict]) -> list[tuple[str, str]]:
+    evidence_by_case: list[tuple[str, str]] = []
+    seen: set[str] = set()
+    for alert in group:
+        quote = str(alert.get("trecho_favorabilidade") or "").strip()
+        if not quote:
+            quotes = alert.get("trechos_relacao", [])
+            quote = str(quotes[0]).strip() if quotes else ""
+        identity = normalized(quote)
+        if quote and identity not in seen:
+            seen.add(identity)
+            evidence_by_case.append((str(alert.get("caso", "Caso")), quote))
+    return evidence_by_case
 
 
 def model_response_is_readable(response: object) -> bool:
@@ -1232,36 +1276,31 @@ def format_round_email(
     lines.extend(["", "AVISOS DIRETOS"])
     if not alerts:
         lines.append("Nenhum aviso direto nesta rodada.")
-    for alert in alerts:
-        if not direct_alert_is_readable(alert):
-            lines.extend([
-                "",
-                str(alert.get("caso", "Caso")),
-                decision_metadata_text(alert),
-                UNREADABLE_OPINION,
-                f"Link da consulta oficial do TJSP: {alert['link_oficial']}",
-            ])
+    for group in group_alerts_by_decision(alerts):
+        first = group[0]
+        if not all(direct_alert_is_readable(alert) for alert in group):
+            lines.extend(["", UNREADABLE_OPINION, f"Link da consulta oficial do TJSP: {first['link_oficial']}"])
             continue
+        lines.extend(["", first["resumo"], affected_case_count_text(len(group))])
         lines.extend([
-            "",
-            alert["caso"],
-            decision_metadata_text(alert),
-            f"Resumo da decisão: {alert['resumo']}",
-            f"Por que afeta o caso: {alert['motivo_relacao']}",
-            f"Resultado da decisão: {alert['resultado']}",
+            f"Resultado da decisão: {first['resultado']}",
+            decision_metadata_text(first),
+            "Casos afetados:",
         ])
-        if alert.get("trecho_resultado"):
-            lines.append(f"Trecho sobre o resultado: “{alert['trecho_resultado']}”")
-        lines.append(f"Posição do cliente: {alert['posicao_cliente']}")
-        if alert.get("motivo_favorabilidade"):
-            lines.append(f"Motivo: {alert['motivo_favorabilidade']}")
-        if alert.get("trecho_favorabilidade"):
-            lines.append(f"Trecho comprobatório: “{alert['trecho_favorabilidade']}”")
-        if alert.get("somente_ementa"):
-            lines.append("A análise usou somente a ementa do acórdão, não o inteiro teor.")
-        if alert.get("texto_parcial"):
+        for alert in group:
+            lines.append(f"- {alert['caso']} — {alert_position_label(alert)}")
+        evidence = decision_evidence_by_case(group)
+        if evidence:
+            lines.append("Trecho(s) que comprova(m):")
+            for case_title, quote in evidence:
+                lines.append(f"- {case_title}: “{quote}”")
+        for alert in group:
+            if alert.get("somente_ementa"):
+                lines.append("A análise usou somente a ementa do acórdão, não o inteiro teor.")
+                break
+        if any(alert.get("texto_parcial") for alert in group):
             lines.append("A análise usou trechos iniciais e finais; a parte intermediária não foi enviada ao modelo.")
-        lines.append(f"Link da consulta oficial do TJSP: {alert['link_oficial']}")
+        lines.append(f"Link da consulta oficial do TJSP: {first['link_oficial']}")
 
     lines.extend(["", "REVISAR À MÃO"])
     if not reviews:
@@ -1399,78 +1438,89 @@ def render_round_email_html(
             f'<tr><td style="padding:0 26px 16px;font-family:Arial,Helvetica,sans-serif;'
             f'font-size:14px;line-height:21px;color:{muted};">Nenhum aviso direto nesta rodada.</td></tr>'
         )
-    for alert in alerts:
-        if not direct_alert_is_readable(alert):
+    for group in group_alerts_by_decision(alerts):
+        first = group[0]
+        if not all(direct_alert_is_readable(alert) for alert in group):
             parts.extend([
                 '<tr><td style="padding:7px 20px;"><table role="presentation" width="100%" cellpadding="0" '
                 'cellspacing="0" border="0" bgcolor="#ffffff" style="background-color:#ffffff;'
                 'border:1px solid #e2e2ec;border-radius:8px;"><tr><td style="padding:20px;">',
-                f'<div style="font-family:Arial,Helvetica,sans-serif;font-size:18px;font-weight:bold;'
-                f'line-height:24px;color:{ink};">{_email_escape(alert.get("caso", "Caso"))}</div>',
-                f'<div style="padding-top:6px;font-family:Arial,Helvetica,sans-serif;font-size:12px;'
-                f'line-height:18px;color:{muted};">{_email_escape(decision_metadata_text(alert))}</div>',
-                f'<div style="padding-top:13px;font-family:Arial,Helvetica,sans-serif;font-size:13px;'
-                f'line-height:20px;color:{ink};">{_email_escape(UNREADABLE_OPINION)}</div>',
-                '<div style="padding-top:18px;">',
-                _email_button(alert.get("link_oficial", ""), "Ver a decisão no site oficial do TJSP"),
+                f'<div style="font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:20px;'
+                f'color:{ink};">{_email_escape(UNREADABLE_OPINION)}</div>',
+                '<div style="padding-top:16px;">',
+                _email_button(first.get("link_oficial", ""), "Ver a decisão no site oficial do TJSP"),
                 '</div></td></tr></table></td></tr>',
             ])
             continue
-        position = str(alert.get("posicao_cliente", "")).strip()
-        favorable = "desfavor" not in position.casefold()
-        badge_text = "FAVORÁVEL AO CLIENTE" if favorable else "DESFAVORÁVEL AO CLIENTE"
-        badge_color = "#e6f4ee" if favorable else "#fff0ef"
-        badge_ink = success if favorable else "#9b3434"
-        evidence = alert.get("trecho_favorabilidade") or next(iter(alert.get("trechos_relacao", [])), "")
-        evidence = evidence.strip() if isinstance(evidence, str) else ""
+
         parts.extend([
             '<tr><td style="padding:7px 20px;">',
             f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" '
             f'bgcolor="#ffffff" style="width:100%;background-color:#ffffff;border:1px solid #e2e2ec;'
-            'border-radius:8px;"><tr><td style="padding:20px 20px 19px;">',
-            f'<div style="font-family:Arial,Helvetica,sans-serif;font-size:18px;font-weight:bold;'
-            f'line-height:24px;color:{ink};">{_email_escape(alert.get("caso", "Caso"))}</div>',
-            f'<div style="padding-top:4px;font-family:Arial,Helvetica,sans-serif;font-size:12px;'
-            f'line-height:18px;color:{muted};">{_email_escape(decision_metadata_text(alert))}</div>',
-            f'<div style="padding-top:14px;"><span style="display:inline-block;padding:5px 9px;'
-            f'background-color:{badge_color};color:{badge_ink};border-radius:20px;'
-            f'font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:bold;'
-            f'letter-spacing:.3px;">{badge_text}</span></div>',
-            f'<div style="padding-top:14px;font-family:Arial,Helvetica,sans-serif;font-size:13px;'
-            f'font-weight:bold;line-height:20px;color:{ink};">Resultado da decisão: '
-            f'{_email_escape(alert.get("resultado", "Não informado"))}</div>',
-            f'<div style="padding-top:9px;font-family:Arial,Helvetica,sans-serif;font-size:13px;'
-            f'line-height:20px;color:{ink};"><strong>Resumo da decisão:</strong> {_email_escape(alert.get("resumo", ""))}</div>',
-            f'<div style="padding-top:7px;font-family:Arial,Helvetica,sans-serif;font-size:13px;'
-            f'line-height:20px;color:{ink};"><strong>Por que afeta o caso:</strong> '
-            f'{_email_escape(alert.get("motivo_relacao", ""))}</div>',
+            'border-radius:8px;"><tr><td style="padding:21px 22px 20px;">',
+            f'<div style="font-family:Arial,Helvetica,sans-serif;font-size:17px;font-weight:bold;'
+            f'line-height:24px;color:{ink};">{_email_escape(first["resumo"])}</div>',
+            f'<div style="padding-top:10px;font-family:Arial,Helvetica,sans-serif;color:{ink};">'
+            f'<span style="font-size:30px;font-weight:bold;line-height:34px;color:{navy};">{len(group)}</span> '
+            f'<span style="font-size:14px;font-weight:bold;line-height:22px;">'
+            f'{"caso do escritório é afetado" if len(group) == 1 else "casos do escritório são afetados"}</span></div>',
+            f'<div style="padding-top:6px;font-family:Arial,Helvetica,sans-serif;font-size:12px;'
+            f'line-height:18px;color:{muted};"><strong>Resultado:</strong> {_email_escape(first["resultado"])}</div>',
+            f'<div style="padding-top:5px;font-family:Arial,Helvetica,sans-serif;font-size:11px;'
+            f'line-height:17px;color:{muted};">{_email_escape(decision_metadata_text(first))}</div>',
+            f'<div style="margin-top:15px;padding-top:11px;border-top:1px solid #e7e7ee;">',
+            '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" '
+            'style="width:100%;border-collapse:collapse;">',
         ])
+        for alert in group:
+            label = alert_position_label(alert)
+            if label == "FAVORÁVEL AO CLIENTE":
+                badge_color, badge_ink = "#e6f4ee", success
+            elif label == "DESFAVORÁVEL AO CLIENTE":
+                badge_color, badge_ink = "#fff0ef", "#9b3434"
+            else:
+                badge_color, badge_ink = "#f2f2f5", muted
+            parts.extend([
+                '<tr><td valign="middle" style="padding:8px 6px 8px 0;font-family:Arial,Helvetica,sans-serif;'
+                f'font-size:14px;line-height:20px;color:{ink};">{_email_escape(alert["caso"])}</td>',
+                f'<td align="right" valign="middle" style="padding:8px 0 8px 6px;text-align:right;">'
+                f'<span style="display:inline-block;padding:5px 9px;background-color:{badge_color};'
+                f'color:{badge_ink};border-radius:20px;font-family:Arial,Helvetica,sans-serif;'
+                f'font-size:10px;font-weight:bold;letter-spacing:.2px;white-space:nowrap;">{label}</span></td></tr>',
+            ])
+        parts.append('</table></div>')
+
+        evidence = decision_evidence_by_case(group)
         if evidence:
             parts.append(
-                f'<div style="margin-top:13px;padding:12px 14px;background-color:{light_lavender};'
+                f'<div style="margin-top:12px;padding:12px 14px;background-color:{light_lavender};'
                 f'border-left:3px solid {lavender};font-family:Georgia,serif;font-size:14px;'
-                f'line-height:21px;color:{ink};"><strong>Trecho que comprova:</strong><br>“'
-                f'{_email_escape(evidence)}”</div>'
+                f'line-height:21px;color:{ink};"><strong>'
+                f'{"Trecho que comprova:" if len(evidence) == 1 else "Trechos que comprovam:"}</strong>'
             )
-        if alert.get("trecho_resultado"):
-            parts.append(
-                f'<div style="padding-top:10px;font-family:Arial,Helvetica,sans-serif;font-size:12px;'
-                f'line-height:18px;color:{muted};"><strong>Trecho sobre o resultado:</strong> “'
-                f'{_email_escape(alert["trecho_resultado"])}”</div>'
-            )
+            for case_title, quote in evidence:
+                if len(evidence) > 1:
+                    parts.append(
+                        f'<div style="padding-top:7px;font-family:Arial,Helvetica,sans-serif;'
+                        f'font-size:11px;font-weight:bold;line-height:16px;color:{muted};">'
+                        f'{_email_escape(case_title)}</div>'
+                    )
+                parts.append(f'<div style="padding-top:4px;">“{_email_escape(quote)}”</div>')
+            parts.append('</div>')
+
         notes = []
-        if alert.get("somente_ementa"):
+        if any(alert.get("somente_ementa") for alert in group):
             notes.append("Análise feita somente com a ementa do acórdão.")
-        if alert.get("texto_parcial"):
+        if any(alert.get("texto_parcial") for alert in group):
             notes.append("A análise usou partes do texto; o trecho intermediário foi omitido.")
         if notes:
             parts.append(
-                f'<div style="padding-top:9px;font-family:Arial,Helvetica,sans-serif;font-size:12px;'
-                f'line-height:18px;color:{muted};">{_email_escape(" ".join(notes))}</div>'
+                f'<div style="padding-top:9px;font-family:Arial,Helvetica,sans-serif;font-size:11px;'
+                f'line-height:16px;color:{muted};">{_email_escape(" ".join(notes))}</div>'
             )
         parts.extend([
             '<div style="padding-top:18px;">',
-            _email_button(alert.get("link_oficial", ""), "Ver a decisão no site oficial do TJSP"),
+            _email_button(first.get("link_oficial", ""), "Ver a decisão no site oficial do TJSP"),
             '</div></td></tr></table></td></tr>',
         ])
 
@@ -1571,7 +1621,7 @@ def send_round_email(
         message["From"] = sender
         message["To"] = "undisclosed-recipients:;"
         message["Bcc"] = ", ".join(recipients)
-        subject = round_email_subject(len(alerts), len(reviews))
+        subject = round_email_subject(len(group_alerts_by_decision(alerts)), len(reviews))
         message["Subject"] = subject
         message["Date"] = formatdate(localtime=True)
         plain_body = format_round_email(alerts, reviews, completed_count, selected_count, interrupted)
@@ -1583,9 +1633,14 @@ def send_round_email(
         with smtplib.SMTP("smtp.gmail.com", 587, timeout=30) as smtp:
             smtp.starttls(context=ssl.create_default_context())
             smtp.login(sender, app_password)
-            smtp.send_message(message, from_addr=sender, to_addrs=recipients)
+            refused = smtp.send_message(message, from_addr=sender, to_addrs=recipients)
+        if refused:
+            print("\nO Gmail recusou um ou mais destinatários; não foi possível confirmar o envio para todos.")
+            return
     except smtplib.SMTPAuthenticationError:
         print("\nNão foi possível autenticar no Gmail. Confira o remetente e a senha de app no .env.")
+    except smtplib.SMTPRecipientsRefused:
+        print("\nO Gmail recusou o envio para os destinatários configurados.")
     except EmailJSONLeakError:
         print("\nE-mail não enviado: a verificação detectou chaves de resposta em JSON.")
     except (smtplib.SMTPException, OSError, ValueError) as error:
