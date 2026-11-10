@@ -79,7 +79,7 @@ Crie uma chave na [GroqCloud](https://console.groq.com/keys), cole-a depois de `
 
 ### Receber os avisos pelo Gmail
 
-O envio é opcional. Se `GMAIL_SENDER`, `GMAIL_APP_PASSWORD` e `GMAIL_RECIPIENT` estiverem vazios, o Telos funciona como antes e não tenta enviar e-mail. Quando os três estiverem preenchidos, cada rodada envia um resumo: os avisos diretos ficam em cartões separados e os itens de “Revisar à mão”, com as duas respostas, ficam em uma seção lilás própria. O visual usa o azul-marinho e a lavanda do site de apresentação da Themis Tech. A mensagem inclui uma versão HTML compatível com o Gmail e uma alternativa em texto simples.
+O envio é opcional. Se `GMAIL_SENDER`, `GMAIL_APP_PASSWORD` e `GMAIL_RECIPIENT` estiverem vazios, o Telos funciona como antes e não tenta enviar e-mail. Quando os três estiverem preenchidos, cada rodada envia um resumo: os avisos diretos ficam em cartões separados e os itens de “Revisar à mão”, com os pareceres em frases simples lado a lado, ficam em uma seção lilás própria. Cada aviso mostra um título curto para o caso e, quando constam no material, o número do processo, o foro, a vara e a data da decisão. Campos ausentes são identificados como não informados. O resumo descreve o que o tribunal decidiu. O assunto ajusta singular e plural. O visual usa o azul-marinho e a lavanda do site de apresentação da Themis Tech. A mensagem inclui uma versão HTML compatível com o Gmail e uma alternativa em texto simples.
 
 Você pode abrir [email_exemplo.html](email_exemplo.html) no navegador para ver uma prévia. O arquivo usa resultados de uma rodada anterior, sem nomes das partes do processo.
 

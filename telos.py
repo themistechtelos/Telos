@@ -97,6 +97,108 @@ def is_official_tjsp_link(candidate: str) -> bool:
     )
 
 
+EMAIL_CASE_TITLES = {
+    "caso_1.txt": "Caso 1 — Juros acima do combinado",
+    "caso_2.txt": "Caso 2 — Nome negativado após pagamento",
+    "caso_3.txt": "Caso 3 — Garantia em financiamento",
+    "caso_4.txt": "Caso 4 — Cirurgia negada pelo plano",
+    "caso_5.txt": "Caso 5 — Voo cancelado sem reacomodação",
+}
+
+
+def email_case_title(case_filename: str) -> str:
+    """Return a human-readable case heading without exposing its filename."""
+    known_title = EMAIL_CASE_TITLES.get(Path(case_filename).name)
+    if known_title:
+        return known_title
+    number = re.search(r"\d+", Path(case_filename).stem)
+    return f"Caso {number.group(0)}" if number else "Caso do escritório"
+
+
+def decision_email_metadata(decision_text: str, official_link: str) -> dict[str, str]:
+    """Extract decision metadata from the saved source and official TJSP URL."""
+    process_pattern = re.compile(r"\b\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}\b")
+    lines = decision_text.splitlines()
+    process_number = ""
+    for line in lines[:100]:
+        if re.match(r"(?i)^\s*(?:Identificador do processo ou decisão|Processo(?: Digital)?\s*(?:n[ºo.]|número|:))", line):
+            process_match = process_pattern.search(line)
+            if process_match:
+                process_number = process_match.group(0)
+                break
+    query = urllib.parse.parse_qs(urllib.parse.urlparse(official_link).query)
+    linked_process = query.get("processo.numero", [""])[0]
+    process_number = process_number or linked_process
+
+    forum = ""
+    for line in lines[:100]:
+        stripped = " ".join(line.split())
+        match = re.match(r"(?i)^Foro\s*:\s*(.+?)\s*$", stripped)
+        if match:
+            forum = match.group(1).rstrip(".;")
+            break
+        match = re.search(
+            r"(?i)\bForo\s+(?:Central|Regional|Distrital|de|da)\s+[^,.;\n]+",
+            stripped,
+        )
+        if match:
+            forum = match.group(0).strip().rstrip(".;")
+            forum = re.split(r"\s*[-–]\s*\d{1,2}[ªºa°]?\s+Vara\b", forum, maxsplit=1, flags=re.IGNORECASE)[0]
+            forum = re.split(r"\s+\(", forum, maxsplit=1)[0].rstrip(".;")
+            break
+    if not forum:
+        forum_code = query.get("processo.foro", query.get("cdForo", [""]))[0]
+        forum = f"código {forum_code} (nome não informado)" if forum_code else "não informado"
+
+    court = ""
+    for line in lines[:100]:
+        stripped = " ".join(line.split())
+        match = re.search(
+            r"(?i)\b(?:\d{1,2}[ªºa°]?\s+)?Vara\s+(?:Cível|Criminal|da|de|do|Empresarial|da Fazenda|de Família|do Trabalho)[^,.;]*",
+            stripped,
+        )
+        if match:
+            court = match.group(0).strip().rstrip(".;")
+            break
+        match = re.search(r"(?i)\bJuizado Especial\s+(?:Cível|Criminal)", stripped)
+        if match:
+            court = match.group(0)
+            break
+    if not court:
+        for line in lines[:100]:
+            match = re.match(r"(?i)^Vara\s*:\s*(.+?)\s*$", " ".join(line.split()))
+            if match:
+                court = match.group(1).rstrip(".;")
+                break
+    if not court:
+        court = "não identificada no material"
+
+    date_pattern = re.compile(
+        r"(?i)(?:\d{1,2}\s+de\s+(?:janeiro|fevereiro|março|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro)\s+de\s+\d{4}|\d{2}/\d{2}/\d{4})"
+    )
+    decision_date = ""
+    for line in lines[:100]:
+        if re.search(r"(?i)data\s+(?:da\s+)?(?:decisão|sentença|julgamento)\s*:", line):
+            match = date_pattern.search(line)
+            if match:
+                decision_date = match.group(0)
+                break
+    for line in reversed(lines[-35:]):
+        if decision_date:
+            break
+        stripped = " ".join(line.split())
+        match = date_pattern.search(stripped)
+        if match and ("," in stripped or re.search(r"(?i)data\s+(?:da\s+)?(?:decisão|sentença|julgamento)", stripped)):
+            decision_date = match.group(0)
+            break
+    return {
+        "numero_processo": process_number or "não identificado no material",
+        "foro": forum,
+        "vara": court,
+        "data_decisao": decision_date or "não identificada no material",
+    }
+
+
 def find_official_link(text: str) -> str | None:
     for candidate in URL_PATTERN.findall(text):
         candidate = candidate.rstrip(".,;:!?\"')")
@@ -136,6 +238,14 @@ def to_text(value: object) -> str:
     except (TypeError, ValueError):
         pass
     return str(value).strip()
+
+
+def record_first_value(record: dict, keys: tuple[str, ...]) -> str:
+    for key in keys:
+        value = to_text(record.get(key))
+        if value:
+            return value
+    return ""
 
 
 def find_result_link(record: dict, raw_path: Path | None) -> str | None:
@@ -291,10 +401,17 @@ def search_tjsp(quiet: bool = False) -> list[Path]:
                     "Fonte: busca automática do juscraper no TJSP",
                     f"Tipo de conteúdo: {content_type}",
                     f"Identificador do processo ou decisão: {process_number}",
-                    f"Busca: {search_term}",
-                    f"Link oficial: {link}",
-                    "",
                 ]
+                metadata_fields = (
+                    ("Foro", ("nm_foro", "nome_foro", "foro", "nm_comarca", "comarca")),
+                    ("Vara", ("nm_vara", "nome_vara", "vara")),
+                    ("Data da decisão", ("data_decisao", "dt_decisao", "data_julgamento", "dt_julgamento", "data_sessao")),
+                )
+                for label, keys in metadata_fields:
+                    value = record_first_value(record, keys)
+                    if value:
+                        header.append(f"{label}: {value}")
+                header.extend([f"Busca: {search_term}", f"Link oficial: {link}", ""])
                 output_path.write_text("\n".join(header) + body + "\n", encoding="utf-8")
                 saved.append(output_path)
 
@@ -623,8 +740,10 @@ Extraia também o resultado da decisão. Use "procedente", "improcedente" ou "pa
 
 Avalie a favorabilidade à posição descrita para o cliente em cada caso, não à posição de uma parte cujo papel processual não foi informado. Use "favoravel" ou "desfavoravel" somente se o próprio texto trouxer trecho que sustente claramente essa leitura; use "mista" se beneficiar e prejudicar a posição descrita em aspectos relevantes; caso contrário, use "incerta". A favorabilidade não determina por si só se a decisão afeta o caso.
 
+O campo "resumo" deve explicar o que o tribunal decidiu e qual foi o fundamento principal, usando apenas o texto fornecido. Não repita a descrição do caso do cliente, não resuma os fatos do autor como se fossem a decisão e não use frases como "o cliente busca" ou "o cliente teve". Exemplo: "A sentença afastou a cobrança por entender que o contrato não previa a tarifa." Se o texto não permitir dizer o que foi decidido, deixe o resumo vazio.
+
 Responda somente JSON válido neste formato:
-{{"resultado_decisao":{{"classificacao":"procedente|improcedente|parcialmente_procedente|outro_resultado_explicito|nao_identificado","texto":"formulação literal curta do resultado; vazio se não identificado","evidencia":"trecho literal curto que comprova o resultado; vazio se não identificado"}},"casos":[{{"arquivo":"nome exato do arquivo do caso","relacao":"direta|indireta|nenhuma|incerta","resumo":"resumo simples em português, baseado no documento; vazio se incerta ou nenhuma","motivo":"explica a correspondência direta, a necessidade de analogia, a ausência de relação ou a incerteza","evidencias":["trechos literais curtos que sustentam a classificação"],"favorabilidade":"favoravel|desfavoravel|mista|incerta","motivo_favorabilidade":"por que o resultado favorece, desfavorece, tem efeito misto ou é inconclusivo para a posição do cliente","evidencia_favorabilidade":"trecho literal curto que comprova a avaliação; vazio somente quando incerta"}}]}}
+{{"resultado_decisao":{{"classificacao":"procedente|improcedente|parcialmente_procedente|outro_resultado_explicito|nao_identificado","texto":"formulação literal curta do resultado; vazio se não identificado","evidencia":"trecho literal curto que comprova o resultado; vazio se não identificado"}},"casos":[{{"arquivo":"nome exato do arquivo do caso","relacao":"direta|indireta|nenhuma|incerta","resumo":"o que o tribunal decidiu, em linguagem simples; vazio se a relação for nenhuma/incerta ou se não constar no material","motivo":"explica a correspondência direta, a necessidade de analogia, a ausência de relação ou a incerteza","evidencias":["trechos literais curtos que sustentam a classificação"],"favorabilidade":"favoravel|desfavoravel|mista|incerta","motivo_favorabilidade":"por que o resultado favorece, desfavorece, tem efeito misto ou é inconclusivo para a posição do cliente","evidencia_favorabilidade":"trecho literal curto que comprova a avaliação; vazio somente quando incerta"}}]}}
 
 Inclua exatamente uma entrada para cada arquivo de caso abaixo. Nunca invente citações. Todas as evidências devem ser copiadas literalmente do material da decisão. Relações "diretas" e "indiretas" precisam ter evidências; para "nenhuma" e "incerta", use lista vazia quando não houver trecho literal útil. Não indique número de processo, data, tese ou resultado que não estejam no texto. Se a fonte for apenas uma ementa, trate-a como o único material disponível para a análise.
 
@@ -751,6 +870,7 @@ def print_decision_result(path: Path, official_link: str, result: dict, decision
 
     uncertain.extend(name for name in by_name if name not in seen)
     email_alerts: list[dict] = []
+    email_metadata = decision_email_metadata(decision_text, official_link)
     print(f"\nDecisão: {path.name}")
     if result.get("_telos_modelo_alternativo"):
         print(f"  Nota: o modelo padrão rejeitou a estrutura; a análise foi refeita com {result['_telos_modelo_alternativo']}.")
@@ -820,7 +940,7 @@ def print_decision_result(path: Path, official_link: str, result: dict, decision
                 print(f"    “{quote.strip()}”")
             email_alerts.append({
                 "decisao": path.name,
-                "caso": label,
+                "caso": email_case_title(item["arquivo"]),
                 "resumo": item.get("resumo", "").strip() or "não informado",
                 "motivo_relacao": item.get("motivo", "").strip() or "não informado",
                 "resultado": outcome_message,
@@ -830,6 +950,7 @@ def print_decision_result(path: Path, official_link: str, result: dict, decision
                 "trecho_favorabilidade": favorability_quote if valid_favorability_quote else "",
                 "trechos_relacao": item["evidencias"],
                 "link_oficial": official_link,
+                **email_metadata,
                 "somente_ementa": content_type.lower().startswith("ementa"),
                 "texto_parcial": "parte do texto foi omitida" in content_type.lower(),
             })
@@ -856,6 +977,162 @@ def print_decision_result(path: Path, official_link: str, result: dict, decision
     return email_alerts
 
 
+def round_email_subject(alert_count: int, review_count: int) -> str:
+    alerts = f"{alert_count} aviso" + ("" if alert_count == 1 else "s")
+    review_label = "item" if review_count == 1 else "itens"
+    reviews = f"{review_count} {review_label} para revisar"
+    return f"Telos: {alerts} e {reviews}"
+
+
+def decision_metadata_text(item: dict) -> str:
+    return (
+        f"Processo: {item.get('numero_processo', 'não identificado no material')} · "
+        f"Foro: {item.get('foro', 'não informado')} · "
+        f"Vara: {item.get('vara', 'não identificada no material')} · "
+        f"Data da decisão: {item.get('data_decisao', 'não identificada no material')}"
+    )
+
+
+RELATION_LABELS = {
+    "direta": "direta",
+    "indireta": "indireta",
+    "nenhuma": "nenhuma",
+    "incerta": "incerta",
+}
+FAVORABILITY_LABELS = {
+    "favoravel": "favorável ao cliente",
+    "desfavoravel": "desfavorável ao cliente",
+    "mista": "mista para o cliente",
+    "incerta": "não foi possível confirmar",
+}
+OUTCOME_LABELS = {
+    "procedente": "procedente",
+    "improcedente": "improcedente",
+    "parcialmente_procedente": "parcialmente procedente",
+    "nao_identificado": "não identificado no material",
+}
+
+
+def review_cases(review: dict) -> list[dict]:
+    first = review.get("resposta_1", {})
+    second = review.get("resposta_2", {})
+    first_cases = {item.get("arquivo"): item for item in first.get("casos", [])}
+    second_cases = {item.get("arquivo"): item for item in second.get("casos", [])}
+    result = []
+    for filename in sorted(set(first_cases) | set(second_cases)):
+        left = first_cases.get(filename, {})
+        right = second_cases.get(filename, {})
+        left_relation = left.get("relacao", "incerta")
+        right_relation = right.get("relacao", "incerta")
+        if left_relation == right_relation == "nenhuma":
+            continue
+        result.append({
+            "titulo": email_case_title(filename or ""),
+            "filename": filename,
+            "parecer_1": left,
+            "parecer_2": right,
+            "resultado_1": first.get("resultado_decisao", {}),
+            "resultado_2": second.get("resultado_decisao", {}),
+        })
+    return result
+
+
+def review_outcome_text(outcome: dict) -> str:
+    classification = outcome.get("classificacao", "nao_identificado")
+    if classification == "outro_resultado_explicito":
+        return outcome.get("texto", "Outro resultado expresso no material") or "Outro resultado expresso no material"
+    return OUTCOME_LABELS.get(classification, "não identificado no material")
+
+
+def review_quotes(case_opinion: dict, outcome: dict) -> list[tuple[str, bool | None]]:
+    quotes: list[tuple[str, bool | None]] = []
+    for evidence in case_opinion.get("evidencias", []):
+        if isinstance(evidence, dict):
+            quote = str(evidence.get("trecho", "")).strip()
+            checked = evidence.get("conferida_no_arquivo")
+        else:
+            quote, checked = str(evidence).strip(), None
+        if quote:
+            quotes.append((quote, checked))
+    outcome_quote = str(outcome.get("evidencia", "")).strip()
+    if outcome_quote:
+        quotes.append((outcome_quote, outcome.get("evidencia_conferida_no_arquivo")))
+    position_quote = str(case_opinion.get("evidencia_favorabilidade", "")).strip()
+    if position_quote:
+        quotes.append((position_quote, case_opinion.get("evidencia_favorabilidade_conferida_no_arquivo")))
+    unique = []
+    seen = set()
+    for quote, checked in quotes:
+        key = normalized(quote)
+        if key not in seen:
+            seen.add(key)
+            unique.append((quote, checked))
+    return unique
+
+
+def review_disagreement_text(review: dict, cases: list[dict]) -> str:
+    first = review.get("resposta_1", {})
+    second = review.get("resposta_2", {})
+    first_outcome = first.get("resultado_decisao", {})
+    second_outcome = second.get("resultado_decisao", {})
+    outcome_changed = first_outcome.get("classificacao") != second_outcome.get("classificacao")
+    explicit_text_changed = (
+        first_outcome.get("classificacao") == second_outcome.get("classificacao") == "outro_resultado_explicito"
+        and normalized(str(first_outcome.get("texto", ""))) != normalized(str(second_outcome.get("texto", "")))
+    )
+    if outcome_changed or explicit_text_changed:
+        return (
+            "Os pareceres discordaram sobre o resultado: "
+            f"{review_outcome_text(first_outcome)} versus {review_outcome_text(second_outcome)}."
+        )
+    differences = []
+    for item in cases:
+        left, right = item["parecer_1"], item["parecer_2"]
+        if left.get("relacao") != right.get("relacao"):
+            left_relation = RELATION_LABELS.get(left.get("relacao", "incerta"), "incerta")
+            right_relation = RELATION_LABELS.get(right.get("relacao", "incerta"), "incerta")
+            differences.append(
+                f"a relação para {item['titulo']} (Parecer 1: {left_relation}; Parecer 2: {right_relation})"
+            )
+        elif left.get("favorabilidade") != right.get("favorabilidade"):
+            left_favorability = FAVORABILITY_LABELS.get(left.get("favorabilidade", "incerta"), "incerta")
+            right_favorability = FAVORABILITY_LABELS.get(right.get("favorabilidade", "incerta"), "incerta")
+            differences.append(
+                f"a favorabilidade para {item['titulo']} "
+                f"(Parecer 1: {left_favorability}; Parecer 2: {right_favorability})"
+            )
+    if differences:
+        return "Os pareceres discordaram sobre " + " e ".join(differences) + "."
+    reasons = " ".join(review.get("motivos", [])).casefold()
+    if "favorabilidade" in reasons:
+        return "A avaliação de favorabilidade não foi confirmada pelos dois pareceres com trechos localizados no documento."
+    if "relação direta" in reasons or "relação com" in reasons:
+        return "Os trechos citados não comprovaram a relação da mesma forma nos dois pareceres."
+    if "resultado" in reasons:
+        return "Os pareceres não chegaram a um resultado comum que pudesse ser confirmado no material."
+    return "Os pareceres não chegaram a uma conclusão segura em comum."
+
+
+def format_review_opinion(label: str, opinion: dict, outcome: dict) -> str:
+    relation = RELATION_LABELS.get(opinion.get("relacao", "incerta"), "incerta")
+    relation_reason = str(opinion.get("motivo", "")).strip()
+    favorability = FAVORABILITY_LABELS.get(opinion.get("favorabilidade", "incerta"), "não foi possível confirmar")
+    lines = [
+        f"{label}: relação {relation}" + (f" — {relation_reason}" if relation_reason else "."),
+        f"Resultado: {review_outcome_text(outcome)}.",
+        f"Favorabilidade: {favorability}.",
+    ]
+    quotes = review_quotes(opinion, outcome)
+    if quotes:
+        lines.append("Trechos citados:")
+        for quote, checked in quotes:
+            verification = "conferido no documento" if checked is True else "não localizado no documento" if checked is False else "sem conferência registrada"
+            lines.append(f"  “{quote}” ({verification})")
+    else:
+        lines.append("Trecho citado: nenhum.")
+    return "\n".join(lines)
+
+
 def format_round_email(
     alerts: list[dict],
     reviews: list[dict],
@@ -869,48 +1146,47 @@ def format_round_email(
     ]
     if interrupted:
         lines.append("A rodada foi interrompida antes de concluir todas as decisões selecionadas.")
-
     lines.extend(["", "AVISOS DIRETOS"])
     if not alerts:
         lines.append("Nenhum aviso direto nesta rodada.")
     for alert in alerts:
         lines.extend([
             "",
-            f"{alert['caso']} — decisão {alert['decisao']}",
-            f"Resumo: {alert['resumo']}",
-            f"Motivo da relação direta: {alert['motivo_relacao']}",
+            alert["caso"],
+            decision_metadata_text(alert),
+            f"Resumo da decisão: {alert['resumo']}",
+            f"Por que afeta o caso: {alert['motivo_relacao']}",
             f"Resultado da decisão: {alert['resultado']}",
         ])
-        if alert["trecho_resultado"]:
+        if alert.get("trecho_resultado"):
             lines.append(f"Trecho sobre o resultado: “{alert['trecho_resultado']}”")
         lines.append(f"Posição do cliente: {alert['posicao_cliente']}")
-        if alert["motivo_favorabilidade"]:
+        if alert.get("motivo_favorabilidade"):
             lines.append(f"Motivo: {alert['motivo_favorabilidade']}")
-        if alert["trecho_favorabilidade"]:
+        if alert.get("trecho_favorabilidade"):
             lines.append(f"Trecho comprobatório: “{alert['trecho_favorabilidade']}”")
-        lines.append("Trechos que comprovam a relação:")
-        lines.extend(f"- “{quote}”" for quote in alert["trechos_relacao"])
-        if alert["somente_ementa"]:
+        if alert.get("somente_ementa"):
             lines.append("A análise usou somente a ementa do acórdão, não o inteiro teor.")
-        if alert["texto_parcial"]:
+        if alert.get("texto_parcial"):
             lines.append("A análise usou trechos iniciais e finais; a parte intermediária não foi enviada ao modelo.")
-        lines.append(f"Link oficial da consulta do TJSP: {alert['link_oficial']}")
+        lines.append(f"Link da consulta oficial do TJSP: {alert['link_oficial']}")
 
     lines.extend(["", "REVISAR À MÃO"])
     if not reviews:
         lines.append("Nenhum item para revisão manual nesta rodada.")
     for review in reviews:
-        lines.extend([
-            "",
-            f"Decisão: {review['decisao']}",
-            f"Link oficial da consulta do TJSP: {review['link_oficial']}",
-            "Motivos da divergência:",
-            *(f"- {reason}" for reason in review["motivos"]),
-            "Resposta 1 (citações marcadas como conferidas ou não conferidas no arquivo):",
-            json.dumps(review["resposta_1"], ensure_ascii=False, indent=2),
-            "Resposta 2 (citações marcadas como conferidas ou não conferidas no arquivo):",
-            json.dumps(review["resposta_2"], ensure_ascii=False, indent=2),
-        ])
+        cases = review_cases(review)
+        lines.extend(["", decision_metadata_text(review)])
+        if not cases:
+            lines.append("Nenhum caso foi relacionado à decisão pelos pareceres.")
+        for item in cases:
+            lines.extend([
+                "",
+                item["titulo"],
+                format_review_opinion("Parecer 1", item["parecer_1"], item["resultado_1"]),
+                format_review_opinion("Parecer 2", item["parecer_2"], item["resultado_2"]),
+            ])
+        lines.extend([review_disagreement_text(review, cases), f"Link da consulta oficial do TJSP: {review['link_oficial']}"])
     return "\n".join(lines)
 
 
@@ -928,6 +1204,37 @@ def _email_button(url: str, label: str) -> str:
         'line-height:20px;color:#171827;text-decoration:none;border-radius:6px;">'
         f'{_email_escape(label)}</a></td></tr></table>'
     )
+
+
+def render_review_opinion_html(label: str, opinion: dict, outcome: dict) -> str:
+    relation = RELATION_LABELS.get(opinion.get("relacao", "incerta"), "incerta")
+    reason = str(opinion.get("motivo", "")).strip()
+    favorability = FAVORABILITY_LABELS.get(opinion.get("favorabilidade", "incerta"), "não foi possível confirmar")
+    parts = [
+        f'<div style="font-family:Arial,Helvetica,sans-serif;font-size:13px;font-weight:bold;'
+        f'line-height:19px;color:#24263a;">{_email_escape(label)}</div>',
+        f'<div style="padding-top:7px;font-family:Arial,Helvetica,sans-serif;font-size:12px;'
+        f'line-height:18px;color:#24263a;"><strong>Relação:</strong> {_email_escape(relation)}'
+        f'{" — " + _email_escape(reason) if reason else ""}</div>',
+        f'<div style="padding-top:6px;font-family:Arial,Helvetica,sans-serif;font-size:12px;'
+        f'line-height:18px;color:#24263a;"><strong>Resultado:</strong> {_email_escape(review_outcome_text(outcome))}</div>',
+        f'<div style="padding-top:6px;font-family:Arial,Helvetica,sans-serif;font-size:12px;'
+        f'line-height:18px;color:#24263a;"><strong>Favorabilidade:</strong> {_email_escape(favorability)}</div>',
+    ]
+    for quote, checked in review_quotes(opinion, outcome):
+        verification = "conferido no documento" if checked is True else "não localizado no documento" if checked is False else "sem conferência registrada"
+        parts.append(
+            f'<div style="margin-top:8px;padding:8px;background-color:#ffffff;border-left:2px solid #a5a7ff;'
+            f'font-family:Georgia,serif;font-size:12px;line-height:18px;color:#24263a;">“'
+            f'{_email_escape(quote)}”<br><span style="font-family:Arial,Helvetica,sans-serif;'
+            f'font-size:10px;color:#62647a;">{_email_escape(verification)}</span></div>'
+        )
+    if not review_quotes(opinion, outcome):
+        parts.append(
+            '<div style="padding-top:8px;font-family:Arial,Helvetica,sans-serif;font-size:12px;'
+            'line-height:18px;color:#62647a;">Nenhum trecho citado.</div>'
+        )
+    return "".join(parts)
 
 
 def render_round_email_html(
@@ -1001,7 +1308,7 @@ def render_round_email_html(
             f'<div style="font-family:Arial,Helvetica,sans-serif;font-size:18px;font-weight:bold;'
             f'line-height:24px;color:{ink};">{_email_escape(alert.get("caso", "Caso"))}</div>',
             f'<div style="padding-top:4px;font-family:Arial,Helvetica,sans-serif;font-size:12px;'
-            f'line-height:18px;color:{muted};">Decisão: {_email_escape(alert.get("decisao", ""))}</div>',
+            f'line-height:18px;color:{muted};">{_email_escape(decision_metadata_text(alert))}</div>',
             f'<div style="padding-top:14px;"><span style="display:inline-block;padding:5px 9px;'
             f'background-color:{badge_color};color:{badge_ink};border-radius:20px;'
             f'font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:bold;'
@@ -1010,7 +1317,7 @@ def render_round_email_html(
             f'font-weight:bold;line-height:20px;color:{ink};">Resultado da decisão: '
             f'{_email_escape(alert.get("resultado", "Não informado"))}</div>',
             f'<div style="padding-top:9px;font-family:Arial,Helvetica,sans-serif;font-size:13px;'
-            f'line-height:20px;color:{ink};"><strong>Resumo:</strong> {_email_escape(alert.get("resumo", ""))}</div>',
+            f'line-height:20px;color:{ink};"><strong>Resumo da decisão:</strong> {_email_escape(alert.get("resumo", ""))}</div>',
             f'<div style="padding-top:7px;font-family:Arial,Helvetica,sans-serif;font-size:13px;'
             f'line-height:20px;color:{ink};"><strong>Por que afeta o caso:</strong> '
             f'{_email_escape(alert.get("motivo_relacao", ""))}</div>',
@@ -1054,6 +1361,7 @@ def render_round_email_html(
             f'font-size:14px;line-height:21px;color:{muted};">Nenhum item para revisão manual nesta rodada.</td></tr>'
         )
     for review in reviews:
+        cases = review_cases(review)
         parts.extend([
             '<tr><td style="padding:7px 20px;">',
             f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" '
@@ -1062,24 +1370,32 @@ def render_round_email_html(
             f'<div style="font-family:Arial,Helvetica,sans-serif;font-size:17px;font-weight:bold;'
             f'line-height:23px;color:{ink};">Decisão para revisar</div>',
             f'<div style="padding-top:5px;font-family:Arial,Helvetica,sans-serif;font-size:12px;'
-            f'line-height:18px;color:{muted};">{_email_escape(review.get("decisao", ""))}</div>',
+            f'line-height:18px;color:{muted};">{_email_escape(decision_metadata_text(review))}</div>',
         ])
-        reasons = review.get("motivos", [])
-        if reasons:
-            parts.append(
-                f'<div style="padding-top:10px;font-family:Arial,Helvetica,sans-serif;font-size:13px;'
-                f'line-height:20px;color:{ink};"><strong>Motivo da revisão:</strong> '
-                f'{_email_escape("; ".join(map(str, reasons)))}</div>'
-            )
-        for number in (1, 2):
-            response = json.dumps(review.get(f"resposta_{number}", {}), ensure_ascii=False, indent=2)
+        if not cases:
             parts.extend([
-                f'<div style="padding-top:13px;font-family:Arial,Helvetica,sans-serif;font-size:13px;'
-                f'font-weight:bold;line-height:19px;color:{ink};">Parecer {number}</div>',
-                f'<div style="margin-top:5px;padding:11px 12px;background-color:#ffffff;border:1px solid #dedeee;'
-                f'font-family:Courier New,monospace;font-size:11px;line-height:16px;color:{ink};'
-                f'white-space:pre-wrap;word-break:break-word;">{_email_escape(response)}</div>',
+                f'<div style="padding-top:10px;font-family:Arial,Helvetica,sans-serif;font-size:13px;'
+                f'line-height:19px;color:{muted};">Nenhum caso foi relacionado à decisão pelos pareceres.</div>'
             ])
+        for item in cases:
+            parts.extend([
+                f'<div style="padding-top:14px;font-family:Arial,Helvetica,sans-serif;font-size:15px;'
+                f'font-weight:bold;line-height:21px;color:{ink};">{_email_escape(item["titulo"])}</div>',
+                '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" '
+                'style="width:100%;margin-top:7px;border-collapse:collapse;"><tr>',
+                '<td width="50%" valign="top" style="width:50%;padding:11px;background-color:#f8f8ff;'
+                'border:1px solid #dedeee;">',
+                render_review_opinion_html("Parecer 1", item["parecer_1"], item["resultado_1"]),
+                '</td><td width="50%" valign="top" style="width:50%;padding:11px;background-color:#f8f8ff;'
+                'border:1px solid #dedeee;">',
+                render_review_opinion_html("Parecer 2", item["parecer_2"], item["resultado_2"]),
+                '</td></tr></table>',
+            ])
+        parts.append(
+            f'<div style="margin-top:12px;padding:10px 11px;background-color:#e5e5ff;'
+            f'font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:19px;color:{ink};">'
+            f'<strong>Ponto de divergência:</strong> {_email_escape(review_disagreement_text(review, cases))}</div>'
+        )
         parts.extend([
             '<div style="padding-top:16px;">',
             _email_button(review.get("link_oficial", ""), "Ver a decisão no site oficial do TJSP"),
@@ -1114,7 +1430,7 @@ def send_round_email(
         message = EmailMessage()
         message["From"] = sender
         message["To"] = recipient
-        message["Subject"] = f"Telos — {len(alerts)} aviso(s), {len(reviews)} item(ns) para revisar"
+        message["Subject"] = round_email_subject(len(alerts), len(reviews))
         message["Date"] = formatdate(localtime=True)
         message.set_content(format_round_email(alerts, reviews, completed_count, selected_count, interrupted))
         message.add_alternative(
@@ -1229,6 +1545,7 @@ def analyze_decisions(api_key: str, model: str, provider: str) -> int:
             round_reviews.append({
                 "decisao": path.name,
                 "link_oficial": link,
+                **decision_email_metadata(full_text, link),
                 "motivos": disagreements,
                 "resposta_1": annotate_review_response(analyses[0], full_text),
                 "resposta_2": annotate_review_response(analyses[1], full_text),
