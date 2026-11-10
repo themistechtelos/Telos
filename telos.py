@@ -879,12 +879,12 @@ def make_prompt(decision_text: str, content_type: str, cases: list[dict]) -> str
 O material desta decisão é: {content_type}. Se for apenas uma ementa, não presuma fatos ou fundamentos que possam estar no inteiro teor mas não apareçam nela.
 
 Para cada caso, classifique a relação em uma destas categorias:
-- "direta": a decisão efetivamente resolve a mesma questão jurídica material apresentada no caso, em circunstâncias essenciais suficientemente semelhantes. Pergunte-se: o fundamento ou o resultado da decisão responde à questão jurídica específica do cliente? Se a decisão apenas menciona um tema, contrato ou palavra parecida, mas não resolve essa questão, não é relação direta. Só esta categoria autoriza um aviso de impacto.
-- "indireta": há um princípio ou tema próximo, mas para aplicar a decisão ao caso seria necessária analogia, extensão ou adaptação, ou existe diferença material no tipo de contrato, garantia, pedido ou posição das partes. Nunca apresente relação indireta como aviso de impacto.
+- "direta": uma decisão de outro processo é direta quando resolve a mesma questão jurídica discutida no caso do escritório e, por isso, pode servir como precedente para ele. Exemplo: uma decisão que concede lucros cessantes por atraso na entrega de um imóvel é direta para um caso que também pede lucros cessantes pelo atraso na entrega. Pergunte-se: o fundamento ou o resultado da decisão responde à questão jurídica específica do cliente? Se a decisão apenas menciona um tema, contrato ou palavra parecida, mas não resolve essa questão, não é relação direta. Só esta categoria autoriza um aviso de impacto.
+- "indireta": a decisão trata de um tema parecido, mas resolve outra questão jurídica; para aplicá-la ao caso seria preciso fazer analogia, extensão ou adaptação. Por exemplo, uma decisão sobre multa contratual por atraso não é automaticamente precedente direto para um caso que discute o direito a lucros cessantes, ainda que ambos tratem de atraso na entrega do imóvel. Diferenças materiais no tipo de contrato, garantia, pedido ou posição das partes também podem tornar a relação indireta. Nunca apresente relação indireta como aviso de impacto.
 - "nenhuma": não há relação jurídica relevante demonstrada pelo texto.
 - "incerta": o material disponível não permite decidir se a relação é direta, indireta ou inexistente.
 
-Não classifique como direta só por haver palavras em comum ou por ambos os casos envolverem bancos/financiamentos. Para ser direta, o texto da decisão deve mostrar que ela resolve a mesma questão jurídica específica do caso, e não apenas tratar de assunto semelhante. Quando houver qualquer passo analógico para chegar ao caso, classifique como "indireta". Não presuma fatos que não aparecem nos casos. Use trechos literais curtos que comprovem a questão da decisão e a relação. Se não houver evidência literal suficiente, escolha "incerta".
+Não classifique como direta só por haver palavras em comum ou por ambos os casos pertencerem à mesma área do Direito. A decisão precisa resolver a mesma questão jurídica discutida no caso e funcionar como precedente para essa questão, não apenas tratar de assunto semelhante. Quando houver qualquer passo analógico para chegar ao caso, classifique como "indireta". Não presuma fatos que não aparecem nos casos. Use trechos literais curtos que comprovem a questão da decisão e a relação. Se não houver evidência literal suficiente, escolha "incerta".
 
 Extraia também o resultado da decisão. Use "procedente", "improcedente" ou "parcialmente_procedente" somente se o texto declarar expressamente esse resultado para a ação/pedido. Se o texto disponível só disser, por exemplo, que um recurso foi provido, use "outro_resultado_explicito" e copie a formulação literal em "texto". Se não houver resultado expresso no material disponível, use "nao_identificado" e deixe "texto" e "evidencia" vazios. Não infira o resultado do processo a partir da ementa quando ela não o disser.
 
@@ -1888,7 +1888,9 @@ def analyze_decisions(
         return 0
 
     decision_limit = max_decisions if max_decisions is not None else MAX_DECISIONS_PER_RUN
-    decision_limit = max(1, min(5, int(decision_limit)))
+    # The web page still accepts at most five. A private demonstration batch may
+    # explicitly pass up to eight to cover its full set of marked decisions.
+    decision_limit = max(1, min(8, int(decision_limit)))
     selected = pending[:decision_limit]
     if len(pending) > len(selected):
         print(f"Há {len(pending)} decisão(ões) pendente(s); esta rodada analisará no máximo {len(selected)}.")

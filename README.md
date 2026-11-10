@@ -18,7 +18,7 @@ A prévia [email_exemplo.html](email_exemplo.html) foi gerada com os avisos da r
 
 - **Citações conferidas:** o Telos verifica se cada trecho citado existe no texto da decisão. Citações que não aparecem no arquivo não são usadas como prova do aviso.
 - **Link oficial controlado pelo programa:** nas buscas automáticas, o Telos monta o link de consulta com identificadores recebidos do TJSP. A IA não inventa nem escolhe o link. Para arquivos colocados manualmente, o Telos usa o link oficial informado no próprio arquivo.
-- **Segundo parecer:** relação direta significa que a decisão resolve a mesma questão jurídica específica do caso, não apenas um tema parecido. Os dois pareceres precisam concordar que a relação é direta e comprová-la com trechos encontrados no arquivo. Se concordarem sobre a relação, mas divergirem apenas sobre o resultado ou a favorabilidade, o aviso é enviado com o selo **“Favorabilidade a confirmar”**. Divergências sobre a própria relação vão para **“Revisar à mão”**, junto com os dois pareceres.
+- **Segundo parecer:** uma decisão de outro processo tem relação direta quando resolve a mesma questão jurídica discutida no caso do escritório e pode servir de precedente. Por exemplo, uma decisão que concede lucros cessantes por atraso na entrega de imóvel é direta para um caso que também pede lucros cessantes pelo atraso. Se tratar de tema parecido, mas resolver outra questão, a relação é indireta. Os dois pareceres precisam concordar que a relação é direta e comprová-la com trechos encontrados no arquivo. Se concordarem sobre a relação, mas divergirem apenas sobre o resultado ou a favorabilidade, o aviso é enviado com o selo **“Favorabilidade a confirmar”**. Divergências sobre a própria relação vão para **“Revisar à mão”**, junto com os dois pareceres.
 - **Incerteza explícita:** quando o material não permite uma conclusão segura, o Telos diz **“não tenho certeza”** em vez de afirmar que a decisão afeta o caso.
 
 ## 5. Como mudar a área vigiada
@@ -61,7 +61,22 @@ O modo **Usar decisões já coletadas** fica ligado por padrão: nesse modo, nã
 
 Na página **Casos do escritório**, o cadastro fica disponível somente quando o Telos é aberto em `localhost`. O nome do cliente e sua relação com um código ficam no computador, em `.telos_clientes.json` (ignorado pelo Git). A IA recebe somente o código e a descrição do caso. O programa acrescenta o nome localmente aos avisos e e-mails. O novo cadastro passa a participar da próxima rodada. Em hospedagem remota, esse formulário é bloqueado para que o nome não seja enviado ao servidor.
 
-Em um teste anterior, ainda sem análises paralelas, três decisões imobiliárias levaram cerca de 2 min 29 s e 3 min 51 s; os avisos diferiram, nenhum aviso direto foi confirmado e uma decisão ficou em “Revisar à mão”. Após habilitar as análises em paralelo e ajustar a descrição do Caso 1 para explicitar lucros cessantes pelo valor locatício, repetimos as mesmas três decisões duas vezes. As rodadas levaram cerca de 1,7 s e 1,4 s, não geraram avisos diretos, tiveram uma decisão em “Revisar à mão” e produziram resultados iguais. O teste não enviou e-mail. Neste resultado, nenhum aviso afetou mais de um caso. A relação da decisão de atraso com o Caso 1 ainda dividiu os pareceres, por isso não foi promovida a aviso.
+Em um teste anterior, ainda sem análises paralelas, três decisões imobiliárias levaram cerca de 2 min 29 s e 3 min 51 s; os avisos diferiram, nenhum aviso direto foi confirmado e uma decisão ficou em “Revisar à mão”. Uma medição posterior de menos de dois segundos não registrou respostas novas da API e podia estar mostrando a última rodada já salva; por isso, ela não é usada como medida de desempenho.
+
+Na validação seguinte, limpamos o estado de decisões processadas antes de cada repetição, desligamos o envio de e-mail e contamos as respostas da API OpenAI. As mesmas oito decisões marcadas para demonstração foram analisadas duas vezes em paralelo. Cada rodada gerou 16 respostas da API, todas com identificador único, e terminou em 24,93 s e 25,74 s. Os avisos não foram iguais. A tabela mostra quantos casos receberam aviso direto em cada decisão; itens para revisão manual não contam como casos afetados confirmados.
+
+| Decisão da demonstração | Rodada 1 | Rodada 2 |
+| --- | ---: | ---: |
+| Atraso na entrega do imóvel | 3 | 3 |
+| Desistência da compra na planta | 0 | 3 |
+| Defeitos no apartamento | 2 | 2 |
+| Despejo por falta de pagamento | 0 | 0 |
+| Saída de sócio | 2 | 2 |
+| Crédito na recuperação judicial | 0 | 0 |
+| Duplicata protestada | 2 | 2 |
+| Rescisão de franquia | 0 | 2 |
+
+Nas rodadas, respectivamente, cinco e duas decisões também apareceram em “Revisar à mão”. Nenhum e-mail foi enviado.
 
 Para abrir no seu computador:
 
