@@ -156,15 +156,15 @@ EMAIL_CASE_TITLES = {
     "caso_14.txt": "Caso 14 — Juros acima do combinado",
     "caso_15.txt": "Caso 15 — Nome negativado após pagamento",
     "caso_16.txt": "Caso 16 — Garantia em financiamento",
-    "atraso_alugueis.txt": "Caso demonstração — Lucros cessantes por atraso na entrega",
-    "multa_atraso_obra.txt": "Caso demonstração — Indenização pelo período sem uso",
-    "desistencia_retencao.txt": "Caso demonstração — Retenção na desistência da compra",
-    "defeitos_construcao.txt": "Caso demonstração — Reparos por defeitos construtivos",
-    "despejo_inadimplencia.txt": "Caso demonstração — Despejo e aluguéis vencidos",
-    "retirada_socio.txt": "Caso demonstração — Apuração de haveres na saída de sócio",
-    "credito_recuperacao.txt": "Caso demonstração — Habilitação de crédito na recuperação",
-    "duplicata_servico.txt": "Caso demonstração — Protesto de duplicata sem serviço",
-    "franquia_rescisao.txt": "Caso demonstração — Rescisão de franquia por falta de suporte",
+    "caso_17.txt": "Caso 17 — Lucros cessantes por atraso",
+    "caso_18.txt": "Caso 18 — Crédito na recuperação judicial",
+    "caso_19.txt": "Caso 19 — Infiltração por falha de impermeabilização",
+    "caso_20.txt": "Caso 20 — Restituição após desistência",
+    "caso_21.txt": "Caso 21 — Despejo por aluguel atrasado",
+    "caso_22.txt": "Caso 22 — Duplicata protestada sem serviço",
+    "caso_23.txt": "Caso 23 — Rescisão de franquia",
+    "caso_24.txt": "Caso 24 — Apuração de haveres",
+    "caso_25.txt": "Caso 25 — Indenização pelo período sem uso",
 }
 CASE_DISPLAY_NAMES: dict[str, str] = {}
 
@@ -1838,6 +1838,7 @@ def analyze_decisions(
     progress_callback=None,
     result_callback=None,
     alert_transform=None,
+    send_email_after: bool = False,
 ) -> int:
     case_paths = sorted(path for path in CASES_DIR.rglob("*.txt") if path.is_file())
     if not case_paths:
@@ -1989,18 +1990,20 @@ def analyze_decisions(
         print(f"\nRestam até {remaining} decisão(ões) pendente(s). Rode Telos novamente para a próxima rodada.")
     if alert_transform:
         round_alerts = alert_transform(round_alerts)
-    if progress_callback:
-        progress_callback("sending_email", completed_count, len(selected))
-    email_sent = send_round_email(
-        round_alerts,
-        round_reviews,
-        completed_count,
-        len(selected),
-        interrupted,
-        extra_recipients=extra_recipients,
-    )
-    if progress_callback:
-        progress_callback("email_result", email_sent, len(selected))
+    email_sent = None
+    if send_email_after:
+        if progress_callback:
+            progress_callback("sending_email", completed_count, len(selected))
+        email_sent = send_round_email(
+            round_alerts,
+            round_reviews,
+            completed_count,
+            len(selected),
+            interrupted,
+            extra_recipients=extra_recipients,
+        )
+        if progress_callback:
+            progress_callback("email_result", email_sent, len(selected))
     if result_callback:
         result_callback({
             "alerts": round_alerts,

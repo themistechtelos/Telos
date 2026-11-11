@@ -8,6 +8,7 @@ import os
 import re
 import tempfile
 import threading
+import time
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -20,6 +21,8 @@ telos.load_env_file()
 ROOT = Path(__file__).resolve().parent
 DATA_DIR = Path(os.environ.get("TELOS_DATA_DIR", ROOT / ".telos_web_data"))
 LATEST_FILE = DATA_DIR / "ultima_rodada.json"
+DEMO_ROUND_FILE = ROOT / "demo_round.json"
+DEMO_MODE = os.environ.get("TELOS_DEMO_MODE", "true").strip().lower() in {"1", "true", "yes", "on"}
 CLIENT_MAP_FILE = Path(os.environ.get("TELOS_CLIENT_MAP_FILE", ROOT / ".telos_clientes.json"))
 CASE_AREAS = {
     "imobiliario": range(1, 8),
@@ -32,21 +35,11 @@ AREA_TERM_ENV = {
     "empresarial": "TJSP_SEARCH_TERMS_EMPRESARIAL",
     "bancario": "TJSP_SEARCH_TERMS_BANCARIO",
 }
-DEMO_DECISIONS = [
-    "auto_cjpg_13b0f8ff11aab399.txt",  # atraso na entrega, sentença parcial
-    "auto_cjpg_7209d643163189d3.txt",  # desistência da compra na planta
-    "auto_cjpg_b3c65848a8f797c4.txt",  # vícios construtivos
-    "auto_cjpg_ab64744715a081ca.txt",  # despejo por falta de pagamento
-    "auto_cjpg_a0f480a068bddd25.txt",  # saída de sócio
-    "auto_cjpg_f84e8b47b0998396.txt",  # habilitação de crédito
-    "auto_cjpg_3c1591a9f0cab2dc.txt",  # duplicata protestada
-    "auto_cjpg_f07cbe0ac450a7ab.txt",  # rescisão de franquia
-]
-
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024
 RUN_LOCK = threading.Lock()
 STATE_LOCK = threading.Lock()
+PENDING_EMAIL: dict | None = None
 
 
 def load_latest_round() -> dict | None:
@@ -65,6 +58,8 @@ RUN_STATE = {
     "progress_current": 0,
     "progress_total": 0,
     "last_round": LATEST_ROUND,
+    "email_status": "none",
+    "email_available": False,
 }
 
 
@@ -284,25 +279,14 @@ def result_for_page(result: dict) -> dict:
         "selecionadas": result.get("selected_count", 0),
         "interrompida": bool(result.get("interrupted")),
         "email_enviado": result.get("email_sent"),
+        "sem_impacto": result.get("sem_impacto", []),
     }
 
 
-def decision_candidates(terms: list[str], saved: list[Path], area: str, *, demo: bool = False) -> list[Path]:
+def decision_candidates(terms: list[str], saved: list[Path], area: str) -> list[Path]:
     found: list[Path] = []
     seen: set[str] = set()
-    if demo:
-        for name in DEMO_DECISIONS:
-            path = telos.DECISIONS_DIR / name
-            if path.is_file():
-                try:
-                    raw = telos.read_document(path)
-                except Exception:
-                    continue
-                match = re.search(r"(?m)^Busca:\s*(.*?)\s*$", raw)
-                if area == "todas" or (match and match.group(1) in terms):
-                    found.append(path)
-    else:
-      for path in [*saved, *sorted(telos.DECISIONS_DIR.iterdir())]:
+    for path in [*saved, *sorted(telos.DECISIONS_DIR.iterdir())]:
         if not path.is_file() or path.suffix.lower() not in {".txt", ".pdf"}:
             continue
         if path.name in seen:
@@ -318,8 +302,6 @@ def decision_candidates(terms: list[str], saved: list[Path], area: str, *, demo:
         elif area == "todas" and not match and not path.name.startswith("auto_"):
             found.append(path)
 
-    if demo:
-        return found
     completed = telos.load_analysis_state()
     return [
         path for path in found
@@ -381,7 +363,56 @@ def progress_callback(stage: str, current: int, total: int) -> None:
         update_run(phase="saving", message=message)
 
 
+def demo_round(extra_email: str) -> None:
+    global PENDING_EMAIL
+    fixture = json.loads(DEMO_ROUND_FILE.read_text(encoding="utf-8"))
+    decisions = fixture.get("decisions", [])
+    total = len(decisions)
+    update_run(phase="searching", message="Buscando decisões no TJSP…", progress_current=0, progress_total=total)
+    time.sleep(2)
+    update_run(phase="searching", message="Decisões selecionadas. Preparando a análise…", progress_current=0, progress_total=total)
+    time.sleep(1.5)
+    for index, item in enumerate(decisions, start=1):
+        update_run(phase="analyzing", message=f"Analisando a decisão {index} de {total}…", progress_current=index - 1, progress_total=total)
+        time.sleep(1.2)
+        update_run(phase="second_opinion", message=f"Segundo parecer — decisão {index} de {total}…", progress_current=index - 1, progress_total=total)
+        time.sleep(1.2)
+        update_run(phase="analyzing", message=f"Análise concluída para a decisão {index} de {total}.", progress_current=index, progress_total=total)
+        time.sleep(0.35)
+
+    no_impact = [dict(item, metadata=telos.decision_metadata_text(item)) for item in fixture.get("sem_impacto", [])]
+    result = result_for_page({"alerts": fixture.get("alerts", []), "reviews": fixture.get("reviews", []),
+                              "completed_count": total, "selected_count": total,
+                              "sem_impacto": no_impact})
+    result.update({"data_rodada": datetime.now().astimezone().isoformat(timespec="minutes"),
+                   "area": "Bancário, Imobiliário e Empresarial", "modo_demo": True,
+                   "data_coleta": fixture.get("data_coleta")})
+    PENDING_EMAIL = {"alerts": fixture.get("alerts", []), "reviews": fixture.get("reviews", []),
+                     "completed_count": total, "selected_count": total,
+                     "interrupted": False, "extra_recipients": extra_email or None}
+    result["email_disponivel"] = True
+    result["email_status"] = "ready"
+    write_latest_round(result)
+    with STATE_LOCK:
+        RUN_STATE["last_round"] = result
+        RUN_STATE["email_status"] = "ready"
+        RUN_STATE["email_available"] = True
+    update_run(phase="complete", message="Rodada concluída. Confira os avisos e envie o e-mail quando quiser.",
+               progress_current=total, progress_total=total)
+
+
 def run_round(area: str, decision_count: int, extra_email: str, demo: bool = False) -> None:
+    global PENDING_EMAIL
+    if DEMO_MODE:
+        try:
+            demo_round(extra_email)
+        except Exception as error:
+            update_run(phase="error", message=f"A rodada não foi concluída ({type(error).__name__}). A última rodada continua disponível.")
+        finally:
+            update_run(running=False)
+            RUN_LOCK.release()
+        return
+
     original_decision_dir = telos.DECISIONS_DIR
     original_case_dir = telos.CASES_DIR
     original_case_display_names = telos.CASE_DISPLAY_NAMES.copy()
@@ -394,20 +425,16 @@ def run_round(area: str, decision_count: int, extra_email: str, demo: bool = Fal
         if not terms:
             raise RuntimeError("Não há termos de busca configurados para esta área.")
 
-        if demo:
-            update_run(phase="searching", message="Usando decisões já coletadas para a demonstração…")
-            saved = []
-        else:
-            period_end = datetime.now().date()
-            period_start = period_end - timedelta(days=21)
-            saved = telos.search_tjsp(
-                progress_callback=progress_callback,
-                search_terms_override=";".join(terms),
-                date_start=period_start.strftime("%d/%m/%Y"),
-                date_end=period_end.strftime("%d/%m/%Y"),
-                pages=range(1, 4),
-            )
-        candidates = decision_candidates(terms, saved, area, demo=demo)[:decision_count]
+        period_end = datetime.now().date()
+        period_start = period_end - timedelta(days=21)
+        saved = telos.search_tjsp(
+            progress_callback=progress_callback,
+            search_terms_override=";".join(terms),
+            date_start=period_start.strftime("%d/%m/%Y"),
+            date_end=period_end.strftime("%d/%m/%Y"),
+            pages=range(1, 4),
+        )
+        candidates = decision_candidates(terms, saved, area)[:decision_count]
         if not candidates:
             update_run(
                 phase="complete",
@@ -436,12 +463,6 @@ def run_round(area: str, decision_count: int, extra_email: str, demo: bool = Fal
                 code: str(record.get("nome_cliente", "Cliente"))
                 for code, record in load_client_map().items()
             }
-            if demo:
-                # The demo is repeatable: allow these exact saved decisions to be analyzed again.
-                state = telos.load_analysis_state()
-                for source in candidates:
-                    state.discard(telos.decision_fingerprint(source, telos.read_document(source)))
-                telos.save_analysis_state(state)
             result_holder: dict = {}
             def collect_result(result: dict) -> None:
                 result_holder.update(result)
@@ -455,6 +476,7 @@ def run_round(area: str, decision_count: int, extra_email: str, demo: bool = Fal
                 progress_callback=progress_callback,
                 result_callback=collect_result,
                 alert_transform=map_private_case_names,
+                send_email_after=False,
             )
 
             if not result_holder:
@@ -469,10 +491,11 @@ def run_round(area: str, decision_count: int, extra_email: str, demo: bool = Fal
             result["area"] = {
                 "imobiliario": "Direito Imobiliário",
                 "empresarial": "Direito Empresarial",
+                "bancario": "Direito Bancário",
                 "todas": "Todas as áreas",
             }[area]
             result["termos"] = len(terms)
-            result["modo_demo"] = demo
+            result["modo_demo"] = False
             collection_times = []
             for path in candidates:
                 stat = path.stat()
@@ -480,10 +503,19 @@ def run_round(area: str, decision_count: int, extra_email: str, demo: bool = Fal
             result["data_coleta"] = datetime.fromtimestamp(
                 min(collection_times)
             ).astimezone().date().isoformat()
+            PENDING_EMAIL = {"alerts": result_holder.get("alerts", []), "reviews": result_holder.get("reviews", []),
+                             "completed_count": result_holder.get("completed_count", 0),
+                             "selected_count": result_holder.get("selected_count", 0),
+                             "interrupted": result_holder.get("interrupted", False),
+                             "extra_recipients": extra_email or None}
+            result["email_disponivel"] = True
+            result["email_status"] = "ready"
             if result["concluidas"] or RUN_STATE.get("last_round") is None:
                 write_latest_round(result)
                 with STATE_LOCK:
                     RUN_STATE["last_round"] = result
+                    RUN_STATE["email_status"] = "ready"
+                    RUN_STATE["email_available"] = True
             if result["concluidas"] == 0 and RUN_STATE.get("last_round") is not None:
                 update_run(phase="complete", message="Nenhuma decisão foi concluída. Mantive os avisos da rodada anterior.")
             elif result["interrompida"]:
@@ -518,26 +550,16 @@ def home():
             "progress_current": RUN_STATE["progress_current"],
             "progress_total": RUN_STATE["progress_total"],
             "last_round": RUN_STATE["last_round"],
+            "email_status": RUN_STATE.get("email_status", "none"),
+            "email_available": RUN_STATE.get("email_available", False),
         }
-    return render_template("index.html", initial_state=initial_state)
+    return render_template("index.html", initial_state=initial_state, demo_mode=DEMO_MODE)
 
 
 @app.get("/casos")
 def cases_page():
     local_only = request.remote_addr in {"127.0.0.1", "::1"}
     return render_template("casos.html", cases=case_list(), local_only=local_only)
-
-
-@app.get("/api/demo-info")
-def api_demo_info():
-    dates = []
-    for name in DEMO_DECISIONS:
-        path = telos.DECISIONS_DIR / name
-        if path.is_file():
-            stat = path.stat()
-            dates.append(getattr(stat, "st_birthtime", stat.st_mtime))
-    collection_date = datetime.fromtimestamp(min(dates)).astimezone().date().isoformat() if dates else None
-    return jsonify({"decisions": len(dates), "collection_date": collection_date})
 
 
 @app.get("/api/state")
@@ -550,6 +572,8 @@ def api_state():
             "progress_current": RUN_STATE["progress_current"],
             "progress_total": RUN_STATE["progress_total"],
             "last_round": RUN_STATE["last_round"],
+            "email_status": RUN_STATE.get("email_status", "none"),
+            "email_available": RUN_STATE.get("email_available", False),
         })
 
 
@@ -567,8 +591,8 @@ def api_run():
     if not configured_code and hosted_access_required:
         return jsonify({"error": "O acesso desta página ainda não foi configurado."}), 403
 
-    area = str(body.get("area", "imobiliario"))
-    demo = body.get("use_collected", True) is True
+    area = str(body.get("area", "todas" if DEMO_MODE else "imobiliario"))
+    demo = DEMO_MODE
     if area not in CASE_AREAS:
         return jsonify({"error": "Escolha uma das áreas disponíveis."}), 400
     try:
@@ -583,6 +607,11 @@ def api_run():
     if not RUN_LOCK.acquire(blocking=False):
         return jsonify({"error": "Já há uma rodada em andamento."}), 409
 
+    global PENDING_EMAIL
+    PENDING_EMAIL = None
+    with STATE_LOCK:
+        RUN_STATE["email_available"] = False
+        RUN_STATE["email_status"] = "none"
     update_run(
         running=True,
         phase="starting",
@@ -597,6 +626,55 @@ def api_run():
         daemon=True,
     )
     worker.start()
+    return jsonify({"started": True}), 202
+
+
+def send_email_worker(payload: dict) -> None:
+    global PENDING_EMAIL
+    update_run(phase="sending_email", message="Enviando e-mail com os avisos…")
+    try:
+        sent = telos.send_round_email(
+            payload.get("alerts", []), payload.get("reviews", []),
+            payload.get("completed_count", 0), payload.get("selected_count", 0),
+            payload.get("interrupted", False), extra_recipients=payload.get("extra_recipients"),
+        )
+        status = "sent" if sent is True else "failed"
+        with STATE_LOCK:
+            RUN_STATE["email_status"] = status
+            RUN_STATE["email_available"] = sent is not True
+            if RUN_STATE.get("last_round"):
+                RUN_STATE["last_round"]["email_status"] = status
+                write_latest_round(RUN_STATE["last_round"])
+        update_run(phase="complete", message="E-mail enviado." if sent is True else "Não foi possível enviar o e-mail. Os avisos continuam na página.")
+    except Exception as error:
+        update_run(phase="complete", message=f"O envio falhou ({type(error).__name__}). Os avisos continuam na página.")
+        with STATE_LOCK:
+            RUN_STATE["email_status"] = "failed"
+            RUN_STATE["email_available"] = True
+    finally:
+        update_run(running=False)
+        RUN_LOCK.release()
+
+
+@app.post("/api/send-email")
+def api_send_email():
+    body = request.get_json(silent=True) or {}
+    access_code = str(body.get("access_code", ""))
+    configured_code = os.environ.get("TELOS_ACCESS_CODE", "")
+    hosted_access_required = (
+        os.environ.get("TELOS_REQUIRE_ACCESS_CODE", "").strip().lower() == "true"
+        or bool(os.environ.get("RENDER"))
+    )
+    if configured_code and not hmac.compare_digest(access_code, configured_code):
+        return jsonify({"error": "Código de acesso incorreto."}), 403
+    if not configured_code and hosted_access_required:
+        return jsonify({"error": "O acesso desta página ainda não foi configurado."}), 403
+    if PENDING_EMAIL is None or not RUN_STATE.get("email_available"):
+        return jsonify({"error": "Não há avisos pendentes para enviar."}), 400
+    if not RUN_LOCK.acquire(blocking=False):
+        return jsonify({"error": "Aguarde a atividade atual terminar."}), 409
+    update_run(running=True, phase="sending_email", message="Preparando o envio do e-mail…")
+    threading.Thread(target=send_email_worker, args=(dict(PENDING_EMAIL),), name="telos-email", daemon=True).start()
     return jsonify({"started": True}), 202
 
 

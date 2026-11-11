@@ -1,3 +1,3 @@
-Caso demonstração — Habilitação de crédito na recuperação
+Caso 18 — Crédito na recuperação judicial
 Área: empresarial
 Fornecedor possui crédito documental vencido contra empresa em recuperação judicial e pede sua habilitação e classificação no quadro geral de credores.

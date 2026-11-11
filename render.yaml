@@ -28,6 +28,8 @@ services:
         sync: false
       - key: TELOS_ACCESS_CODE
         sync: false
+      - key: TELOS_DEMO_MODE
+        value: "true"
       - key: TELOS_REQUIRE_ACCESS_CODE
         value: "true"
       - key: TJSP_SEARCH_TERMS_BANCARIO

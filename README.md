@@ -47,7 +47,7 @@ O que foi entregue. O Telos busca sozinho decisões novas no Tribunal de Justiç
 
 O que entregamos além do prometido. Cada aviso informa o resultado da decisão e se ela é favorável ou desfavorável ao cliente. Criamos ainda um "segundo parecer": cada decisão é analisada duas vezes e só vira aviso quando as duas análises concordam que a relação com o caso é direta. Se os pareceres divergirem apenas sobre o resultado ou a favorabilidade, o aviso sai marcado "Favorabilidade a confirmar". Se discordarem sobre a relação direta, a decisão vai para "Revisar à mão". Fizemos isso depois de medir que um dos modelos testados dava respostas diferentes para a mesma decisão.
 
-O que foi simplificado, e por quê. O site prometia vigiar leis, o Supremo Tribunal Federal, o Superior Tribunal de Justiça, o Banco Central, o Cade e a Receita. Esta versão vigia só o Tribunal de Justiça de São Paulo, porque a biblioteca pública que usamos para buscar decisões não cobre o Superior Tribunal de Justiça, e cada nova fonte exige um buscador próprio. O site prometia avisos na hora, por e-mail ou WhatsApp. Esta versão envia por e-mail ao final de cada execução. O WhatsApp exige um acesso oficial pago, e a execução automática diária depende de um computador ou servidor ligado. O site mostrava a escolha do que vigiar escrevendo em linguagem natural. Aqui, isso é feito editando os termos de busca no arquivo de configuração. O site mostrava contratos completos. Aqui, cada caso é uma descrição curta. Os acórdãos de segundo grau são analisados apenas pela ementa, e esta primeira versão limita cada execução a cinco decisões.
+O que foi simplificado, e por quê. O site prometia vigiar leis, o Supremo Tribunal Federal, o Superior Tribunal de Justiça, o Banco Central, o Cade e a Receita. Esta versão vigia só o Tribunal de Justiça de São Paulo, porque a biblioteca pública que usamos para buscar decisões não cobre o Superior Tribunal de Justiça, e cada nova fonte exige um buscador próprio. O site prometia avisos na hora, por e-mail ou WhatsApp. Na interface, o envio por e-mail é opcional e só acontece depois do clique em “Enviar avisos por e-mail”. O WhatsApp exige um acesso oficial pago, e a execução automática diária depende de um computador ou servidor ligado. O site mostrava a escolha do que vigiar escrevendo em linguagem natural. Aqui, isso é feito editando os termos de busca no arquivo de configuração. O site mostrava contratos completos. Aqui, cada caso é uma descrição curta. Os acórdãos de segundo grau são analisados apenas pela ementa, e esta primeira versão limita cada execução a cinco decisões.
 
 Sigilo. O site prometia criptografia do início ao fim. Uma criptografia completa não é possível quando uma inteligência artificial precisa ler o texto para analisá-lo. Nesta versão, usamos casos inventados e decisões públicas. Os textos são enviados ao provedor escolhido; as regras de retenção e uso dos dados variam conforme o provedor e as configurações da conta. Em uso real, mantenha o nome do cliente no computador do escritório e envie à inteligência artificial apenas um código e a descrição do caso.
 
@@ -55,9 +55,18 @@ Próximos passos. Novas fontes, começando pelo Superior Tribunal de Justiça e 
 
 ## 8. Interface web
 
-A interface é uma página simples para demonstração ao vivo. Ela permite escolher Direito Imobiliário, Direito Empresarial, Direito Bancário ou todas as áreas; analisar de uma a cinco decisões; e informar, se quiser, um e-mail extra para receber os avisos da rodada. Esse endereço é somado aos destinatários configurados e fica oculto dos demais. As chaves e senhas não são enviadas à página.
+A interface permite informar um e-mail extra para receber os avisos; esse endereço é somado aos destinatários configurados e fica oculto dos demais. Ao terminar a rodada, o Telos mostra os resultados na página. O e-mail só é enviado quando alguém clica em **Enviar avisos por e-mail**. As chaves e senhas não são enviadas à página.
 
-O modo **Usar decisões já coletadas** fica ligado por padrão: nesse modo, não há busca no TJSP e o Telos usa oito decisões locais marcadas para demonstração. A página informa a data de criação dos arquivos coletados. Desligue a opção para fazer uma busca ao vivo. A busca ao vivo filtra decisões julgadas nos últimos 21 dias e consulta até três páginas por termo; novos arquivos são acrescentados, sem apagar os anteriores. Há nove casos fictícios em `casos/demonstracao/`; dois tratam de indenização pelo atraso da entrega e podem ser relacionados à mesma decisão quando os dois pareceres confirmarem relação direta. A demonstração não garante avisos: divergências entre os pareceres vão para “Revisar à mão”.
+O modo de demonstração é controlado pela variável `TELOS_DEMO_MODE` no `.env` e vem ligado (`true`). Nesse modo, o botão reapresenta uma rodada fixa de quatro decisões já verificadas, com andamento simulado em cerca de 15 segundos, sem consultar o TJSP nem chamar a IA. A página não exibe um aviso de que está nesse modo. Para fazer buscas e análises reais, mude a variável para `TELOS_DEMO_MODE=false`; a escolha de área e quantidade de decisões aparece na página, e a busca consulta decisões dos últimos 21 dias, até três páginas por termo, acrescentando arquivos sem apagar os anteriores.
+
+A rodada fixa mistura Direito Bancário, Imobiliário e Empresarial. Ela inclui uma decisão de atraso de imóvel relacionada a três casos, uma de duplicata relacionada a dois casos e duas decisões bancárias sem relação direta confirmada. A seleção considera os casos afetados e o resultado direto que se repetiram nas duas análises. Os nove casos fictícios de demonstração ficam em `casos/demonstracao/` como Casos 17 a 25, com as descrições preservadas. Divergências de relação vão para “Revisar à mão”.
+
+| Decisão da rodada fixa | Área | Casos com aviso direto |
+| --- | --- | ---: |
+| Processo 1005418-33.2025.8.26.0451 — atraso na entrega | Imobiliário | 3 (Casos 1, 17 e 25) |
+| Processo 1000181-61.2022.8.26.0309 — duplicata protestada | Empresarial | 2 (Casos 8 e 22) |
+| Processo 1040618-30.2024.8.26.0001 — cartão de crédito | Bancário | 0 |
+| Processo 1001900-43.2025.8.26.0222 — financiamento bancário | Bancário | 0 |
 
 Na página **Casos do escritório**, o cadastro fica disponível somente quando o Telos é aberto em `localhost`. O nome do cliente e sua relação com um código ficam no computador, em `.telos_clientes.json` (ignorado pelo Git). A IA recebe somente o código e a descrição do caso. O programa acrescenta o nome localmente aos avisos e e-mails. O novo cadastro passa a participar da próxima rodada. Em hospedagem remota, esse formulário é bloqueado para que o nome não seja enviado ao servidor.
 
@@ -136,7 +145,7 @@ Crie uma chave na [GroqCloud](https://console.groq.com/keys), cole-a depois de `
 
 ### Receber os avisos pelo Gmail
 
-O envio é opcional. Para enviar, configure `GMAIL_SENDER` e `GMAIL_APP_PASSWORD`, mais pelo menos um destinatário em `GMAIL_RECIPIENT` ou no campo de e-mail extra da interface. Cada rodada envia um resumo: os avisos diretos ficam em cartões separados e os itens de “Revisar à mão”, com os pareceres em frases simples lado a lado, ficam em uma seção lilás própria. Cada aviso mostra um título curto para o caso e, quando constam no material, o número do processo, o foro, a vara e a data da decisão. Campos ausentes são identificados como não informados. O resumo descreve o que o tribunal decidiu. O assunto ajusta singular e plural. O visual usa o azul-marinho e a lavanda do site de apresentação da Themis Tech. A mensagem inclui uma versão HTML compatível com o Gmail e uma alternativa em texto simples.
+O envio é opcional. Para enviar, configure `GMAIL_SENDER` e `GMAIL_APP_PASSWORD`, mais pelo menos um destinatário em `GMAIL_RECIPIENT` ou no campo de e-mail extra da interface. Quando você clica para enviar, o Telos prepara um resumo: os avisos diretos ficam em cartões separados e os itens de “Revisar à mão”, com os pareceres em frases simples lado a lado, ficam em uma seção lilás própria. Cada aviso mostra um título curto para o caso e, quando constam no material, o número do processo, o foro, a vara e a data da decisão. Campos ausentes são identificados como não informados. O resumo descreve o que o tribunal decidiu. O assunto ajusta singular e plural. O visual usa o azul-marinho e a lavanda do site de apresentação da Themis Tech. A mensagem inclui uma versão HTML compatível com o Gmail e uma alternativa em texto simples.
 
 Você pode abrir [email_exemplo.html](email_exemplo.html) no navegador para ver uma prévia. O arquivo usa resultados de uma rodada anterior, sem nomes das partes do processo.
 
@@ -152,7 +161,7 @@ Para criar a senha de app do Gmail:
    GMAIL_RECIPIENT=destino1@exemplo.com,destino2@exemplo.com
    ```
 
-   O Telos envia pelo servidor seguro do Gmail (`smtp.gmail.com`, TLS na porta 587). A senha de app requer Verificação em duas etapas; algumas contas de trabalho/escola, contas com Proteção Avançada ou contas que usam somente chaves de segurança podem não oferecer essa opção. Veja a [ajuda oficial do Google sobre senhas de app](https://support.google.com/accounts/answer/185833?hl=pt-BR) e os [parâmetros SMTP do Gmail](https://support.google.com/mail/answer/7104828?hl=pt-BR).
+   Depois do clique no botão da interface, o Telos envia pelo servidor seguro do Gmail (`smtp.gmail.com`, TLS na porta 587). A senha de app requer Verificação em duas etapas; algumas contas de trabalho/escola, contas com Proteção Avançada ou contas que usam somente chaves de segurança podem não oferecer essa opção. Veja a [ajuda oficial do Google sobre senhas de app](https://support.google.com/accounts/answer/185833?hl=pt-BR) e os [parâmetros SMTP do Gmail](https://support.google.com/mail/answer/7104828?hl=pt-BR).
 
 ### Rodar o Telos
 
@@ -162,7 +171,7 @@ Com o Terminal ou PowerShell aberto na pasta principal, execute:
 python telos.py
 ```
 
-O Telos busca decisões no TJSP e analisa as decisões pendentes. Ao fim da rodada, envia o e-mail se os três campos do Gmail estiverem configurados. Para analisar somente os arquivos que já estão em `decisoes/`, sem fazer uma nova busca, execute:
+O Telos busca decisões no TJSP e analisa as decisões pendentes. A execução pelo Terminal não envia e-mail automaticamente; o envio fica disponível na interface web, após a pessoa clicar no botão. Para analisar somente os arquivos que já estão em `decisoes/`, sem fazer uma nova busca, execute:
 
 ```bash
 python telos.py --sem-busca

@@ -8,6 +8,9 @@
   const progressBar = document.getElementById('progress-bar');
   const content = document.getElementById('last-round-content');
   const date = document.getElementById('last-round-date');
+  const emailAction = document.getElementById('email-action');
+  const emailButton = document.getElementById('email-send-button');
+  const emailStatus = document.getElementById('email-send-status');
   let lastRenderKey = '';
 
   function node(tag, className, text) {
@@ -25,7 +28,7 @@
   }
 
   function renderRound(round) {
-    const key = round ? `${round.data_rodada || ''}-${round.concluidas}-${(round.avisos || []).length}-${(round.revisar || []).length}` : 'empty';
+    const key = round ? `${round.data_rodada || ''}-${round.concluidas}-${(round.avisos || []).length}-${(round.revisar || []).length}-${(round.sem_impacto || []).length}-${round.email_status || ''}` : 'empty';
     if (key === lastRenderKey) return;
     lastRenderKey = key;
     content.replaceChildren();
@@ -40,9 +43,19 @@
     summary.append(node('span', 'summary-chip', `${round.concluidas} de ${round.selecionadas} decisões analisadas`));
     if (round.email_enviado === true) summary.append(node('span', 'summary-chip', 'E-mail enviado'));
     if (round.email_enviado === false) summary.append(node('span', 'summary-chip', 'E-mail não enviado'));
-    if (round.modo_demo) summary.append(node('span', 'summary-chip', `Modo demonstração · coleta ${round.data_coleta || 'data não informada'}`));
     content.append(summary);
     if (round.interrompida) content.append(node('div', 'empty-state', 'A rodada foi interrompida antes de analisar todas as decisões selecionadas.'));
+
+    (round.sem_impacto || []).forEach(item => {
+      const card = node('article', 'panel notice-card no-impact-card');
+      card.append(node('h3', '', 'Nenhum caso com relação direta confirmada'));
+      card.append(node('div', 'decision-meta', item.metadata || 'Dados do processo não informados.'));
+      if (officialLink(item.link)) {
+        const link = node('a', 'official-link', 'Ver a decisão no site oficial do TJSP →');
+        link.href = item.link; link.target = '_blank'; link.rel = 'noopener noreferrer'; card.append(link);
+      }
+      content.append(card);
+    });
 
     if (!round.avisos || round.avisos.length === 0) {
       content.append(node('div', 'empty-state', 'Nenhum aviso direto nesta rodada.'));
@@ -130,6 +143,16 @@
       progressPanel.hidden = true;
     }
     renderRound(state.last_round || null);
+    emailAction.hidden = !state.email_available;
+    if (state.email_status === 'sending') {
+      emailButton.disabled = true; emailButton.textContent = 'Enviando…'; emailStatus.textContent = 'O Gmail está processando o envio.';
+    } else if (state.email_status === 'sent') {
+      emailButton.disabled = true; emailButton.textContent = 'E-mail enviado'; emailStatus.textContent = 'O envio foi concluído.';
+    } else if (state.email_status === 'failed') {
+      emailButton.disabled = false; emailButton.textContent = 'Tentar enviar novamente'; emailStatus.textContent = 'Não foi possível enviar. Confira a configuração do Gmail.';
+    } else {
+      emailButton.disabled = false; emailButton.textContent = 'Enviar avisos por e-mail'; emailStatus.textContent = '';
+    }
   }
 
   async function refreshState() {
@@ -149,8 +172,8 @@
     errorBox.hidden = true;
     const formData = new FormData(form);
     const payload = Object.fromEntries(formData.entries());
-    payload.decision_count = Number(payload.decision_count);
-    payload.use_collected = formData.has('use_collected');
+    payload.decision_count = Number(payload.decision_count || 5);
+    payload.area = payload.area || 'todas';
     button.disabled = true;
     button.querySelector('span:first-child').textContent = 'Preparando…';
     try {
@@ -171,10 +194,24 @@
     }
   });
 
+  emailButton.addEventListener('click', async () => {
+    const accessCode = document.getElementById('access-code').value;
+    emailButton.disabled = true;
+    emailButton.textContent = 'Preparando…';
+    try {
+      const response = await fetch('/api/send-email', {
+        method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({access_code:accessCode})
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Não foi possível iniciar o envio.');
+      emailStatus.textContent = 'O envio começou.';
+      refreshState();
+    } catch (error) {
+      emailStatus.textContent = error.message || 'Não foi possível iniciar o envio.';
+      emailButton.disabled = false;
+    }
+  });
+
   applyState(window.TELOS_INITIAL_STATE || {});
-  fetch('/api/demo-info', {cache:'no-store'}).then(r=>r.json()).then(info=>{
-    const note=document.getElementById('demo-date-note');
-    if(note) note.textContent=info.collection_date ? `Modo de demonstração · decisões coletadas em ${new Date(`${info.collection_date}T12:00:00`).toLocaleDateString('pt-BR')}` : 'Modo de demonstração · sem decisões marcadas';
-  }).catch(()=>{});
   window.setInterval(refreshState, 1600);
 })();

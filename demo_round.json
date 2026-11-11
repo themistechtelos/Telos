@@ -1,0 +1,168 @@
+{
+  "data_coleta": "2026-11-11",
+  "decisions": [
+    {
+      "file": "auto_cjpg_b252ee7cd1c25bdf.txt",
+      "area": "Bancário"
+    },
+    {
+      "file": "auto_cjpg_13b0f8ff11aab399.txt",
+      "area": "Imobiliário"
+    },
+    {
+      "file": "auto_cjpg_3c1591a9f0cab2dc.txt",
+      "area": "Empresarial"
+    },
+    {
+      "file": "auto_cjpg_095b4e758c9bd550.txt",
+      "area": "Bancário"
+    }
+  ],
+  "alerts": [
+    {
+      "decisao": "auto_cjpg_13b0f8ff11aab399.txt",
+      "arquivo_caso": "caso_1.txt",
+      "caso": "Caso 1 — Apartamento entregue com atraso",
+      "resumo": "O TJSP reconheceu o atraso e concedeu lucros cessantes, mas rejeitou a multa contratual de 1% ao mês porque a adquirente estava inadimplente quando exigiu essa indenização.",
+      "resultado": "Parcialmente procedente.",
+      "trecho_resultado": "Diante do exposto, JULGO PARCIALMENTE PROCEDENTE o pedido formulado",
+      "posicao_cliente": "Favorabilidade a confirmar: os dois pareceres concordaram que a relação é direta, mas divergiram sobre o resultado ou seus efeitos para o cliente.",
+      "trecho_favorabilidade": "a indenização por lucros cessantes é, portanto, devida no caso concreto",
+      "trechos_relacao": [
+        "o prejuízo do comprador é presumido, consistente na injusta privação do uso do bem, a ensejar o pagamento de indenização, na forma de aluguel mensal",
+        "o pedido principal de condenação ao pagamento de multa contratual de 1% ao mês sobre o valor do contrato deve ser julgado improcedente",
+        "condenar solidariamente as rés ao pagamento de indenização por lucros cessantes no valor de R$ 5.366,67",
+        "Assim, o pedido principal de condenação ao pagamento de multa contratual de 1% ao mês sobre o valor do contrato deve ser julgado improcedente.",
+        "A indenização por lucros cessantes é, portanto, devida no caso concreto, uma vez que o atraso na entrega do imóvel restou configurado."
+      ],
+      "link_oficial": "https://esaj.tjsp.jus.br/cpopg/show.do?processo.codigo=CJ000VTKL0000&processo.foro=451&processo.numero=1005418-33.2025.8.26.0451&gateway=true",
+      "numero_processo": "1005418-33.2025.8.26.0451",
+      "foro": "Foro de Piracicaba",
+      "vara": "4ª Vara Cível",
+      "data_decisao": "08 de julho de 2026",
+      "somente_ementa": false,
+      "texto_parcial": false,
+      "favorabilidade_a_confirmar": true
+    },
+    {
+      "decisao": "auto_cjpg_13b0f8ff11aab399.txt",
+      "arquivo_caso": "caso_17.txt",
+      "caso": "Caso 17 — Lucros cessantes por atraso",
+      "resumo": "O TJSP reconheceu o atraso além do prazo de tolerância e concedeu lucros cessantes calculados pelo valor locatício durante o período de privação do imóvel.",
+      "resultado": "Parcialmente procedente.",
+      "trecho_resultado": "Diante do exposto, JULGO PARCIALMENTE PROCEDENTE o pedido formulado",
+      "posicao_cliente": "Favorável à posição descrita do cliente.",
+      "trecho_favorabilidade": "a indenização por lucros cessantes é, portanto, devida no caso concreto",
+      "trechos_relacao": [
+        "o prejuízo do comprador é presumido, consistente na injusta privação do uso do bem, a ensejar o pagamento de indenização, na forma de aluguel mensal, com base no valor locatício de imóvel assemelhado",
+        "A indenização por lucros cessantes é, portanto, devida no caso concreto",
+        "condenar solidariamente as rés ao pagamento de indenização por lucros cessantes no valor de R$ 5.366,67",
+        "A indenização por lucros cessantes é, portanto, devida no caso concreto, uma vez que o atraso na entrega do imóvel restou configurado."
+      ],
+      "link_oficial": "https://esaj.tjsp.jus.br/cpopg/show.do?processo.codigo=CJ000VTKL0000&processo.foro=451&processo.numero=1005418-33.2025.8.26.0451&gateway=true",
+      "numero_processo": "1005418-33.2025.8.26.0451",
+      "foro": "Foro de Piracicaba",
+      "vara": "4ª Vara Cível",
+      "data_decisao": "08 de julho de 2026",
+      "somente_ementa": false,
+      "texto_parcial": false,
+      "favorabilidade_a_confirmar": false
+    },
+    {
+      "decisao": "auto_cjpg_13b0f8ff11aab399.txt",
+      "arquivo_caso": "caso_25.txt",
+      "caso": "Caso 25 — Indenização pelo período sem uso",
+      "resumo": "O TJSP reconheceu o atraso além do prazo de tolerância e concedeu lucros cessantes pelo período de privação do imóvel, usando como base o valor locatício mensal.",
+      "resultado": "Parcialmente procedente.",
+      "trecho_resultado": "Diante do exposto, JULGO PARCIALMENTE PROCEDENTE o pedido formulado",
+      "posicao_cliente": "Favorável à posição descrita do cliente.",
+      "trecho_favorabilidade": "adota-se o valor de R$ 1.000,00 por mês como base de cálculo",
+      "trechos_relacao": [
+        "o prejuízo do comprador é presumido, consistente na injusta privação do uso do bem, a ensejar o pagamento de indenização, na forma de aluguel mensal, com base no valor locatício de imóvel assemelhado",
+        "condenar solidariamente as rés ao pagamento de indenização por lucros cessantes no valor de R$ 5.366,67",
+        "adota-se o valor de R$ 1.000,00 por mês como base de cálculo."
+      ],
+      "link_oficial": "https://esaj.tjsp.jus.br/cpopg/show.do?processo.codigo=CJ000VTKL0000&processo.foro=451&processo.numero=1005418-33.2025.8.26.0451&gateway=true",
+      "numero_processo": "1005418-33.2025.8.26.0451",
+      "foro": "Foro de Piracicaba",
+      "vara": "4ª Vara Cível",
+      "data_decisao": "08 de julho de 2026",
+      "somente_ementa": false,
+      "texto_parcial": false,
+      "favorabilidade_a_confirmar": false
+    },
+    {
+      "decisao": "auto_cjpg_3c1591a9f0cab2dc.txt",
+      "arquivo_caso": "caso_8.txt",
+      "caso": "Caso 8 — Duplicata protestada sem serviço",
+      "resumo": "O TJSP reconheceu a inexigibilidade da duplicata e determinou o cancelamento do protesto e indenização, pois não foi comprovada a contratação nem a prestação do serviço.",
+      "resultado": "Parcialmente procedente.",
+      "trecho_resultado": "Ante o exposto, JULGO PARCIALMENTE PROCEDENTES os pedidos",
+      "posicao_cliente": "Favorabilidade a confirmar: os dois pareceres concordaram que a relação é direta, mas divergiram sobre o resultado ou seus efeitos para o cliente.",
+      "trecho_favorabilidade": "JULGO PARCIALMENTE PROCEDENTES os pedidos, com resolução de mérito",
+      "trechos_relacao": [
+        "O título levado a protesto é duplicata de prestação de serviços por indicação, espécie de título de crédito causal cuja validade está necessariamente vinculada à existência do negócio jurídico subjacente (a efetiva prestação de serviços).",
+        "não há nos autos contrato de prestação de serviços de terraplanagem firmado com o autor, autorização expressa para a execução, comprovante de realização dos serviços",
+        "declarar a inexigibilidade do débito representado pela duplicata de prestação de serviços por indicação nº 202100000000380",
+        "determinar o cancelamento definitivo do protesto",
+        "condenar a referida corré ao pagamento de indenização por danos morais no valor de R$ 5.000,00",
+        "Impõe-se, portanto, o reconhecimento da inexigibilidade do débito representado pela duplicata nº 202100000000380",
+        "o cancelamento definitivo do respectivo protesto"
+      ],
+      "link_oficial": "https://esaj.tjsp.jus.br/cpopg/show.do?processo.codigo=8L000FA4F0000&processo.foro=309&processo.numero=1000181-61.2022.8.26.0309&gateway=true",
+      "numero_processo": "1000181-61.2022.8.26.0309",
+      "foro": "Foro de Jundiaí",
+      "vara": "2ª Vara Cível",
+      "data_decisao": "09 de junho de 2026",
+      "somente_ementa": false,
+      "texto_parcial": false,
+      "favorabilidade_a_confirmar": true
+    },
+    {
+      "decisao": "auto_cjpg_3c1591a9f0cab2dc.txt",
+      "arquivo_caso": "caso_22.txt",
+      "caso": "Caso 22 — Duplicata protestada sem serviço",
+      "resumo": "O TJSP reconheceu a inexigibilidade da duplicata e determinou o cancelamento do protesto e indenização, pois não foi comprovada a contratação nem a prestação do serviço.",
+      "resultado": "Parcialmente procedente.",
+      "trecho_resultado": "Ante o exposto, JULGO PARCIALMENTE PROCEDENTES os pedidos",
+      "posicao_cliente": "Favorabilidade a confirmar: os dois pareceres concordaram que a relação é direta, mas divergiram sobre o resultado ou seus efeitos para o cliente.",
+      "trecho_favorabilidade": "JULGO PARCIALMENTE PROCEDENTES os pedidos, com resolução de mérito",
+      "trechos_relacao": [
+        "O título levado a protesto é duplicata de prestação de serviços por indicação, espécie de título de crédito causal cuja validade está necessariamente vinculada à existência do negócio jurídico subjacente (a efetiva prestação de serviços).",
+        "não há nos autos contrato de prestação de serviços de terraplanagem firmado com o autor, autorização expressa para a execução, comprovante de realização dos serviços",
+        "declarar a inexigibilidade do débito representado pela duplicata de prestação de serviços por indicação nº 202100000000380",
+        "determinar o cancelamento definitivo do protesto",
+        "condenar a referida corré ao pagamento de indenização por danos morais no valor de R$ 5.000,00",
+        "Impõe-se, portanto, o reconhecimento da inexigibilidade do débito representado pela duplicata nº 202100000000380",
+        "o cancelamento definitivo do respectivo protesto"
+      ],
+      "link_oficial": "https://esaj.tjsp.jus.br/cpopg/show.do?processo.codigo=8L000FA4F0000&processo.foro=309&processo.numero=1000181-61.2022.8.26.0309&gateway=true",
+      "numero_processo": "1000181-61.2022.8.26.0309",
+      "foro": "Foro de Jundiaí",
+      "vara": "2ª Vara Cível",
+      "data_decisao": "09 de junho de 2026",
+      "somente_ementa": false,
+      "texto_parcial": false,
+      "favorabilidade_a_confirmar": true
+    }
+  ],
+  "reviews": [],
+  "sem_impacto": [
+    {
+      "decisao": "auto_cjpg_b252ee7cd1c25bdf.txt",
+      "link_oficial": "https://esaj.tjsp.jus.br/cpopg/show.do?processo.codigo=01001TU2P0000&processo.foro=1&processo.numero=1040618-30.2024.8.26.0001&gateway=true",
+      "numero_processo": "1040618-30.2024.8.26.0001",
+      "foro": "Foro Regional I - Santana",
+      "vara": "5ª Vara Cível",
+      "data_decisao": "06 de novembro de 2026"
+    },
+    {
+      "decisao": "auto_cjpg_095b4e758c9bd550.txt",
+      "link_oficial": "https://esaj.tjsp.jus.br/cpopg/show.do?processo.codigo=660002RAL0000&processo.foro=222&processo.numero=1001900-43.2025.8.26.0222&gateway=true",
+      "numero_processo": "1001900-43.2025.8.26.0222",
+      "foro": "Foro de Guariba",
+      "vara": "1ª Vara Judicial",
+      "data_decisao": "09 de novembro de 2026"
+    }
+  ]
+}

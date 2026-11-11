@@ -1,3 +1,3 @@
-Caso demonstração — Despejo e aluguéis vencidos
+Caso 21 — Despejo por aluguel atrasado
 Área: imobiliario
 Locador de imóvel residencial pede despejo e cobrança de aluguéis e encargos vencidos após quatro meses sem pagamento pelo locatário.
