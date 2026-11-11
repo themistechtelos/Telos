@@ -646,7 +646,8 @@ def send_email_worker(payload: dict) -> None:
         status = "sent" if sent is True else "failed"
         with STATE_LOCK:
             RUN_STATE["email_status"] = status
-            RUN_STATE["email_available"] = sent is not True
+            # Keep this round available so another explicit click can resend it.
+            RUN_STATE["email_available"] = True
             if RUN_STATE.get("last_round"):
                 RUN_STATE["last_round"]["email_status"] = status
                 write_latest_round(RUN_STATE["last_round"])

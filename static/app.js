@@ -147,7 +147,7 @@
     if (state.email_status === 'sending') {
       emailButton.disabled = true; emailButton.textContent = 'Enviando…'; emailStatus.textContent = 'O Gmail está processando o envio.';
     } else if (state.email_status === 'sent') {
-      emailButton.disabled = true; emailButton.textContent = 'E-mail enviado'; emailStatus.textContent = 'O envio foi concluído.';
+      emailButton.disabled = false; emailButton.textContent = 'Enviar novamente por e-mail'; emailStatus.textContent = 'Envio concluído. Clique novamente se quiser reenviar esta rodada.';
     } else if (state.email_status === 'failed') {
       emailButton.disabled = false; emailButton.textContent = 'Tentar enviar novamente'; emailStatus.textContent = 'Não foi possível enviar. Confira a configuração do Gmail.';
     } else {

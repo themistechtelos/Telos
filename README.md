@@ -55,7 +55,7 @@ Próximos passos. Novas fontes, começando pelo Superior Tribunal de Justiça e 
 
 ## 8. Interface web
 
-A interface permite informar um e-mail extra para receber os avisos; esse endereço é somado aos destinatários configurados e fica oculto dos demais. Ao terminar a rodada, o Telos mostra os resultados na página. O e-mail só é enviado quando alguém clica em **Enviar avisos por e-mail**. As chaves e senhas não são enviadas à página.
+A interface permite informar um e-mail extra para receber os avisos; esse endereço é somado aos destinatários configurados e fica oculto dos demais. Ao terminar a rodada, o Telos mostra os resultados na página. O e-mail só é enviado quando alguém clica em **Enviar avisos por e-mail**; cada clique envia novamente os avisos daquela rodada para os destinatários do `.env` e o e-mail extra informado. As chaves e senhas não são enviadas à página.
 
 O modo de demonstração é controlado pela variável `TELOS_DEMO_MODE` no `.env` e vem ligado (`true`). Nesse modo, o botão reapresenta uma rodada fixa de cinco decisões já verificadas, com andamento simulado em cerca de 15 segundos, sem consultar o TJSP nem chamar a IA. A página não exibe um aviso de que está nesse modo. Para fazer buscas e análises reais, mude a variável para `TELOS_DEMO_MODE=false`; a escolha de área e quantidade de decisões aparece na página, e a busca consulta decisões dos últimos 21 dias, até três páginas por termo, acrescentando arquivos sem apagar os anteriores.
 
