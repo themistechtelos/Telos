@@ -8,6 +8,7 @@ __pycache__/
 *.py[cod]
 .venv/
 venv/
+.browser-cache/
 .vscode/
 
 # Resultados automáticos baixados localmente pelo Telos

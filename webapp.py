@@ -50,6 +50,17 @@ EMAIL_RATE_LOCK = threading.Lock()
 PENDING_EMAIL: dict | None = None
 
 
+@app.context_processor
+def static_asset_version() -> dict[str, str]:
+    """Version local CSS URLs so a browser cannot keep an obsolete stylesheet."""
+    stylesheet = ROOT / "static" / "style.css"
+    try:
+        version = str(stylesheet.stat().st_mtime_ns)
+    except OSError:
+        version = "1"
+    return {"static_version": version}
+
+
 def load_latest_round() -> dict | None:
     try:
         data = json.loads(LATEST_FILE.read_text(encoding="utf-8"))
