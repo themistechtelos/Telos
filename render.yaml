@@ -22,7 +22,7 @@ services:
         value: openai/gpt-oss-120b
       - key: GMAIL_SENDER
         sync: false
-      - key: GMAIL_APP_PASSWORD
+      - key: BREVO_API_KEY
         sync: false
       - key: TELOS_HOSPEDADO
         value: "true"

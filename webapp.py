@@ -714,6 +714,7 @@ def send_email_worker(payload: dict) -> None:
             payload.get("completed_count", 0), payload.get("selected_count", 0),
             payload.get("interrupted", False), extra_recipients=payload.get("extra_recipients"),
             recipients_override=payload.get("recipients_override"),
+            email_provider="brevo" if TELOS_HOSPEDADO else "gmail",
         )
         status = "sent" if sent is True else "failed"
         with STATE_LOCK:

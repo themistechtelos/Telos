@@ -1775,9 +1775,9 @@ def send_round_email(
     interrupted: bool,
     extra_recipients: str | None = None,
     recipients_override: list[str] | None = None,
+    email_provider: str = "gmail",
 ) -> bool | None:
     sender = os.environ.get("GMAIL_SENDER", "").strip()
-    app_password = os.environ.get("GMAIL_APP_PASSWORD", "").strip().replace(" ", "")
     recipient_field = os.environ.get("GMAIL_RECIPIENT", "").strip()
     recipients = (list(dict.fromkeys(address.strip() for address in recipients_override if address.strip()))
                   if recipients_override is not None else
@@ -1789,26 +1789,66 @@ def send_round_email(
             if address.strip()
         )
         recipients = list(dict.fromkeys(recipients))
-    if not sender and not app_password and not recipients:
-        return None
-    if not sender or not app_password or not recipients:
-        print("\nE-mail não enviado: preencha GMAIL_SENDER, GMAIL_APP_PASSWORD e GMAIL_RECIPIENT no .env.")
-        return False
-
     try:
+        subject = round_email_subject(len(group_alerts_by_decision(alerts)), len(reviews))
+        plain_body = format_round_email(alerts, reviews, completed_count, selected_count, interrupted)
+        html_body = render_round_email_html(alerts, reviews, completed_count, selected_count, interrupted)
+        verify_email_has_no_json_keys(subject, plain_body, html_body)
+        print("Verificação sem JSON aprovada para as versões HTML e texto simples.")
+
+        if email_provider == "brevo":
+            api_key = os.environ.get("BREVO_API_KEY", "").strip()
+            if not sender or not api_key or not recipients:
+                print("\nE-mail não enviado: configure BREVO_API_KEY, GMAIL_SENDER e o destinatário.")
+                return False
+            if len(recipients) != 1:
+                print("\nE-mail não enviado pelo Brevo: o modo hospedado aceita um destinatário por envio.")
+                return False
+
+            # O modo hospedado aceita um único destinatário por clique. Ele fica
+            # isolado na lista `to`; não há outros destinatários que possam vê-lo.
+            payload = {
+                "sender": {"name": "Telos", "email": sender},
+                "to": [{"email": recipients[0]}],
+                "subject": subject,
+                "htmlContent": html_body,
+                "textContent": plain_body,
+            }
+            req = urllib.request.Request(
+                "https://api.brevo.com/v3/smtp/email",
+                data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+                headers={
+                    "accept": "application/json",
+                    "api-key": api_key,
+                    "content-type": "application/json",
+                },
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=30) as response:
+                if response.status not in {200, 201, 202}:
+                    print(f"\nA API do Brevo respondeu com status {response.status}.")
+                    return False
+            print("\nResumo da rodada aceito pela API do Brevo.")
+            return True
+
+        if email_provider != "gmail":
+            print("\nE-mail não enviado: provedor de e-mail desconhecido.")
+            return False
+        app_password = os.environ.get("GMAIL_APP_PASSWORD", "").strip().replace(" ", "")
+        if not sender and not app_password and not recipients:
+            return None
+        if not sender or not app_password or not recipients:
+            print("\nE-mail não enviado: preencha GMAIL_SENDER, GMAIL_APP_PASSWORD e GMAIL_RECIPIENT no .env.")
+            return False
+
         message = EmailMessage()
         message["From"] = sender
         message["To"] = "undisclosed-recipients:;"
         message["Bcc"] = ", ".join(recipients)
-        subject = round_email_subject(len(group_alerts_by_decision(alerts)), len(reviews))
         message["Subject"] = subject
         message["Date"] = formatdate(localtime=True)
-        plain_body = format_round_email(alerts, reviews, completed_count, selected_count, interrupted)
-        html_body = render_round_email_html(alerts, reviews, completed_count, selected_count, interrupted)
-        verify_email_has_no_json_keys(subject, plain_body, html_body)
         message.set_content(plain_body)
         message.add_alternative(html_body, subtype="html")
-        print("Verificação sem JSON aprovada para as versões HTML e texto simples.")
         with smtplib.SMTP("smtp.gmail.com", 587, timeout=30) as smtp:
             smtp.starttls(context=ssl.create_default_context())
             smtp.login(sender, app_password)
@@ -1825,8 +1865,15 @@ def send_round_email(
     except EmailJSONLeakError:
         print("\nE-mail não enviado: a verificação detectou chaves de resposta em JSON.")
         return False
+    except urllib.error.HTTPError as error:
+        print(f"\nA API do Brevo recusou o envio (HTTP {error.code}). Confira a chave e o remetente autorizado.")
+        return False
+    except urllib.error.URLError as error:
+        print(f"\nNão foi possível conectar à API do Brevo ({type(error.reason).__name__}). Os resultados continuam disponíveis na tela.")
+        return False
     except (smtplib.SMTPException, OSError, ValueError) as error:
-        print(f"\nNão foi possível enviar o e-mail pelo Gmail ({type(error).__name__}). Os resultados continuam disponíveis na tela.")
+        provider_label = "API do Brevo" if email_provider == "brevo" else "Gmail"
+        print(f"\nNão foi possível enviar o e-mail pelo {provider_label} ({type(error).__name__}). Os resultados continuam disponíveis na tela.")
         return False
     else:
         print("\nResumo da rodada enviado pelo Gmail.")
