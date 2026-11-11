@@ -30,6 +30,8 @@ services:
         sync: false
       - key: TELOS_REQUIRE_ACCESS_CODE
         value: "true"
+      - key: TJSP_SEARCH_TERMS_BANCARIO
+        value: juros contrato empréstimo bancário;cartão de crédito dívida negativação pagamento;garantia contrato financiamento bancário
       - key: TJSP_SEARCH_TERMS_IMOBILIARIO
         value: atraso entrega apartamento na planta prazo tolerância 180 dias aluguel multa construtora;INCC saldo devedor atraso obra imóvel na planta construtora;desistência compra imóvel na planta retenção valores pagos construtora;vícios construtivos infiltração rachaduras apartamento novo reparos construtora;cobrança taxas condominiais condomínio inadimplente execução;despejo falta pagamento aluguel locação residencial quatro meses;ação renovatória locação comercial revisão aluguel loja
       - key: TJSP_SEARCH_TERMS_EMPRESARIAL

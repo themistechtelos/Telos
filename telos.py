@@ -153,6 +153,9 @@ EMAIL_CASE_TITLES = {
     "caso_11.txt": "Caso 11 — Sócio que quer sair",
     "caso_12.txt": "Caso 12 — Crédito na recuperação judicial",
     "caso_13.txt": "Caso 13 — Horas extras",
+    "caso_14.txt": "Caso 14 — Juros acima do combinado",
+    "caso_15.txt": "Caso 15 — Nome negativado após pagamento",
+    "caso_16.txt": "Caso 16 — Garantia em financiamento",
     "atraso_alugueis.txt": "Caso demonstração — Lucros cessantes por atraso na entrega",
     "multa_atraso_obra.txt": "Caso demonstração — Indenização pelo período sem uso",
     "desistencia_retencao.txt": "Caso demonstração — Retenção na desistência da compra",
@@ -374,8 +377,11 @@ def search_tjsp(
     quiet: bool = False,
     progress_callback=None,
     search_terms_override: str | None = None,
+    date_start: str | None = None,
+    date_end: str | None = None,
+    pages: int | list | range | None = 1,
 ) -> list[Path]:
-    """Collect one first page per configured query from stable TJSP search methods."""
+    """Collect pages in an optional decision-date range from TJSP search methods."""
     if jus is None:
         print("Busca automática indisponível: instale as dependências do requirements.txt.")
         return []
@@ -383,6 +389,7 @@ def search_tjsp(
     grouped_terms = ";".join(
         value
         for value in (
+            os.environ.get("TJSP_SEARCH_TERMS_BANCARIO", ""),
             os.environ.get("TJSP_SEARCH_TERMS_IMOBILIARIO", ""),
             os.environ.get("TJSP_SEARCH_TERMS_EMPRESARIAL", ""),
         )
@@ -438,7 +445,12 @@ def search_tjsp(
                 print(f"Busca TJSP {method_name} indisponível nesta instalação do juscraper.")
                 continue
             try:
-                downloaded_path = Path(download_method(pesquisa=search_term, paginas=1))
+                query_options = {"paginas": pages}
+                if date_start:
+                    query_options["data_julgamento_inicio"] = date_start
+                if date_end:
+                    query_options["data_julgamento_fim"] = date_end
+                downloaded_path = Path(download_method(pesquisa=search_term, **query_options))
                 rows = parse_method(str(downloaded_path))
             except Exception as error:
                 temporary.cleanup()

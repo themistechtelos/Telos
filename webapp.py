@@ -8,7 +8,7 @@ import os
 import re
 import tempfile
 import threading
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from flask import Flask, jsonify, render_template, request
@@ -24,11 +24,13 @@ CLIENT_MAP_FILE = Path(os.environ.get("TELOS_CLIENT_MAP_FILE", ROOT / ".telos_cl
 CASE_AREAS = {
     "imobiliario": range(1, 8),
     "empresarial": range(8, 13),
-    "todas": range(1, 13),
+    "bancario": range(14, 17),
+    "todas": (*range(1, 13), *range(14, 17)),
 }
 AREA_TERM_ENV = {
     "imobiliario": "TJSP_SEARCH_TERMS_IMOBILIARIO",
     "empresarial": "TJSP_SEARCH_TERMS_EMPRESARIAL",
+    "bancario": "TJSP_SEARCH_TERMS_BANCARIO",
 }
 DEMO_DECISIONS = [
     "auto_cjpg_13b0f8ff11aab399.txt",  # atraso na entrega, sentença parcial
@@ -108,6 +110,7 @@ def current_provider_settings() -> tuple[str, str, str]:
 def configured_terms(area: str) -> list[str]:
     if area == "todas":
         groups = [
+            os.environ.get(AREA_TERM_ENV["bancario"], ""),
             os.environ.get(AREA_TERM_ENV["imobiliario"], ""),
             os.environ.get(AREA_TERM_ENV["empresarial"], ""),
         ]
@@ -144,7 +147,7 @@ def cases_for_area(area: str) -> list[Path]:
                 text = telos.read_document(path)
             except Exception:
                 continue
-            match = re.search(r"(?m)^Área:\s*(imobiliario|empresarial)\s*$", text, re.I)
+            match = re.search(r"(?m)^Área:\s*(imobiliario|empresarial|bancario)\s*$", text, re.I)
             if area == "todas" or (match and match.group(1).lower() == area):
                 result.append(path)
     return result
@@ -160,18 +163,32 @@ def case_list() -> list[dict]:
             continue
         lines = [line.strip() for line in content.splitlines() if line.strip()]
         number = case_number(path)
-        area = "Imobiliário" if number in CASE_AREAS["imobiliario"] else (
-            "Empresarial" if number in CASE_AREAS["empresarial"] else "Caso de controle"
-        )
+        if number in CASE_AREAS["imobiliario"]:
+            area = "Imobiliário"
+        elif number in CASE_AREAS["empresarial"]:
+            area = "Empresarial"
+        elif number in CASE_AREAS["bancario"]:
+            area = "Bancário"
+        elif number == 13:
+            area = "Caso de controle"
+        else:
+            area = "Caso de demonstração"
         record = client_map.get(path.stem, {})
         lines = [line for line in lines if not line.startswith(("Área:", "Tipo:", "Código:"))]
         title = telos.email_case_title(path.name)
         if record:
             title = f"{record.get('tipo', 'Caso')} — {record.get('nome_cliente', 'Cliente')}"
-        if number not in set(CASE_AREAS["imobiliario"]) | set(CASE_AREAS["empresarial"]):
-            area_match = re.search(r"(?m)^Área:\s*(imobiliario|empresarial)\s*$", content, re.I)
+        if number not in (
+            set(CASE_AREAS["imobiliario"])
+            | set(CASE_AREAS["empresarial"])
+            | set(CASE_AREAS["bancario"])
+            | {13}
+        ):
+            area_match = re.search(r"(?m)^Área:\s*(imobiliario|empresarial|bancario)\s*$", content, re.I)
             area = "Imobiliário" if area_match and area_match.group(1).lower() == "imobiliario" else (
-                "Empresarial" if area_match else "Caso de demonstração"
+                "Empresarial" if area_match and area_match.group(1).lower() == "empresarial" else (
+                    "Bancário" if area_match and area_match.group(1).lower() == "bancario" else "Caso de demonstração"
+                )
             )
         items.append({
             "titulo": title,
@@ -381,9 +398,14 @@ def run_round(area: str, decision_count: int, extra_email: str, demo: bool = Fal
             update_run(phase="searching", message="Usando decisões já coletadas para a demonstração…")
             saved = []
         else:
+            period_end = datetime.now().date()
+            period_start = period_end - timedelta(days=21)
             saved = telos.search_tjsp(
                 progress_callback=progress_callback,
                 search_terms_override=";".join(terms),
+                date_start=period_start.strftime("%d/%m/%Y"),
+                date_end=period_end.strftime("%d/%m/%Y"),
+                pages=range(1, 4),
             )
         candidates = decision_candidates(terms, saved, area, demo=demo)[:decision_count]
         if not candidates:

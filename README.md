@@ -12,7 +12,7 @@ O Telos é um vigia de jurisprudência para escritórios de advocacia, criado pe
 
 ## 3. Exemplo de aviso
 
-A prévia [email_exemplo.html](email_exemplo.html) foi gerada com os avisos da rodada atual, já configurada para Direito Imobiliário e Direito Empresarial. Ela mostra como o resumo da decisão, os casos afetados, os trechos conferidos e o link oficial aparecem no e-mail.
+A prévia [email_exemplo.html](email_exemplo.html) foi gerada com avisos da demonstração. Ela mostra como o resumo da decisão, os casos afetados, os trechos conferidos e o link oficial aparecem no e-mail.
 
 ## 4. Proteções contra erros da IA
 
@@ -23,7 +23,7 @@ A prévia [email_exemplo.html](email_exemplo.html) foi gerada com os avisos da r
 
 ## 5. Como mudar a área vigiada
 
-Nesta configuração, o Telos acompanha Direito Imobiliário e Direito Empresarial. A área depende dos casos cadastrados na pasta `casos/` e dos termos em `TJSP_SEARCH_TERMS_IMOBILIARIO` e `TJSP_SEARCH_TERMS_EMPRESARIAL` no arquivo `.env`. Para mudar o foco, edite as descrições dos casos e os termos correspondentes, separados por ponto e vírgula. O Caso 13 (horas extras) é um caso de controle e não tem termo de busca.
+Nesta configuração, o Telos acompanha Direito Imobiliário, Empresarial e Bancário. A área depende dos casos cadastrados na pasta `casos/` e dos termos `TJSP_SEARCH_TERMS_IMOBILIARIO`, `TJSP_SEARCH_TERMS_EMPRESARIAL` e `TJSP_SEARCH_TERMS_BANCARIO` no arquivo `.env`. Cada variável aceita vários termos separados por ponto e vírgula. Os casos bancários recuperados do histórico são os Casos 14 a 16; os Casos 1 a 13, inclusive o Caso 13 de controle, foram preservados. O Caso 13 não tem termo de busca.
 
 ## 6. Limitações
 
@@ -55,9 +55,9 @@ Próximos passos. Novas fontes, começando pelo Superior Tribunal de Justiça e 
 
 ## 8. Interface web
 
-A interface é uma página simples para demonstração ao vivo. Ela permite escolher Direito Imobiliário, Direito Empresarial ou todas as áreas; analisar de uma a cinco decisões; e informar, se quiser, um e-mail extra para receber os avisos da rodada. Esse endereço é somado aos destinatários configurados e fica oculto dos demais. As chaves e senhas não são enviadas à página.
+A interface é uma página simples para demonstração ao vivo. Ela permite escolher Direito Imobiliário, Direito Empresarial, Direito Bancário ou todas as áreas; analisar de uma a cinco decisões; e informar, se quiser, um e-mail extra para receber os avisos da rodada. Esse endereço é somado aos destinatários configurados e fica oculto dos demais. As chaves e senhas não são enviadas à página.
 
-O modo **Usar decisões já coletadas** fica ligado por padrão: nesse modo, não há busca no TJSP e o Telos prioriza oito decisões locais marcadas para demonstração (quatro de cada área). A página informa a data de criação dos arquivos coletados. Desligue a opção para fazer uma busca ao vivo. Há nove casos fictícios em `casos/demonstracao/`; dois tratam de indenização pelo atraso da entrega e podem ser relacionados à mesma decisão quando os dois pareceres confirmarem relação direta. A demonstração não garante avisos: divergências entre os pareceres vão para “Revisar à mão”.
+O modo **Usar decisões já coletadas** fica ligado por padrão: nesse modo, não há busca no TJSP e o Telos usa oito decisões locais marcadas para demonstração. A página informa a data de criação dos arquivos coletados. Desligue a opção para fazer uma busca ao vivo. A busca ao vivo filtra decisões julgadas nos últimos 21 dias e consulta até três páginas por termo; novos arquivos são acrescentados, sem apagar os anteriores. Há nove casos fictícios em `casos/demonstracao/`; dois tratam de indenização pelo atraso da entrega e podem ser relacionados à mesma decisão quando os dois pareceres confirmarem relação direta. A demonstração não garante avisos: divergências entre os pareceres vão para “Revisar à mão”.
 
 Na página **Casos do escritório**, o cadastro fica disponível somente quando o Telos é aberto em `localhost`. O nome do cliente e sua relação com um código ficam no computador, em `.telos_clientes.json` (ignorado pelo Git). A IA recebe somente o código e a descrição do caso. O programa acrescenta o nome localmente aos avisos e e-mails. O novo cadastro passa a participar da próxima rodada. Em hospedagem remota, esse formulário é bloqueado para que o nome não seja enviado ao servidor.
 
