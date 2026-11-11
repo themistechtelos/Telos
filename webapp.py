@@ -35,7 +35,12 @@ AREA_TERM_ENV = {
     "empresarial": "TJSP_SEARCH_TERMS_EMPRESARIAL",
     "bancario": "TJSP_SEARCH_TERMS_BANCARIO",
 }
-app = Flask(__name__)
+app = Flask(
+    __name__,
+    template_folder=str(ROOT / "templates"),
+    static_folder=str(ROOT / "static"),
+    static_url_path="/static",
+)
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024
 RUN_LOCK = threading.Lock()
 STATE_LOCK = threading.Lock()

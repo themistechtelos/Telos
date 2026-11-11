@@ -97,7 +97,7 @@ Para abrir no seu computador:
    ```
 
    Se necessário, use `python3 webapp.py`. O programa usa a porta indicada por `PORT`; no computador, sem essa variável, usa a porta 5000.
-3. Abra `http://127.0.0.1:5000` no navegador. Se `TELOS_ACCESS_CODE` estiver vazio, a rodada pode começar sem código. Se estiver preenchido, digite o mesmo código no campo da página.
+3. Abra `http://127.0.0.1:5000` no navegador. Não abra `templates/index.html` diretamente: esse arquivo é um modelo usado pelo servidor, e aberto como arquivo local ele mostra instruções internas em vez da página pronta. Se `TELOS_ACCESS_CODE` estiver vazio, a rodada pode começar sem código. Se estiver preenchido, digite o mesmo código no campo da página.
 
 O andamento aparece na própria tela enquanto o trabalho continua em segundo plano. Uma nova rodada não pode começar enquanto outra estiver ativa. A página inicial também mostra a última rodada salva; no computador, ela fica em `.telos_web_data/` e continua disponível mesmo depois de fechar e abrir o programa. A página **Casos do escritório** lista os casos que estão na pasta `casos/`.
 
