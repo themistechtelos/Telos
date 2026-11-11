@@ -21,8 +21,10 @@ telos.load_env_file()
 ROOT = Path(__file__).resolve().parent
 DATA_DIR = Path(os.environ.get("TELOS_DATA_DIR", ROOT / ".telos_web_data"))
 LATEST_FILE = DATA_DIR / "ultima_rodada.json"
+EMAIL_RATE_FILE = DATA_DIR / "limite_envios_email.json"
 DEMO_ROUND_FILE = ROOT / "demo_round.json"
-DEMO_MODE = os.environ.get("TELOS_DEMO_MODE", "true").strip().lower() in {"1", "true", "yes", "on"}
+TELOS_HOSPEDADO = os.environ.get("TELOS_HOSPEDADO", "false").strip().lower() in {"1", "true", "yes", "on"}
+DEMO_MODE = TELOS_HOSPEDADO or os.environ.get("TELOS_DEMO_MODE", "true").strip().lower() in {"1", "true", "yes", "on"}
 CLIENT_MAP_FILE = Path(os.environ.get("TELOS_CLIENT_MAP_FILE", ROOT / ".telos_clientes.json"))
 CASE_AREAS = {
     "imobiliario": range(1, 8),
@@ -44,6 +46,7 @@ app = Flask(
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024
 RUN_LOCK = threading.Lock()
 STATE_LOCK = threading.Lock()
+EMAIL_RATE_LOCK = threading.Lock()
 PENDING_EMAIL: dict | None = None
 
 
@@ -87,6 +90,42 @@ def write_latest_round(data: dict) -> None:
 def update_run(**changes) -> None:
     with STATE_LOCK:
         RUN_STATE.update(changes)
+
+
+def reserve_hosted_email_slot() -> str | None:
+    """Reserve one hosted email attempt, enforcing per-minute and daily limits."""
+    if not TELOS_HOSPEDADO:
+        return None
+    now = time.time()
+    today = datetime.now().astimezone().date()
+    with EMAIL_RATE_LOCK:
+        try:
+            previous = json.loads(EMAIL_RATE_FILE.read_text(encoding="utf-8"))
+            timestamps = [float(value) for value in previous if isinstance(value, (int, float))]
+        except (OSError, json.JSONDecodeError, TypeError, ValueError):
+            timestamps = []
+        recent = [value for value in timestamps if 0 <= now - value < 60]
+        today_values = [value for value in timestamps
+                        if datetime.fromtimestamp(value).astimezone().date() == today]
+        if recent:
+            return "Limite de envio: aguarde um minuto antes de enviar outro e-mail."
+        if len(today_values) >= 20:
+            return "Limite diário de 20 envios atingido. Tente novamente amanhã."
+        timestamps = today_values + [now]
+        DATA_DIR.mkdir(parents=True, exist_ok=True)
+        temporary_name = None
+        try:
+            with tempfile.NamedTemporaryFile(
+                mode="w", encoding="utf-8", dir=DATA_DIR, delete=False
+            ) as temporary:
+                json.dump(timestamps, temporary)
+                temporary.write("\n")
+                temporary_name = temporary.name
+            os.replace(temporary_name, EMAIL_RATE_FILE)
+        finally:
+            if temporary_name and os.path.exists(temporary_name):
+                os.unlink(temporary_name)
+    return None
 
 
 def current_provider_settings() -> tuple[str, str, str]:
@@ -368,10 +407,22 @@ def progress_callback(stage: str, current: int, total: int) -> None:
         update_run(phase="saving", message=message)
 
 
-def demo_round(extra_email: str) -> None:
+def demo_round(area: str, decision_count: int, extra_email: str) -> None:
     global PENDING_EMAIL
     fixture = json.loads(DEMO_ROUND_FILE.read_text(encoding="utf-8"))
-    decisions = fixture.get("decisions", [])
+    all_decisions = fixture.get("decisions", [])
+    decisions = [
+        item for item in all_decisions
+        if area == "todas" or item.get("area", "").lower() == {
+            "imobiliario": "imobiliário",
+            "empresarial": "empresarial",
+            "bancario": "bancário",
+        }.get(area)
+    ][:decision_count]
+    selected_files = {item.get("file") for item in decisions}
+    alerts = [item for item in fixture.get("alerts", []) if item.get("decisao") in selected_files]
+    reviews = [item for item in fixture.get("reviews", []) if item.get("decisao") in selected_files]
+    no_impact_items = [item for item in fixture.get("sem_impacto", []) if item.get("decisao") in selected_files]
     total = len(decisions)
     update_run(phase="searching", message="Buscando decisões no TJSP…", progress_current=0, progress_total=total)
     time.sleep(2)
@@ -385,16 +436,23 @@ def demo_round(extra_email: str) -> None:
         update_run(phase="analyzing", message=f"Análise concluída para a decisão {index} de {total}.", progress_current=index, progress_total=total)
         time.sleep(0.35)
 
-    no_impact = [dict(item, metadata=telos.decision_metadata_text(item)) for item in fixture.get("sem_impacto", [])]
-    result = result_for_page({"alerts": fixture.get("alerts", []), "reviews": fixture.get("reviews", []),
+    no_impact = [dict(item, metadata=telos.decision_metadata_text(item)) for item in no_impact_items]
+    result = result_for_page({"alerts": alerts, "reviews": reviews,
                               "completed_count": total, "selected_count": total,
                               "sem_impacto": no_impact})
+    area_label = {
+        "imobiliario": "Direito Imobiliário",
+        "empresarial": "Direito Empresarial",
+        "bancario": "Direito Bancário",
+        "todas": "Bancário, Imobiliário e Empresarial",
+    }[area]
     result.update({"data_rodada": datetime.now().astimezone().isoformat(timespec="minutes"),
-                   "area": "Bancário, Imobiliário e Empresarial", "modo_demo": True,
+                   "area": area_label, "modo_demo": True,
                    "data_coleta": fixture.get("data_coleta")})
-    PENDING_EMAIL = {"alerts": fixture.get("alerts", []), "reviews": fixture.get("reviews", []),
+    PENDING_EMAIL = {"alerts": alerts, "reviews": reviews,
                      "completed_count": total, "selected_count": total,
-                     "interrupted": False, "extra_recipients": extra_email or None}
+                     "interrupted": False, "extra_recipients": extra_email or None,
+                     "area": area}
     result["email_disponivel"] = True
     result["email_status"] = "ready"
     write_latest_round(result)
@@ -410,7 +468,7 @@ def run_round(area: str, decision_count: int, extra_email: str, demo: bool = Fal
     global PENDING_EMAIL
     if DEMO_MODE:
         try:
-            demo_round(extra_email)
+            demo_round(area, decision_count, extra_email)
         except Exception as error:
             update_run(phase="error", message=f"A rodada não foi concluída ({type(error).__name__}). A última rodada continua disponível.")
         finally:
@@ -557,6 +615,7 @@ def home():
             "last_round": RUN_STATE["last_round"],
             "email_status": RUN_STATE.get("email_status", "none"),
             "email_available": RUN_STATE.get("email_available", False),
+            "demo_mode": DEMO_MODE,
         }
     return render_template("index.html", initial_state=initial_state, demo_mode=DEMO_MODE)
 
@@ -579,6 +638,7 @@ def api_state():
             "last_round": RUN_STATE["last_round"],
             "email_status": RUN_STATE.get("email_status", "none"),
             "email_available": RUN_STATE.get("email_available", False),
+            "demo_mode": DEMO_MODE,
         })
 
 
@@ -642,6 +702,7 @@ def send_email_worker(payload: dict) -> None:
             payload.get("alerts", []), payload.get("reviews", []),
             payload.get("completed_count", 0), payload.get("selected_count", 0),
             payload.get("interrupted", False), extra_recipients=payload.get("extra_recipients"),
+            recipients_override=payload.get("recipients_override"),
         )
         status = "sent" if sent is True else "failed"
         with STATE_LOCK:
@@ -677,10 +738,26 @@ def api_send_email():
         return jsonify({"error": "O acesso desta página ainda não foi configurado."}), 403
     if PENDING_EMAIL is None or not RUN_STATE.get("email_available"):
         return jsonify({"error": "Não há avisos pendentes para enviar."}), 400
+    payload = dict(PENDING_EMAIL)
+    if TELOS_HOSPEDADO:
+        recipient = str(body.get("extra_email", "")).strip()
+        if not recipient or not re.fullmatch(r"[^@\s,]+@[^@\s,]+\.[^@\s,]+", recipient):
+            return jsonify({"error": "Na hospedagem, informe um e-mail válido para receber os avisos."}), 400
+        payload["recipients_override"] = [recipient]
+        payload["extra_recipients"] = None
+    elif body.get("extra_email"):
+        recipient = str(body.get("extra_email", "")).strip()
+        if not re.fullmatch(r"[^@\s,]+@[^@\s,]+\.[^@\s,]+", recipient):
+            return jsonify({"error": "Digite um endereço de e-mail válido."}), 400
+        payload["extra_recipients"] = recipient
     if not RUN_LOCK.acquire(blocking=False):
         return jsonify({"error": "Aguarde a atividade atual terminar."}), 409
+    rate_error = reserve_hosted_email_slot()
+    if rate_error:
+        RUN_LOCK.release()
+        return jsonify({"error": rate_error}), 429
     update_run(running=True, phase="sending_email", message="Preparando o envio do e-mail…")
-    threading.Thread(target=send_email_worker, args=(dict(PENDING_EMAIL),), name="telos-email", daemon=True).start()
+    threading.Thread(target=send_email_worker, args=(payload,), name="telos-email", daemon=True).start()
     return jsonify({"started": True}), 202
 
 

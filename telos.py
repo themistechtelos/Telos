@@ -1774,12 +1774,15 @@ def send_round_email(
     selected_count: int,
     interrupted: bool,
     extra_recipients: str | None = None,
+    recipients_override: list[str] | None = None,
 ) -> bool | None:
     sender = os.environ.get("GMAIL_SENDER", "").strip()
     app_password = os.environ.get("GMAIL_APP_PASSWORD", "").strip().replace(" ", "")
     recipient_field = os.environ.get("GMAIL_RECIPIENT", "").strip()
-    recipients = list(dict.fromkeys(address.strip() for address in recipient_field.split(",") if address.strip()))
-    if extra_recipients and extra_recipients.strip():
+    recipients = (list(dict.fromkeys(address.strip() for address in recipients_override if address.strip()))
+                  if recipients_override is not None else
+                  list(dict.fromkeys(address.strip() for address in recipient_field.split(",") if address.strip())))
+    if recipients_override is None and extra_recipients and extra_recipients.strip():
         recipients.extend(
             address.strip()
             for address in extra_recipients.split(",")

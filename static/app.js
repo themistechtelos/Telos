@@ -155,6 +155,10 @@
     }
   }
 
+  const initialState = window.TELOS_INITIAL_STATE || {};
+  const areaSelect = document.getElementById('area');
+  if (areaSelect) areaSelect.value = initialState.demo_mode ? 'todas' : 'imobiliario';
+
   async function refreshState() {
     try {
       const response = await fetch('/api/state', {cache:'no-store'});
@@ -200,7 +204,10 @@
     emailButton.textContent = 'Preparando…';
     try {
       const response = await fetch('/api/send-email', {
-        method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({access_code:accessCode})
+        method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({
+          access_code:accessCode,
+          extra_email:document.getElementById('extra-email').value.trim()
+        })
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Não foi possível iniciar o envio.');

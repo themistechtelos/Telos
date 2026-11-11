@@ -24,8 +24,8 @@ services:
         sync: false
       - key: GMAIL_APP_PASSWORD
         sync: false
-      - key: GMAIL_RECIPIENT
-        sync: false
+      - key: TELOS_HOSPEDADO
+        value: "true"
       - key: TELOS_ACCESS_CODE
         sync: false
       - key: TELOS_DEMO_MODE

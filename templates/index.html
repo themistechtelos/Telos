@@ -33,7 +33,6 @@
           <span class="sparkle" aria-hidden="true">✳</span>
         </div>
         <form id="watch-form">
-          {% if not demo_mode %}
           <label for="area">Área do Direito</label>
           <select id="area" name="area">
             <option value="imobiliario">Direito Imobiliário</option>
@@ -41,20 +40,16 @@
             <option value="bancario">Direito Bancário</option>
             <option value="todas">Todas as áreas</option>
           </select>
-          {% endif %}
-
-          {% if not demo_mode %}
           <label for="decision-count">Quantas decisões analisar?</label>
           <select id="decision-count" name="decision_count">
             <option value="1">1 decisão</option><option value="2">2 decisões</option>
             <option value="3">3 decisões</option><option value="4">4 decisões</option>
             <option value="5" selected>5 decisões</option>
           </select>
-          {% endif %}
 
           <label for="extra-email">E-mail extra <span>(opcional)</span></label>
           <input id="extra-email" name="extra_email" type="email" autocomplete="email" placeholder="voce@escritorio.com.br">
-          <p class="field-note">Também receberá os avisos enviados aos destinatários configurados.</p>
+          <p class="field-note">Na hospedagem, este é o único endereço que recebe. No computador, ele se soma aos destinatários configurados.</p>
 
           <label for="access-code">Código de acesso</label>
           <input id="access-code" name="access_code" type="password" autocomplete="current-password" placeholder="Digite o código, se solicitado">
