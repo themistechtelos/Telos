@@ -26,11 +26,7 @@ services:
         sync: false
       - key: TELOS_HOSPEDADO
         value: "true"
-      - key: TELOS_ACCESS_CODE
-        sync: false
       - key: TELOS_DEMO_MODE
-        value: "true"
-      - key: TELOS_REQUIRE_ACCESS_CODE
         value: "true"
       - key: TJSP_SEARCH_TERMS_BANCARIO
         value: juros contrato empréstimo bancário;cartão de crédito dívida negativação pagamento;garantia contrato financiamento bancário

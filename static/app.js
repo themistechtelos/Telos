@@ -145,11 +145,11 @@
     renderRound(state.last_round || null);
     emailAction.hidden = !state.email_available;
     if (state.email_status === 'sending') {
-      emailButton.disabled = true; emailButton.textContent = 'Enviando…'; emailStatus.textContent = 'O Gmail está processando o envio.';
+      emailButton.disabled = true; emailButton.textContent = 'Enviando…'; emailStatus.textContent = 'O serviço de e-mail está processando o envio.';
     } else if (state.email_status === 'sent') {
-      emailButton.disabled = false; emailButton.textContent = 'Enviar novamente por e-mail'; emailStatus.textContent = 'Envio concluído. Clique novamente se quiser reenviar esta rodada.';
+      emailButton.disabled = false; emailButton.textContent = 'Enviar novamente por e-mail'; emailStatus.textContent = `${state.message || 'Avisos enviados.'} Clique novamente para reenviar esta rodada.`;
     } else if (state.email_status === 'failed') {
-      emailButton.disabled = false; emailButton.textContent = 'Tentar enviar novamente'; emailStatus.textContent = 'Não foi possível enviar. Confira a configuração do Gmail.';
+      emailButton.disabled = false; emailButton.textContent = 'Tentar enviar novamente'; emailStatus.textContent = 'Não foi possível enviar os avisos. Eles continuam disponíveis nesta página.';
     } else {
       emailButton.disabled = false; emailButton.textContent = 'Enviar avisos por e-mail'; emailStatus.textContent = '';
     }
@@ -199,13 +199,11 @@
   });
 
   emailButton.addEventListener('click', async () => {
-    const accessCode = document.getElementById('access-code').value;
     emailButton.disabled = true;
     emailButton.textContent = 'Preparando…';
     try {
       const response = await fetch('/api/send-email', {
         method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({
-          access_code:accessCode,
           extra_email:document.getElementById('extra-email').value.trim()
         })
       });

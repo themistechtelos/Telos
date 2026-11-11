@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-import hmac
 import json
 import os
 import re
 import tempfile
 import threading
 import time
+import unicodedata
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -248,6 +248,89 @@ def case_list() -> list[dict]:
     return items
 
 
+CASE_MATCH_STOPWORDS = {
+    "a", "à", "ao", "aos", "as", "com", "da", "das", "de", "do", "dos",
+    "e", "em", "entre", "na", "nas", "no", "nos", "o", "os", "ou", "para",
+    "pela", "pelas", "pelo", "pelos", "por", "que", "se", "sem", "um", "uma",
+    "cliente", "caso", "quer", "empresa", "parte", "direito", "acao", "pedido",
+}
+
+
+def case_match_tokens(text: str) -> set[str]:
+    folded = unicodedata.normalize("NFKD", text.casefold())
+    plain = "".join(char for char in folded if not unicodedata.combining(char))
+    return {word for word in re.findall(r"[a-z0-9]{3,}", plain) if word not in CASE_MATCH_STOPWORDS}
+
+
+def demo_case_example(description: str, client_name: str, area: str) -> tuple[dict, dict] | None:
+    """Choose an existing demo notice by transparent local word similarity."""
+    try:
+        fixture = json.loads(DEMO_ROUND_FILE.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    area_labels = {"imobiliario": "imobiliário", "empresarial": "empresarial", "bancario": "bancário"}
+    candidates = []
+    for decision in fixture.get("decisions", []):
+        if decision.get("area", "").casefold() != area_labels.get(area):
+            continue
+        filename = decision.get("file", "")
+        linked_alerts = [item for item in fixture.get("alerts", []) if item.get("decisao") == filename]
+        chosen = next((item for item in linked_alerts
+                       if telos.direct_alert_is_readable(item)
+                       and telos.is_official_tjsp_link(item.get("link_oficial", ""))), None)
+        if chosen is None:
+            continue
+        try:
+            decision_text = telos.read_document(telos.DECISIONS_DIR / filename)
+        except (OSError, RuntimeError):
+            decision_text = ""
+        evidence = " ".join(str(value) for value in chosen.get("trechos_relacao", []))
+        comparison_text = " ".join([
+            str(chosen.get("resumo", "")), str(chosen.get("motivo_relacao", "")),
+            str(chosen.get("resultado", "")), evidence, decision_text[:30000],
+        ])
+        candidates.append((decision, chosen, comparison_text))
+    if not candidates:
+        return None
+
+    query_tokens = case_match_tokens(description)
+    candidate_tokens = [case_match_tokens(text) for _, _, text in candidates]
+    document_frequency = {
+        token: sum(token in terms for terms in candidate_tokens)
+        for token in query_tokens
+    }
+    query_bigrams = set(zip(case_match_tokens_ordered(description), case_match_tokens_ordered(description)[1:]))
+    ranked = []
+    for index, (decision, chosen, _) in enumerate(candidates):
+        overlap = sum(1.0 + (len(candidates) / (1 + document_frequency[token]))
+                      for token in query_tokens & candidate_tokens[index])
+        decision_words = case_match_tokens_ordered(" ".join([
+            str(chosen.get("resumo", "")), str(chosen.get("motivo_relacao", "")),
+            " ".join(str(q) for q in chosen.get("trechos_relacao", [])),
+        ]))
+        decision_bigrams = set(zip(decision_words, decision_words[1:]))
+        overlap += 2.5 * len(query_bigrams & decision_bigrams)
+        ranked.append((overlap, -index, decision, chosen))
+    _, _, decision, source_alert = max(ranked, key=lambda item: (item[0], item[1]))
+    simulated_alert = dict(source_alert)
+    simulated_alert["caso"] = f"Simulação — {client_name}"
+    simulated_alert["resumo"] = f"Exemplo demonstrativo: {source_alert.get('resumo', '')}"
+    simulated_alert["motivo_relacao"] = "A decisão foi escolhida por semelhança com a descrição; isso não confirma relação jurídica direta com o caso."
+    simulated_alert["posicao_cliente"] = "Favorabilidade a confirmar: este exemplo não avalia a posição do novo caso."
+    simulated_alert["favorabilidade_a_confirmar"] = True
+    simulated_alert["motivo_favorabilidade"] = "A favorabilidade do caso informado não foi analisada; este cartão é apenas um exemplo demonstrativo."
+    simulated_alert["trecho_favorabilidade"] = ""
+    notice = result_for_page({"alerts": [simulated_alert], "reviews": [],
+                              "completed_count": 1, "selected_count": 1})["avisos"][0]
+    return notice, simulated_alert
+
+
+def case_match_tokens_ordered(text: str) -> list[str]:
+    folded = unicodedata.normalize("NFKD", text.casefold())
+    plain = "".join(char for char in folded if not unicodedata.combining(char))
+    return [word for word in re.findall(r"[a-z0-9]{3,}", plain) if word not in CASE_MATCH_STOPWORDS]
+
+
 def load_client_map() -> dict:
     try:
         data = json.loads(CLIENT_MAP_FILE.read_text(encoding="utf-8"))
@@ -464,15 +547,16 @@ def demo_round(area: str, decision_count: int, extra_email: str) -> None:
                      "completed_count": total, "selected_count": total,
                      "interrupted": False, "extra_recipients": extra_email or None,
                      "area": area}
-    result["email_disponivel"] = True
-    result["email_status"] = "ready"
+    result["email_disponivel"] = False
+    result["email_status"] = "none"
     write_latest_round(result)
     with STATE_LOCK:
         RUN_STATE["last_round"] = result
-        RUN_STATE["email_status"] = "ready"
-        RUN_STATE["email_available"] = True
-    update_run(phase="complete", message="Rodada concluída. Confira os avisos e envie o e-mail quando quiser.",
+        RUN_STATE["email_status"] = "none"
+        RUN_STATE["email_available"] = False
+    update_run(phase="complete", message="Rodada concluída.",
                progress_current=total, progress_total=total)
+    send_round_email_at_end(PENDING_EMAIL)
 
 
 def run_round(area: str, decision_count: int, extra_email: str, demo: bool = False) -> None:
@@ -582,20 +666,21 @@ def run_round(area: str, decision_count: int, extra_email: str, demo: bool = Fal
                              "selected_count": result_holder.get("selected_count", 0),
                              "interrupted": result_holder.get("interrupted", False),
                              "extra_recipients": extra_email or None}
-            result["email_disponivel"] = True
-            result["email_status"] = "ready"
+            result["email_disponivel"] = False
+            result["email_status"] = "none"
             if result["concluidas"] or RUN_STATE.get("last_round") is None:
                 write_latest_round(result)
                 with STATE_LOCK:
                     RUN_STATE["last_round"] = result
-                    RUN_STATE["email_status"] = "ready"
-                    RUN_STATE["email_available"] = True
+                    RUN_STATE["email_status"] = "none"
+                    RUN_STATE["email_available"] = False
             if result["concluidas"] == 0 and RUN_STATE.get("last_round") is not None:
                 update_run(phase="complete", message="Nenhuma decisão foi concluída. Mantive os avisos da rodada anterior.")
             elif result["interrompida"]:
                 update_run(phase="complete", message="Rodada concluída parcialmente; veja os avisos e a seção de revisão.")
             else:
                 update_run(phase="complete", message="Rodada concluída.")
+            send_round_email_at_end(PENDING_EMAIL)
     except Exception as error:
         # Keep the previous completed results visible; never include configuration values here.
         update_run(phase="error", message=f"A rodada não foi concluída ({type(error).__name__}). A última rodada continua disponível.")
@@ -634,7 +719,8 @@ def home():
 @app.get("/casos")
 def cases_page():
     local_only = request.remote_addr in {"127.0.0.1", "::1"}
-    return render_template("casos.html", cases=case_list(), local_only=local_only)
+    return render_template("casos.html", cases=case_list(), local_only=local_only,
+                           hosted_simulation=TELOS_HOSPEDADO)
 
 
 @app.get("/api/state")
@@ -656,17 +742,6 @@ def api_state():
 @app.post("/api/run")
 def api_run():
     body = request.get_json(silent=True) or {}
-    access_code = str(body.get("access_code", ""))
-    configured_code = os.environ.get("TELOS_ACCESS_CODE", "")
-    if configured_code and not hmac.compare_digest(access_code, configured_code):
-        return jsonify({"error": "Código de acesso incorreto."}), 403
-    hosted_access_required = (
-        os.environ.get("TELOS_REQUIRE_ACCESS_CODE", "").strip().lower() == "true"
-        or bool(os.environ.get("RENDER"))
-    )
-    if not configured_code and hosted_access_required:
-        return jsonify({"error": "O acesso desta página ainda não foi configurado."}), 403
-
     area = str(body.get("area", "todas" if DEMO_MODE else "imobiliario"))
     demo = DEMO_MODE
     if area not in CASE_AREAS:
@@ -705,9 +780,60 @@ def api_run():
     return jsonify({"started": True}), 202
 
 
-def send_email_worker(payload: dict) -> None:
-    global PENDING_EMAIL
-    update_run(phase="sending_email", message="Enviando e-mail com os avisos…")
+def email_success_message(payload: dict) -> str:
+    if TELOS_HOSPEDADO:
+        return "Avisos enviados para o seu e-mail."
+    has_configured_recipients = bool(os.environ.get("GMAIL_RECIPIENT", "").strip())
+    if payload.get("extra_recipients") and has_configured_recipients:
+        return "Avisos enviados aos destinatários configurados e ao e-mail digitado."
+    if payload.get("extra_recipients"):
+        return "Avisos enviados para o e-mail digitado."
+    return "Avisos enviados aos destinatários configurados."
+
+
+def record_email_result(sent: bool | None, payload: dict, *, automatic: bool, error_message: str | None = None) -> None:
+    status = "sent" if sent is True else "none" if sent is None else "failed"
+    was_available = bool(RUN_STATE.get("email_available"))
+    can_resend = sent is True or (was_available and not automatic)
+    with STATE_LOCK:
+        RUN_STATE["email_status"] = status
+        RUN_STATE["email_available"] = can_resend
+        last_round = RUN_STATE.get("last_round")
+        if last_round:
+            last_round["email_status"] = status
+            last_round["email_enviado"] = sent
+            last_round["email_disponivel"] = can_resend
+            write_latest_round(last_round)
+    if sent is True:
+        message = email_success_message(payload)
+    elif error_message:
+        message = error_message
+    elif sent is None:
+        message = "Rodada concluída. Nenhum e-mail foi enviado porque não há destinatário configurado."
+    else:
+        message = "Não foi possível enviar os avisos por e-mail. Eles continuam disponíveis na página."
+    update_run(phase="complete", message=message)
+
+
+def send_round_email_payload(payload: dict, *, automatic: bool, rate_reserved: bool = False) -> bool | None:
+    if TELOS_HOSPEDADO:
+        recipient = str(payload.get("extra_recipients") or "").strip()
+        existing_override = payload.get("recipients_override")
+        if existing_override:
+            recipient = str(existing_override[0]).strip()
+        if not recipient:
+            record_email_result(None, payload, automatic=automatic)
+            return None
+        if not rate_reserved:
+            rate_error = reserve_hosted_email_slot()
+            if rate_error:
+                record_email_result(False, payload, automatic=automatic, error_message=rate_error)
+                return False
+        payload = dict(payload)
+        payload["recipients_override"] = [recipient]
+        payload["extra_recipients"] = None
+
+    update_run(phase="sending_email", message="Enviando avisos por e-mail…")
     try:
         sent = telos.send_round_email(
             payload.get("alerts", []), payload.get("reviews", []),
@@ -716,20 +842,26 @@ def send_email_worker(payload: dict) -> None:
             recipients_override=payload.get("recipients_override"),
             email_provider="brevo" if TELOS_HOSPEDADO else "gmail",
         )
-        status = "sent" if sent is True else "failed"
-        with STATE_LOCK:
-            RUN_STATE["email_status"] = status
-            # Keep this round available so another explicit click can resend it.
-            RUN_STATE["email_available"] = True
-            if RUN_STATE.get("last_round"):
-                RUN_STATE["last_round"]["email_status"] = status
-                write_latest_round(RUN_STATE["last_round"])
-        update_run(phase="complete", message="E-mail enviado." if sent is True else "Não foi possível enviar o e-mail. Os avisos continuam na página.")
+        record_email_result(sent, payload, automatic=automatic)
+        return sent
     except Exception as error:
-        update_run(phase="complete", message=f"O envio falhou ({type(error).__name__}). Os avisos continuam na página.")
-        with STATE_LOCK:
-            RUN_STATE["email_status"] = "failed"
-            RUN_STATE["email_available"] = True
+        record_email_result(False, payload, automatic=automatic,
+                            error_message=f"O envio falhou ({type(error).__name__}). Os avisos continuam na página.")
+        return False
+
+
+def send_round_email_at_end(payload: dict | None) -> None:
+    if payload is None:
+        return
+    if TELOS_HOSPEDADO and not str(payload.get("extra_recipients") or "").strip():
+        record_email_result(None, payload, automatic=True)
+        return
+    send_round_email_payload(payload, automatic=True)
+
+
+def send_email_worker(payload: dict, *, rate_reserved: bool = False) -> None:
+    try:
+        send_round_email_payload(payload, automatic=False, rate_reserved=rate_reserved)
     finally:
         update_run(running=False)
         RUN_LOCK.release()
@@ -738,23 +870,13 @@ def send_email_worker(payload: dict) -> None:
 @app.post("/api/send-email")
 def api_send_email():
     body = request.get_json(silent=True) or {}
-    access_code = str(body.get("access_code", ""))
-    configured_code = os.environ.get("TELOS_ACCESS_CODE", "")
-    hosted_access_required = (
-        os.environ.get("TELOS_REQUIRE_ACCESS_CODE", "").strip().lower() == "true"
-        or bool(os.environ.get("RENDER"))
-    )
-    if configured_code and not hmac.compare_digest(access_code, configured_code):
-        return jsonify({"error": "Código de acesso incorreto."}), 403
-    if not configured_code and hosted_access_required:
-        return jsonify({"error": "O acesso desta página ainda não foi configurado."}), 403
     if PENDING_EMAIL is None or not RUN_STATE.get("email_available"):
         return jsonify({"error": "Não há avisos pendentes para enviar."}), 400
     payload = dict(PENDING_EMAIL)
     if TELOS_HOSPEDADO:
         recipient = str(body.get("extra_email", "")).strip()
         if not recipient or not re.fullmatch(r"[^@\s,]+@[^@\s,]+\.[^@\s,]+", recipient):
-            return jsonify({"error": "Na hospedagem, informe um e-mail válido para receber os avisos."}), 400
+            return jsonify({"error": "Digite um e-mail válido para receber os avisos."}), 400
         payload["recipients_override"] = [recipient]
         payload["extra_recipients"] = None
     elif body.get("extra_email"):
@@ -769,14 +891,14 @@ def api_send_email():
         RUN_LOCK.release()
         return jsonify({"error": rate_error}), 429
     update_run(running=True, phase="sending_email", message="Preparando o envio do e-mail…")
-    threading.Thread(target=send_email_worker, args=(payload,), name="telos-email", daemon=True).start()
+    threading.Thread(target=send_email_worker, kwargs={"payload": payload, "rate_reserved": True}, name="telos-email", daemon=True).start()
     return jsonify({"started": True}), 202
 
 
 @app.post("/api/cases")
 def api_create_case():
-    if request.remote_addr not in {"127.0.0.1", "::1"}:
-        return jsonify({"error": "Por sigilo, o cadastro de clientes está disponível apenas no Telos aberto neste computador."}), 403
+    if not TELOS_HOSPEDADO and request.remote_addr not in {"127.0.0.1", "::1"}:
+        return jsonify({"error": "Não foi possível cadastrar este caso."}), 403
     body = request.get_json(silent=True) or {}
     kind = str(body.get("kind", "")).strip().lower()
     name = str(body.get("client_name", "")).strip()
@@ -786,8 +908,38 @@ def api_create_case():
         return jsonify({"error": "Escolha contrato ou processo."}), 400
     if not name or len(name) > 160 or not description or len(description) > 4000:
         return jsonify({"error": "Preencha o nome do cliente e uma descrição com até 4.000 caracteres."}), 400
-    if area not in {"imobiliario", "empresarial"}:
+    if area not in {"imobiliario", "empresarial", "bancario"}:
         return jsonify({"error": "Escolha uma área do Direito."}), 400
+    email = str(body.get("email", "")).strip()
+    if TELOS_HOSPEDADO:
+        if email and not re.fullmatch(r"[^@\s,]+@[^@\s,]+\.[^@\s,]+", email):
+            return jsonify({"error": "Digite um e-mail válido ou deixe o campo vazio."}), 400
+        example = demo_case_example(description, name, area)
+        if example is None:
+            return jsonify({"error": "Não encontramos uma decisão de demonstração adequada para essa área."}), 404
+        notice, email_alert = example
+        email_sent = None
+        email_message = ""
+        if email:
+            rate_error = reserve_hosted_email_slot()
+            if rate_error:
+                email_message = rate_error
+            else:
+                email_sent = telos.send_round_email(
+                    [email_alert], [], 1, 1, False,
+                    recipients_override=[email], email_provider="brevo",
+                )
+                email_message = "O exemplo foi enviado para o e-mail informado." if email_sent is True else (
+                    "Não foi possível enviar o e-mail, mas o exemplo está disponível nesta tela."
+                )
+        return jsonify({
+            "simulation": True,
+            "message": "Este exemplo usa a decisão de demonstração mais parecida com a descrição. Não é uma análise do seu caso.",
+            "notice": notice,
+            "email_sent": email_sent,
+            "email_message": email_message,
+        }), 200
+
     import secrets
     code = "caso-" + secrets.token_hex(5)
     case_folder = telos.CASES_DIR / "cadastrados"
