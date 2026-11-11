@@ -6,20 +6,6 @@ services:
     buildCommand: pip install -r requirements-hosting.txt
     startCommand: gunicorn webapp:app --bind 0.0.0.0:$PORT --workers 1 --threads 4
     envVars:
-      - key: AI_PROVIDER
-        value: openai
-      - key: OPENAI_API_KEY
-        sync: false
-      - key: OPENAI_MODEL
-        value: gpt-6-luna
-      - key: GEMINI_API_KEY
-        sync: false
-      - key: GEMINI_MODEL
-        value: gemini-3.1-flash-lite
-      - key: GROQ_API_KEY
-        sync: false
-      - key: GROQ_MODEL
-        value: openai/gpt-oss-120b
       - key: GMAIL_SENDER
         sync: false
       - key: BREVO_API_KEY
@@ -28,9 +14,3 @@ services:
         value: "true"
       - key: TELOS_DEMO_MODE
         value: "true"
-      - key: TJSP_SEARCH_TERMS_BANCARIO
-        value: juros contrato empréstimo bancário;cartão de crédito dívida negativação pagamento;garantia contrato financiamento bancário
-      - key: TJSP_SEARCH_TERMS_IMOBILIARIO
-        value: atraso entrega apartamento na planta prazo tolerância 180 dias aluguel multa construtora;INCC saldo devedor atraso obra imóvel na planta construtora;desistência compra imóvel na planta retenção valores pagos construtora;vícios construtivos infiltração rachaduras apartamento novo reparos construtora;cobrança taxas condominiais condomínio inadimplente execução;despejo falta pagamento aluguel locação residencial quatro meses;ação renovatória locação comercial revisão aluguel loja
-      - key: TJSP_SEARCH_TERMS_EMPRESARIAL
-        value: duplicata protestada serviço não prestado cancelamento protesto indenização;cobrança notas fiscais mercadorias fornecidas inadimplência empresa;rescisão contrato franquia falta suporte multa franqueadora;dissolução parcial sociedade limitada retirada sócio apuração de haveres;habilitação crédito recuperação judicial fornecedor credor

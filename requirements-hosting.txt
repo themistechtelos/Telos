@@ -1,2 +1,5 @@
--r requirements.txt
+# A hospedagem fica permanentemente no modo de demonstração. Busca e análise
+# ao vivo, conversores de PDF e provedores de IA não são necessários para
+# iniciar o site, listar os casos, exibir a rodada ou enviar e-mails pelo Brevo.
+Flask>=3.0.0,<4.0.0
 gunicorn>=22.0.0,<24.0.0
