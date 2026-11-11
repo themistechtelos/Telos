@@ -165,6 +165,8 @@ EMAIL_CASE_TITLES = {
     "caso_23.txt": "Caso 23 — Rescisão de franquia",
     "caso_24.txt": "Caso 24 — Apuração de haveres",
     "caso_25.txt": "Caso 25 — Indenização pelo período sem uso",
+    "caso_26.txt": "Caso 26 — Consignado não contratado",
+    "caso_27.txt": "Caso 27 — Assinatura contestada em consignado",
 }
 CASE_DISPLAY_NAMES: dict[str, str] = {}
 

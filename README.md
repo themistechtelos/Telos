@@ -57,16 +57,17 @@ Próximos passos. Novas fontes, começando pelo Superior Tribunal de Justiça e 
 
 A interface permite informar um e-mail extra para receber os avisos; esse endereço é somado aos destinatários configurados e fica oculto dos demais. Ao terminar a rodada, o Telos mostra os resultados na página. O e-mail só é enviado quando alguém clica em **Enviar avisos por e-mail**. As chaves e senhas não são enviadas à página.
 
-O modo de demonstração é controlado pela variável `TELOS_DEMO_MODE` no `.env` e vem ligado (`true`). Nesse modo, o botão reapresenta uma rodada fixa de quatro decisões já verificadas, com andamento simulado em cerca de 15 segundos, sem consultar o TJSP nem chamar a IA. A página não exibe um aviso de que está nesse modo. Para fazer buscas e análises reais, mude a variável para `TELOS_DEMO_MODE=false`; a escolha de área e quantidade de decisões aparece na página, e a busca consulta decisões dos últimos 21 dias, até três páginas por termo, acrescentando arquivos sem apagar os anteriores.
+O modo de demonstração é controlado pela variável `TELOS_DEMO_MODE` no `.env` e vem ligado (`true`). Nesse modo, o botão reapresenta uma rodada fixa de cinco decisões já verificadas, com andamento simulado em cerca de 15 segundos, sem consultar o TJSP nem chamar a IA. A página não exibe um aviso de que está nesse modo. Para fazer buscas e análises reais, mude a variável para `TELOS_DEMO_MODE=false`; a escolha de área e quantidade de decisões aparece na página, e a busca consulta decisões dos últimos 21 dias, até três páginas por termo, acrescentando arquivos sem apagar os anteriores.
 
-A rodada fixa mistura Direito Bancário, Imobiliário e Empresarial. Ela inclui uma decisão de atraso de imóvel relacionada a três casos, uma de duplicata relacionada a dois casos e duas decisões bancárias sem relação direta confirmada. A seleção considera os casos afetados e o resultado direto que se repetiram nas duas análises. Os nove casos fictícios de demonstração ficam em `casos/demonstracao/` como Casos 17 a 25, com as descrições preservadas. Divergências de relação vão para “Revisar à mão”.
+A rodada fixa mistura Direito Bancário, Imobiliário e Empresarial. Inclui atraso na entrega (3 casos), defeitos no apartamento (2), saída de sócio (2), duplicata protestada (2) e empréstimo consignado não reconhecido (2). A decisão bancária também tem um item para “Revisar à mão”, que apareceu nas duas rodadas de verificação. Os casos fictícios de demonstração ficam em `casos/demonstracao/`, numerados de 17 a 27; os nove casos 17 a 25 mantêm as descrições, e os Casos 26 e 27 descrevem questões de empréstimo consignado.
 
 | Decisão da rodada fixa | Área | Casos com aviso direto |
 | --- | --- | ---: |
 | Processo 1005418-33.2025.8.26.0451 — atraso na entrega | Imobiliário | 3 (Casos 1, 17 e 25) |
+| Processo 1008042-44.2020.8.26.0576 — defeitos no apartamento | Imobiliário | 2 (Casos 4 e 19) |
+| Processo 1007713-26.2021.8.26.0114 — saída de sócio | Empresarial | 2 (Casos 11 e 24) |
 | Processo 1000181-61.2022.8.26.0309 — duplicata protestada | Empresarial | 2 (Casos 8 e 22) |
-| Processo 1040618-30.2024.8.26.0001 — cartão de crédito | Bancário | 0 |
-| Processo 1001900-43.2025.8.26.0222 — financiamento bancário | Bancário | 0 |
+| Processo 1014500-57.2024.8.26.0602 — consignado não reconhecido | Bancário | 2 (Casos 26 e 27) |
 
 Na página **Casos do escritório**, o cadastro fica disponível somente quando o Telos é aberto em `localhost`. O nome do cliente e sua relação com um código ficam no computador, em `.telos_clientes.json` (ignorado pelo Git). A IA recebe somente o código e a descrição do caso. O programa acrescenta o nome localmente aos avisos e e-mails. O novo cadastro passa a participar da próxima rodada. Em hospedagem remota, esse formulário é bloqueado para que o nome não seja enviado ao servidor.
 
