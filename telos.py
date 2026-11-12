@@ -25,7 +25,6 @@ from datetime import date, datetime, timedelta
 from email.message import EmailMessage
 from email.utils import formatdate
 from pathlib import Path
-from urllib.parse import urljoin
 
 try:
     from groq import APIConnectionError, APIStatusError, Groq
@@ -45,17 +44,6 @@ try:
     from pypdf import PdfReader
 except ImportError:
     PdfReader = None
-
-try:
-    import juscraper as jus
-except ImportError:
-    jus = None
-
-try:
-    from bs4 import BeautifulSoup
-except ImportError:
-    BeautifulSoup = None
-
 
 BASE_DIR = Path(__file__).resolve().parent
 DECISIONS_DIR = BASE_DIR / "decisoes"
@@ -151,21 +139,6 @@ def read_document(path: Path) -> str:
         reader = PdfReader(str(path))
         return "\n".join(page.extract_text() or "" for page in reader.pages).strip()
     return path.read_text(encoding="utf-8", errors="replace").strip()
-
-
-def is_official_tjsp_link(candidate: str) -> bool:
-    try:
-        parsed = urllib.parse.urlparse(candidate)
-        host = (parsed.hostname or "").lower()
-    except ValueError:
-        return False
-    path = parsed.path.lower()
-    has_decision_route = any(segment in path for segment in ("/cjsg/", "/cjpg/", "/cpopg/", "/cposg/"))
-    return (
-        parsed.scheme == "https"
-        and (host == "tjsp.jus.br" or host.endswith(".tjsp.jus.br"))
-        and has_decision_route
-    )
 
 
 def is_official_stj_link(candidate: str) -> bool:
@@ -405,227 +378,6 @@ def to_text(value: object) -> str:
     except (TypeError, ValueError):
         pass
     return str(value).strip()
-
-
-def record_first_value(record: dict, keys: tuple[str, ...]) -> str:
-    for key in keys:
-        value = to_text(record.get(key))
-        if value:
-            return value
-    return ""
-
-
-def find_result_link(record: dict, raw_path: Path | None) -> str | None:
-    """Build the official TJSP consultation URL from identifiers in this row."""
-    cnj_number = to_text(record.get("id_processo") or record.get("processo"))
-    process_code = to_text(record.get("cd_processo"))
-    if cnj_number and process_code:
-        match = re.fullmatch(r"\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.(\d{4})", cnj_number)
-        if match:
-            forum = str(int(match.group(1)))
-            query = urllib.parse.urlencode({
-                "processo.codigo": process_code,
-                "processo.foro": forum,
-                "processo.numero": cnj_number,
-                "gateway": "true",
-            })
-            return f"https://esaj.tjsp.jus.br/cpopg/show.do?{query}"
-
-    agreement_code = to_text(record.get("cd_acordao"))
-    agreement_forum = to_text(record.get("cd_foro"))
-    if agreement_code and agreement_forum:
-        query = urllib.parse.urlencode({
-            "cdAcordao": agreement_code,
-            "cdForo": agreement_forum,
-        })
-        return f"https://esaj.tjsp.jus.br/cjsg/getArquivo.do?{query}"
-
-    identifiers = [
-        to_text(record.get(key))
-        for key in ("id_processo", "processo", "cd_acordao", "cd_processo")
-        if to_text(record.get(key))
-    ]
-    for key, value in record.items():
-        if "link" in str(key).lower() or "url" in str(key).lower():
-            for candidate in URL_PATTERN.findall(to_text(value)):
-                candidate = candidate.rstrip(".,;:!?\"')")
-                if is_official_tjsp_link(candidate) and any(identifier in candidate for identifier in identifiers):
-                    return candidate
-
-    if not raw_path or BeautifulSoup is None or not identifiers:
-        return None
-
-    for html_file in raw_path.rglob("*.html"):
-        try:
-            soup = BeautifulSoup(html_file.read_text(encoding="latin-1", errors="replace"), "html.parser")
-        except OSError:
-            continue
-        for anchor in soup.find_all("a", href=True):
-            href = str(anchor.get("href", "")).strip()
-            if not href or href.lower().startswith(("javascript:", "mailto:")):
-                continue
-            link = urljoin("https://esaj.tjsp.jus.br/", href)
-            if not is_official_tjsp_link(link):
-                continue
-            # Only accept a URL that itself identifies this result. Page-level
-            # links and neighboring rows are not decision links.
-            if any(identifier and identifier in href for identifier in identifiers):
-                return link
-    return None
-
-
-def search_tjsp(
-    quiet: bool = False,
-    progress_callback=None,
-    search_terms_override: str | None = None,
-    date_start: str | None = None,
-    date_end: str | None = None,
-    pages: int | list | range | None = 1,
-) -> list[Path]:
-    """Collect pages in an optional decision-date range from TJSP search methods."""
-    if jus is None:
-        print("Busca automática indisponível: instale as dependências do requirements.txt.")
-        return []
-
-    grouped_terms = ";".join(
-        value
-        for value in (
-            os.environ.get("TJSP_SEARCH_TERMS_BANCARIO", ""),
-            os.environ.get("TJSP_SEARCH_TERMS_IMOBILIARIO", ""),
-            os.environ.get("TJSP_SEARCH_TERMS_EMPRESARIAL", ""),
-        )
-        if value.strip()
-    )
-    raw_search_terms = (
-        search_terms_override
-        if search_terms_override is not None
-        else grouped_terms or os.environ.get("TJSP_SEARCH_TERMS", "")
-    )
-    search_terms = [
-        term.strip()
-        for term in raw_search_terms.split(";")
-        if term.strip()
-    ]
-    search_terms = [term for term in search_terms if len(term) <= 120]
-    if not search_terms:
-        print("Nenhum termo de busca TJSP configurado. Defina TJSP_SEARCH_TERMS no arquivo .env; cada termo pode ter até 120 caracteres.")
-        return []
-    if len(search_terms) < len(
-        [term for term in raw_search_terms.split(";") if term.strip()]
-    ):
-        print("Alguns termos foram ignorados porque excedem o limite de 120 caracteres do TJSP.")
-
-    if progress_callback:
-        progress_callback("searching", 0, len(search_terms))
-
-    saved: list[Path] = []
-    seen_content: set[str] = set()
-    found = 0
-    missing_link = 0
-    failed = 0
-
-    for term_index, search_term in enumerate(search_terms, start=1):
-        if progress_callback:
-            progress_callback("searching", term_index, len(search_terms))
-        for method_name, text_column, content_type in (
-            ("cjpg", "decisao", "sentença/decisão de primeiro grau (texto disponível na busca)"),
-            ("cjsg", "ementa", "ementa do acórdão (ementa apenas; inteiro teor não baixado)"),
-        ):
-            try:
-                temporary = tempfile.TemporaryDirectory(prefix="telos_tjsp_")
-                scraper = jus.scraper("tjsp", download_path=temporary.name, sleep_time=1)
-            except Exception as error:
-                print(f"Não consegui preparar a busca do TJSP: {error}")
-                return saved
-            download_method = getattr(scraper, f"{method_name}_download", None)
-            parse_method = getattr(scraper, f"{method_name}_parse", None)
-            method = getattr(scraper, method_name, None)
-            if download_method is None or parse_method is None or method is None:
-                temporary.cleanup()
-                failed += 1
-                print(f"Busca TJSP {method_name} indisponível nesta instalação do juscraper.")
-                continue
-            try:
-                query_options = {"paginas": pages}
-                if date_start:
-                    query_options["data_julgamento_inicio"] = date_start
-                if date_end:
-                    query_options["data_julgamento_fim"] = date_end
-                downloaded_path = Path(download_method(pesquisa=search_term, **query_options))
-                rows = parse_method(str(downloaded_path))
-            except Exception as error:
-                temporary.cleanup()
-                failed += 1
-                print(f"Busca TJSP falhou para “{search_term}” ({method_name}): {error}")
-                continue
-            if rows is None or getattr(rows, "empty", False):
-                temporary.cleanup()
-                continue
-
-            try:
-                records = rows.to_dict(orient="records")
-            except (AttributeError, TypeError):
-                temporary.cleanup()
-                print(f"Resposta inesperada do juscraper em {method_name}; esse resultado foi ignorado.")
-                failed += 1
-                continue
-
-            for record in records:
-                body = to_text(record.get(text_column))
-                if not body:
-                    continue
-
-                process_number = to_text(
-                    record.get("id_processo") or record.get("processo") or record.get("cd_acordao") or record.get("cd_processo")
-                ) or "sem-numero"
-                signature = hashlib.sha256((method_name + process_number + body).encode("utf-8")).hexdigest()
-                if signature in seen_content:
-                    continue
-                seen_content.add(signature)
-                found += 1
-
-                # The identifiers above come directly from the juscraper result.
-                link = find_result_link(record, downloaded_path)
-                if not link:
-                    missing_link += 1
-                    continue
-
-                filename = f"auto_{method_name}_{signature[:16]}.txt"
-                output_path = DECISIONS_DIR / filename
-                if output_path.exists():
-                    continue
-
-                header = [
-                    "Fonte: busca automática do juscraper no TJSP",
-                    f"Tipo de conteúdo: {content_type}",
-                    f"Identificador do processo ou decisão: {process_number}",
-                ]
-                metadata_fields = (
-                    ("Foro", ("nm_foro", "nome_foro", "foro", "nm_comarca", "comarca")),
-                    ("Vara", ("nm_vara", "nome_vara", "vara")),
-                    ("Data da decisão", ("data_decisao", "dt_decisao", "data_julgamento", "dt_julgamento", "data_sessao")),
-                )
-                for label, keys in metadata_fields:
-                    value = record_first_value(record, keys)
-                    if value:
-                        header.append(f"{label}: {value}")
-                header.extend([f"Busca: {search_term}", f"Link oficial: {link}", ""])
-                output_path.write_text("\n".join(header) + body + "\n", encoding="utf-8")
-                saved.append(output_path)
-
-            temporary.cleanup()
-
-    total_saved = len(list(DECISIONS_DIR.glob("auto_*.txt")))
-    if found:
-        print(
-            f"Busca TJSP: {found} resultado(s) único(s) encontrado(s); {len(saved)} novo(s) salvo(s); "
-            f"{missing_link} sem link individual verificável. Total automático na pasta: {total_saved}."
-        )
-    elif failed:
-        print("A busca automática falhou ou ficou incompleta. O Telos continuará com as decisões que já estão em decisoes/.")
-    elif not quiet:
-        print("A busca automática não encontrou decisões novas para os termos definidos.")
-    return saved
 
 
 def _stj_get_json(url: str) -> dict:

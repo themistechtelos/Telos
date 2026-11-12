@@ -66,7 +66,21 @@ def load_latest_round() -> dict | None:
         data = json.loads(LATEST_FILE.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
         return None
-    return data if isinstance(data, dict) else None
+    if not isinstance(data, dict):
+        return None
+    # A local cache from an older release may contain results from a former
+    # source. Keep only entries whose own link is an official STJ destination.
+    for key in ("avisos", "revisar", "sem_impacto"):
+        entries = data.get(key)
+        if isinstance(entries, list):
+            data[key] = [
+                item for item in entries
+                if isinstance(item, dict)
+                and telos.is_official_stj_link(str(item.get("link", "")))
+            ]
+    if not any(data.get(key) for key in ("avisos", "revisar", "sem_impacto")):
+        return None
+    return data
 
 
 LATEST_ROUND = load_latest_round()
@@ -491,18 +505,19 @@ def progress_callback(stage: str, current: int, total: int) -> None:
         update_run(phase="saving", message=message)
 
 
-def demo_round(area: str, decision_count: int, extra_email: str) -> None:
+def demo_round(area: str, decision_count: int | None, extra_email: str) -> None:
     global PENDING_EMAIL
     fixture = json.loads(DEMO_ROUND_FILE.read_text(encoding="utf-8"))
     all_decisions = fixture.get("decisions", [])
-    decisions = [
+    area_decisions = [
         item for item in all_decisions
         if area == "todas" or item.get("area", "").lower() == {
             "imobiliario": "imobiliário",
             "empresarial": "empresarial",
             "bancario": "bancário",
         }.get(area)
-    ][:decision_count]
+    ]
+    decisions = area_decisions if decision_count is None else area_decisions[:decision_count]
     selected_files = {item.get("file") for item in decisions}
     alerts = [item for item in fixture.get("alerts", []) if item.get("decisao") in selected_files]
     reviews = [item for item in fixture.get("reviews", []) if item.get("decisao") in selected_files]
@@ -553,7 +568,7 @@ def demo_round(area: str, decision_count: int, extra_email: str) -> None:
     send_round_email_at_end(PENDING_EMAIL)
 
 
-def run_round(area: str, decision_count: int, extra_email: str, demo: bool = False) -> None:
+def run_round(area: str, decision_count: int | None, extra_email: str, demo: bool = False) -> None:
     global PENDING_EMAIL
     if DEMO_MODE:
         try:
@@ -748,12 +763,16 @@ def api_run():
     demo = DEMO_MODE
     if area not in CASE_AREAS:
         return jsonify({"error": "Escolha uma das áreas disponíveis."}), 400
-    try:
-        decision_count = int(body.get("decision_count", 5))
-    except (TypeError, ValueError):
-        return jsonify({"error": "Escolha de uma a seis decisões."}), 400
-    if decision_count < 1 or decision_count > 6:
-        return jsonify({"error": "Escolha de uma a seis decisões."}), 400
+    requested_count = body.get("decision_count", "todos")
+    if str(requested_count).lower() == "todos":
+        decision_count = None if demo else 6
+    else:
+        try:
+            decision_count = int(requested_count)
+        except (TypeError, ValueError):
+            return jsonify({"error": "Escolha uma quantidade válida de itens."}), 400
+        if decision_count < 1 or decision_count > 6:
+            return jsonify({"error": "Escolha de uma a seis decisões."}), 400
     extra_email = str(body.get("extra_email", "")).strip()
     if extra_email and not re.fullmatch(r"[^@\s,]+@[^@\s,]+\.[^@\s,]+", extra_email):
         return jsonify({"error": "Digite um endereço de e-mail válido."}), 400

@@ -6,6 +6,9 @@
   <meta name="theme-color" content="#171827">
   <title>Telos — Themis Tech</title>
   <link rel="icon" href="{{ url_for('static', filename='themis-symbol.svg') }}" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v=static_version) }}">
   <script defer src="{{ url_for('static', filename='app.js') }}"></script>
 </head>
@@ -20,17 +23,26 @@
   </header>
 
   <main class="page-wrap">
-    <section class="hero">
-      <p class="eyebrow">VIGILÂNCIA JURISPRUDENCIAL</p>
-      <h1>A lei mudou.<br><em>Seus casos já sabem.</em></h1>
-      <p class="hero-copy">Encontre decisões e temas repetitivos do STJ e veja quais casos do escritório podem ser afetados.</p>
+    <section class="hero hero-grid">
+      <div class="hero-copy-block">
+        <p class="eyebrow">VIGILÂNCIA JURISPRUDENCIAL</p>
+        <h1>A lei mudou.<br><em>Seus casos já sabem.</em></h1>
+        <p class="hero-copy">Encontre decisões e temas repetitivos do STJ e veja quais casos do escritório podem ser afetados.</p>
+      </div>
+      <aside class="example-alert" aria-label="Exemplo de aviso do Telos">
+        <p class="eyebrow">AVISO DO TELOS · TEMA 970</p>
+        <h2>O STJ decidiu que, em regra, a multa pelo atraso não se soma aos lucros cessantes.</h2>
+        <div class="example-impact"><strong>3</strong><span>casos do escritório<br>podem ser afetados</span></div>
+        <div class="example-cases"><span>Caso 1 · Apartamento entregue com atraso</span><b>Favorabilidade a confirmar</b><span>Caso 32 · Multa e lucros cessantes</span><b>Favorabilidade a confirmar</b><span>Caso 33 · Multa moratória e aluguel</span><b>Favorabilidade a confirmar</b></div>
+        <a href="https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=970&amp;cod_tema_final=970&amp;novaConsulta=true&amp;tipo_pesquisa=T" target="_blank" rel="noopener noreferrer">Ver o tema no site oficial do STJ →</a>
+      </aside>
     </section>
 
     <section class="watch-layout" aria-labelledby="watch-title">
       <div class="panel watch-panel">
         <div class="panel-heading">
           <div><p class="eyebrow">NOVA RODADA</p><h2 id="watch-title">O que vamos vigiar?</h2></div>
-          <span class="sparkle" aria-hidden="true">✳</span>
+          <span class="panel-mark" aria-hidden="true"></span>
         </div>
         <form id="watch-form">
           <label for="area">Área do Direito</label>
@@ -42,9 +54,9 @@
           </select>
           <label for="decision-count">Quantos itens analisar?</label>
           <select id="decision-count" name="decision_count">
-            <option value="1">1 item</option><option value="2">2 itens</option>
+            <option value="todos" selected>Todos</option><option value="1">1 item</option><option value="2">2 itens</option>
             <option value="3">3 itens</option><option value="4">4 itens</option>
-            <option value="5">5 itens</option><option value="6" selected>6 itens</option>
+            <option value="5">5 itens</option><option value="6">6 itens</option>
           </select>
 
           <label for="extra-email">E-mail para receber os avisos <span>(opcional)</span></label>
@@ -68,7 +80,7 @@
     </section>
 
     <section class="progress-panel" id="progress-panel" hidden aria-live="polite">
-      <div class="progress-symbol" id="progress-symbol">✳</div>
+      <div class="progress-symbol" id="progress-symbol" aria-hidden="true"></div>
       <div class="progress-copy"><strong id="progress-title">Preparando a rodada…</strong><p id="progress-message">O andamento será atualizado aqui.</p></div>
       <div class="progress-track"><span id="progress-bar"></span></div>
     </section>

@@ -180,7 +180,7 @@
     errorBox.hidden = true;
     const formData = new FormData(form);
     const payload = Object.fromEntries(formData.entries());
-    payload.decision_count = Number(payload.decision_count || 5);
+    payload.decision_count = payload.decision_count || 'todos';
     payload.area = payload.area || 'todas';
     button.disabled = true;
     button.querySelector('span:first-child').textContent = 'Preparando…';
