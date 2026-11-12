@@ -23,26 +23,19 @@
   </header>
 
   <main class="page-wrap">
-    <section class="hero hero-grid">
+    <section class="hero">
       <div class="hero-copy-block">
         <p class="eyebrow">VIGILÂNCIA JURISPRUDENCIAL</p>
         <h1>A lei mudou.<br><em>Seus casos já sabem.</em></h1>
         <p class="hero-copy">Encontre decisões e temas repetitivos do STJ e veja quais casos do escritório podem ser afetados.</p>
       </div>
-      <aside class="example-alert" aria-label="Exemplo de aviso do Telos">
-        <p class="eyebrow">AVISO DO TELOS · TEMA 970</p>
-        <h2>O STJ decidiu que, em regra, a multa pelo atraso não se soma aos lucros cessantes.</h2>
-        <div class="example-impact"><strong>3</strong><span>casos do escritório<br>podem ser afetados</span></div>
-        <div class="example-cases"><span>Caso 1 · Apartamento entregue com atraso</span><b>Favorabilidade a confirmar</b><span>Caso 32 · Multa e lucros cessantes</span><b>Favorabilidade a confirmar</b><span>Caso 33 · Multa moratória e aluguel</span><b>Favorabilidade a confirmar</b></div>
-        <a href="https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=970&amp;cod_tema_final=970&amp;novaConsulta=true&amp;tipo_pesquisa=T" target="_blank" rel="noopener noreferrer">Ver o tema no site oficial do STJ →</a>
-      </aside>
     </section>
 
     <section class="watch-layout" aria-labelledby="watch-title">
       <div class="panel watch-panel">
         <div class="panel-heading">
           <div><p class="eyebrow">NOVA RODADA</p><h2 id="watch-title">O que vamos vigiar?</h2></div>
-          <span class="panel-mark" aria-hidden="true"></span>
+          <img class="panel-mark" src="{{ url_for('static', filename='themis-symbol.svg') }}" alt="">
         </div>
         <form id="watch-form">
           <label for="area">Área do Direito</label>
