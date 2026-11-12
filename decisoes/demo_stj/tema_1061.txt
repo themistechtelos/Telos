@@ -1,0 +1,14 @@
+Fonte: Lista oficial de Precedentes Qualificados do STJ
+Tipo de conteúdo: Tema repetitivo com tese firmada; não é decisão nova da janela de três semanas
+Tribunal: STJ
+Área de busca: bancario
+Tema repetitivo STJ: 1061
+Situação no cadastro oficial: Trânsito em Julgado
+Data do julgamento: 24/11/2021
+Data de publicação do acórdão: 09/12/2021
+Processo líder: REsp 1846649/MA
+Questão submetida a julgamento: Se nas hipóteses em que o consumidor/autor impugnar a autenticidade da assinatura constante do contrato juntado ao processo, cabe à instituição financeira/ré o ônus de provar essa autenticidade (CPC, art. 429, II), por intermédio de perícia grafotécnica ou mediante os meios de prova legais ou moralmente legítimos (CPC, art. 369).
+Tese firmada: Na hipótese em que o consumidor/autor impugnar a autenticidade da assinatura constante em contrato bancário juntado ao processo pela instituição financeira, caberá a esta o ônus de provar a autenticidade (CPC, arts. 6º, 369 e 429, II).
+Trecho literal da tese: “Na hipótese em que o consumidor/autor impugnar a autenticidade da assinatura constante em contrato bancário juntado ao processo pela instituição financeira, caberá a esta o ônus de provar a autenticidade”
+Link oficial: https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=1061&cod_tema_final=1061&novaConsulta=true&tipo_pesquisa=T
+Observação: a relação direta só é reconhecida quando a tese firmada resolve a mesma questão jurídica descrita no caso.

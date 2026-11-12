@@ -1,4 +1,4 @@
-"""Telos: monitora decisões do STJ e do TJSP para casos do escritório."""
+"""Telos: monitora decisões e temas repetitivos do STJ para casos do escritório."""
 
 from __future__ import annotations
 
@@ -65,9 +65,9 @@ DEFAULT_GROQ_MODEL = "openai/gpt-oss-120b"
 GROQ_SCHEMA_FALLBACK_MODEL = "openai/gpt-oss-20b"
 DEFAULT_GEMINI_MODEL = "gemini-3.1-flash-lite"
 DEFAULT_OPENAI_MODEL = "gpt-6-luna"
-MAX_DECISIONS_PER_RUN = 5
+MAX_DECISIONS_PER_RUN = 6
 MAX_GROQ_DECISION_CHARS = 18000
-ANALYSIS_VERSION = 6
+ANALYSIS_VERSION = 7
 ANALYSIS_STATE_FILE = BASE_DIR / ".telos_processadas.json"
 STJ_API_BASE = "https://dadosabertos.web.stj.jus.br/api/3/action/"
 STJ_DECISIONS_DATASET = "integras-de-decisoes-terminativas-e-acordaos-do-diario-da-justica"
@@ -76,10 +76,14 @@ STJ_PRECEDENTS_DIR = DECISIONS_DIR / "stj_precedentes"
 STJ_RELEVANT_TOPICS = {
     "bancario": {
         "27": "Caso 14 — juros remuneratórios",
+        "622": "Casos 30 e 31 — cobrança judicial de dívida paga e sanção do art. 940 do Código Civil",
+        "929": "Casos 36 e 37 — repetição em dobro de cobrança indevida contrária à boa-fé objetiva",
         "922": "Caso 15 — inscrição por dívida inexistente",
+        "1061": "Casos 26 e 27 — autenticidade de assinatura em contrato bancário impugnada",
         "1378": "Caso 14 — revisão de juros remuneratórios (tema afetado)",
     },
     "imobiliario": {
+        "577": "Caso 3 — prazo para devolução dos valores no distrato",
         "970": "Caso 1 — lucros cessantes e cláusula penal",
         "971": "Caso 1 — cláusula penal por atraso",
         "996": "Casos 1 e 2 — atraso, aluguel e correção do saldo",
@@ -183,11 +187,11 @@ def is_official_stj_link(candidate: str) -> bool:
 
 
 def is_official_decision_link(candidate: str) -> bool:
-    return is_official_tjsp_link(candidate) or is_official_stj_link(candidate)
+    return is_official_stj_link(candidate)
 
 
 def official_court_name(candidate: str) -> str:
-    return "STJ" if is_official_stj_link(candidate) else "TJSP"
+    return "STJ"
 
 
 def official_link_description(candidate: str) -> str:
@@ -229,6 +233,16 @@ EMAIL_CASE_TITLES = {
     "caso_25.txt": "Caso 25 — Indenização pelo período sem uso",
     "caso_26.txt": "Caso 26 — Consignado não contratado",
     "caso_27.txt": "Caso 27 — Assinatura contestada em consignado",
+    "caso_28.txt": "Caso 28 — Juros remuneratórios abusivos",
+    "caso_29.txt": "Caso 29 — Juros abusivos no financiamento",
+    "caso_30.txt": "Caso 30 — Cobrança judicial de dívida paga",
+    "caso_31.txt": "Caso 31 — Cartão quitado cobrado em juízo",
+    "caso_32.txt": "Caso 32 — Multa e lucros cessantes",
+    "caso_33.txt": "Caso 33 — Multa moratória e aluguel",
+    "caso_34.txt": "Caso 34 — Crédito anterior à recuperação",
+    "caso_35.txt": "Caso 35 — Crédito reconhecido após recuperação",
+    "caso_36.txt": "Caso 36 — Tarifa bancária não contratada",
+    "caso_37.txt": "Caso 37 — Seguro cobrado sem autorização",
 }
 CASE_DISPLAY_NAMES: dict[str, str] = {}
 
@@ -246,7 +260,7 @@ def email_case_title(case_filename: str) -> str:
 
 
 def decision_email_metadata(decision_text: str, official_link: str) -> dict[str, str]:
-    """Extract decision metadata from the saved source and official TJSP URL."""
+    """Extract decision metadata from the saved STJ source."""
     process_pattern = re.compile(r"\b\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}\b")
     lines = decision_text.splitlines()
     process_number = ""
@@ -654,7 +668,7 @@ def _stj_search_terms(terms_by_area: dict[str, list[str]] | None = None) -> dict
         elif raw:
             values = raw.split(";")
         else:
-            fallback = os.environ.get(f"TJSP_SEARCH_TERMS_{area.upper()}", "")
+            fallback = os.environ.get("STJ_SEARCH_TERMS", "")
             values = fallback.split(";")
         result[area] = [str(term).strip() for term in values if str(term).strip() and len(str(term).strip()) <= 120]
     return result
@@ -1264,8 +1278,8 @@ def validate_result(result: dict, cases: list[dict]) -> None:
 
 
 def make_prompt(decision_text: str, content_type: str, cases: list[dict]) -> str:
-    tribunal_match = re.search(r"(?mi)^Tribunal:\s*(STJ|TJSP)\s*$", decision_text)
-    court_name = tribunal_match.group(1) if tribunal_match else "TJSP"
+    tribunal_match = re.search(r"(?mi)^Tribunal:\s*(STJ)\s*$", decision_text)
+    court_name = tribunal_match.group(1) if tribunal_match else "STJ"
     case_lines = "\n\n".join(
         f"Arquivo: {case['arquivo']}\nDescrição:\n{case['texto']}" for case in cases
     )
@@ -1282,6 +1296,8 @@ Para cada caso, classifique a relação em uma destas categorias:
 Não classifique como direta só por haver palavras em comum ou por ambos os casos pertencerem à mesma área do Direito. A decisão precisa resolver a mesma questão jurídica discutida no caso e funcionar como precedente para essa questão, não apenas tratar de assunto semelhante. Quando houver qualquer passo analógico para chegar ao caso, classifique como "indireta". Não presuma fatos que não aparecem nos casos. Use trechos literais curtos que comprovem a questão da decisão e a relação. Se não houver evidência literal suficiente, escolha "incerta".
 
 Quando o material for uma ficha de precedente qualificado do STJ, avalie a relação pela tese firmada, e não apenas pela questão submetida a julgamento ou pelo tema. Tema apenas "Afetado" ou sem tese firmada não pode ser tratado como tese resolvida: use "incerta". Se uma tese firmada responder expressamente à mesma questão jurídica descrita no caso, classifique a relação como "direta", mesmo que ainda seja necessário conferir algum requisito de aplicação aos fatos concretos; explique essa condição no motivo, sem afirmar que ela já foi preenchida. Não transforme a falta de um dado de aplicação em relação indireta quando a questão jurídica resolvida for a mesma.
+
+Para os temas abaixo, a questão resolvida é estrita: Tema 27 trata da revisão judicial de taxa de juros remuneratórios abusiva; não é diretamente sobre cobrança de juros em valor diferente do contratado. Tema 577 trata do prazo para devolver valores pagos no distrato, não do percentual máximo que pode ser retido. Tema 622 trata da sanção em dobro por cobrança judicial, de má-fé, de dívida já paga; não é diretamente sobre negativação, débito automático ou cobrança extrajudicial. Tema 929 trata da repetição em dobro de cobrança indevida que contraria a boa-fé objetiva, considerando pedido prévio do consumidor, os indícios de omissão ou recusa e a demonstração do fornecedor; não presume que toda cobrança indevida gere devolução dobrada. Tema 1061 trata do ônus de provar a autenticidade da assinatura em contrato bancário juntado pelo banco e impugnado pelo consumidor. Tema 970 trata de cumular lucros cessantes com cláusula penal moratória pelo atraso na entrega de imóvel; não resolve a correção do saldo pelo INCC. Tema 971 trata de aplicar ao vendedor a cláusula penal prevista apenas para o comprador; não presume que o contrato do caso tenha essa previsão. Tema 996 trata das consequências do atraso — indenização pelo aluguel e substituição de índice setorial — nos limites da tese firmada. Tema 1051 trata exclusivamente da data do fato gerador para definir se um crédito se submete à recuperação judicial. Os Casos 12 e 18 descrevem habilitação ou cobrança genérica de crédito e não questionam essa data; classifique-os como indiretos, salvo se o próprio caso afirmar uma controvérsia sobre data do fato gerador versus trânsito em julgado. Use a tese e as descrições dos casos; não amplie esses pontos por analogia.
 
 Extraia também o resultado da decisão. Use "procedente", "improcedente" ou "parcialmente_procedente" somente se o texto declarar expressamente esse resultado para a ação/pedido. Se o texto disponível só disser, por exemplo, que um recurso foi provido, use "outro_resultado_explicito" e copie a formulação literal em "texto". Se não houver resultado expresso no material disponível, use "nao_identificado" e deixe "texto" e "evidencia" vazios. Não infira o resultado do processo a partir da ementa quando ela não o disser.
 
@@ -1331,7 +1347,10 @@ def compare_analyses(first: dict, second: dict, decision_text: str, cases: list[
     for case in cases:
         name = case["arquivo"]
         left, right = first_cases[name], second_cases[name]
-        if left["relacao"] != right["relacao"]:
+        # Only disagreement about whether the relation is direct needs manual
+        # review. If both opinions reject directness (e.g. indirect vs none),
+        # neither result can generate an alert, so no case impact is in doubt.
+        if (left["relacao"] == "direta") != (right["relacao"] == "direta"):
             issues.append(f"as análises discordam sobre a relação com {name}")
 
         left_evidence = [quote for quote in left["evidencias"] if valid_quote(quote, decision_text)]
@@ -1799,6 +1818,11 @@ def review_disagreement_text(review: dict, cases: list[dict]) -> str:
         return "Os trechos citados não comprovaram a relação da mesma forma nos dois pareceres."
     if "resultado" in reasons:
         return "Os pareceres não chegaram a um resultado comum que pudesse ser confirmado no material."
+    if cases and all(
+        item["parecer_1"].get("relacao") == item["parecer_2"].get("relacao") == "indireta"
+        for item in cases
+    ):
+        return "Os dois pareceres consideraram as relações indiretas; por isso, nenhum aviso direto foi confirmado."
     return "Os pareceres não chegaram a uma conclusão segura em comum."
 
 
@@ -2328,7 +2352,7 @@ def analyze_decisions(
             continue
         text, link, content_type = parse_decision_file(path, raw_text)
         if not link:
-            print(f"\nDecisão: {path.name}\n  Não encontrei um link oficial verificável do STJ ou do TJSP no arquivo; não vou inventar um link.")
+            print(f"\nDecisão: {path.name}\n  Não encontrei um link oficial verificável do STJ no arquivo; não vou inventar um link.")
             continue
         tribunal = official_court_name(link)
         fingerprint = decision_fingerprint(path, raw_text)
@@ -2352,8 +2376,7 @@ def analyze_decisions(
         return 0
 
     decision_limit = max_decisions if max_decisions is not None else MAX_DECISIONS_PER_RUN
-    # The web page still accepts at most five. A private demonstration batch may
-    # explicitly pass up to eight to cover its full set of marked decisions.
+    # The web page accepts up to six; private batches may explicitly pass up to eight.
     decision_limit = max(1, min(8, int(decision_limit)))
     selected = pending[:decision_limit]
     if len(pending) > len(selected):
@@ -2468,7 +2491,7 @@ def analyze_decisions(
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Busca decisões do STJ e do TJSP relacionadas aos casos cadastrados.")
+    parser = argparse.ArgumentParser(description="Busca decisões do STJ relacionadas aos casos cadastrados.")
     parser.add_argument("--sem-busca", action="store_true", help="analisa somente os arquivos já existentes em decisoes/")
     parser.add_argument("--baixar-stj", action="store_true", help="baixa decisões STJ disponíveis nas últimas três semanas e temas repetitivos relacionados; não chama a IA nem envia e-mail")
     args = parser.parse_args()
@@ -2504,12 +2527,11 @@ def main() -> int:
         try:
             search_stj(area="todas")
         except Exception as error:
-            print(f"Busca STJ indisponível ({type(error).__name__}); continuarei com o TJSP.")
+            print(f"Busca STJ indisponível ({type(error).__name__}); continuarei com as decisões já salvas.")
         try:
             download_stj_qualified_precedents(quiet=True)
         except Exception as error:
             print(f"Precedentes qualificados do STJ indisponíveis ({type(error).__name__}); continuarei com as decisões.")
-        search_tjsp()
     return analyze_decisions(api_key, model, provider)
 
 

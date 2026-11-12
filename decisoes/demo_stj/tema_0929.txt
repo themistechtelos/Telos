@@ -1,0 +1,14 @@
+Fonte: Lista oficial de Precedentes Qualificados do STJ
+Tipo de conteúdo: Tema repetitivo com tese firmada; não é decisão nova da janela de três semanas
+Tribunal: STJ
+Área de busca: bancario
+Tema repetitivo STJ: 929
+Situação no cadastro oficial: Acórdão Publicado
+Data do julgamento: 15/09/2026
+Data de publicação do acórdão: 03/11/2026
+Processo líder: REsp 1963770/CE
+Questão submetida a julgamento: Hipóteses de aplicação da repetição em dobro prevista no art. 42, parágrafo único, do CDC.
+Tese firmada: (i) A restituição em dobro do indébito (art.42, parágrafo único, do CDC) independe da natureza do elemento volitivo do fornecedor que realizou a cobrança indevida, sendo cabível quando a referida cobrança consubstanciar conduta contrária à boa-fé objetiva. (i. a) A demonstração da omissão ou da recusa do fornecedor- como, por exemplo, em resposta a pedido informal e prévio do consumidor apontando a irregularidade da cobrança - será indício suficiente para embasar a pretensão de repetição em dobro. (i. b) Caberá ao fornecedor, na contestação ou na fase instrutória do processo, demonstrar que não atuou em contrariedade à boa-fé objetiva, isto é, que não agiu deforma desleal ou descuidada. (i. c) Se houver divergência jurisprudencial em relação ao objeto da cobrança indevida ou a cláusula contratual em que se baseie for posteriormente declarada nula, configurar-se-á hipótese de engano justificável, excludente apta a afastar a incidência da sanção civil de repetição em dobro do indébito.
+Trecho literal da tese: “A restituição em dobro do indébito (art.42, parágrafo único, do CDC) independe da natureza do elemento volitivo do fornecedor que realizou a cobrança indevida, sendo cabível quando a referida cobrança consubstanciar conduta contrária à boa-fé objetiva.”
+Link oficial: https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=929&cod_tema_final=929&novaConsulta=true&tipo_pesquisa=T
+Observação: a relação direta só é reconhecida quando a tese firmada resolve a mesma questão jurídica descrita no caso.

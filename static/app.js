@@ -23,10 +23,7 @@
   function officialLink(url) {
     try {
       const parsed = new URL(url);
-      return parsed.protocol === 'https:' && (
-        parsed.hostname === 'tjsp.jus.br' || parsed.hostname.endsWith('.tjsp.jus.br') ||
-        parsed.hostname === 'stj.jus.br' || parsed.hostname.endsWith('.stj.jus.br')
-      );
+      return parsed.protocol === 'https:' && (parsed.hostname === 'stj.jus.br' || parsed.hostname.endsWith('.stj.jus.br'));
     } catch (_) { return false; }
   }
 
@@ -42,7 +39,7 @@
     }
     date.textContent = round.data_rodada ? new Date(round.data_rodada).toLocaleString('pt-BR', {dateStyle:'medium', timeStyle:'short'}) : '';
     const summary = node('div', 'round-summary');
-    summary.append(node('span', 'summary-chip', round.area || 'TJSP'));
+    summary.append(node('span', 'summary-chip', round.area || 'STJ'));
     const itemLabel = round.tipo_item === 'tema repetitivo' ? 'temas analisados' : 'decisões analisadas';
     summary.append(node('span', 'summary-chip', `${round.concluidas} de ${round.selecionadas} ${itemLabel}`));
     if (round.email_enviado === true) summary.append(node('span', 'summary-chip', 'E-mail enviado'));
@@ -55,8 +52,7 @@
       card.append(node('h3', '', 'Nenhum caso com relação direta confirmada'));
       card.append(node('div', 'decision-meta', item.metadata || 'Dados do processo não informados.'));
       if (officialLink(item.link)) {
-        const court = item.link.includes('.stj.jus.br/') ? 'STJ' : 'TJSP';
-        const linkLabel = item.link.includes('cod_tema_inicial=') ? 'Ver o tema repetitivo no site oficial do STJ →' : `Ver a decisão no site oficial do ${court} →`;
+        const linkLabel = item.link.includes('cod_tema_inicial=') ? 'Ver o tema repetitivo no site oficial do STJ →' : 'Ver a decisão no site oficial do STJ →';
         const link = node('a', 'official-link', linkLabel);
         link.href = item.link; link.target = '_blank'; link.rel = 'noopener noreferrer'; card.append(link);
       }
@@ -95,8 +91,7 @@
         });
         if (item.somente_ementa) card.append(node('p', 'decision-meta', 'Análise feita somente com a ementa do acórdão.'));
         if (officialLink(item.link)) {
-          const court = item.link.includes('.stj.jus.br/') ? 'STJ' : 'TJSP';
-          const linkLabel = item.link.includes('cod_tema_inicial=') ? 'Ver o tema repetitivo no site oficial do STJ →' : `Ver a decisão no site oficial do ${court} →`;
+          const linkLabel = item.link.includes('cod_tema_inicial=') ? 'Ver o tema repetitivo no site oficial do STJ →' : 'Ver a decisão no site oficial do STJ →';
           const link = node('a', 'official-link', linkLabel);
           link.href = item.link; link.target = '_blank'; link.rel = 'noopener noreferrer';
           card.append(link);
@@ -123,8 +118,7 @@
         });
         card.append(node('div', 'divergence', `Ponto de divergência: ${review.divergencia || 'Os pareceres não chegaram a uma conclusão segura em comum.'}`));
         if (officialLink(review.link)) {
-          const court = review.link.includes('.stj.jus.br/') ? 'STJ' : 'TJSP';
-          const linkLabel = review.link.includes('cod_tema_inicial=') ? 'Ver o tema repetitivo no site oficial do STJ →' : `Ver a decisão no site oficial do ${court} →`;
+          const linkLabel = review.link.includes('cod_tema_inicial=') ? 'Ver o tema repetitivo no site oficial do STJ →' : 'Ver a decisão no site oficial do STJ →';
           const link = node('a', 'official-link', linkLabel);
           link.href = review.link; link.target = '_blank'; link.rel = 'noopener noreferrer'; card.append(link);
         }
@@ -144,7 +138,7 @@
       progressMessage.textContent = state.message || 'A última rodada continua disponível abaixo.';
       const pct = state.progress_total ? Math.max(5, Math.min(100, 100 * state.progress_current / state.progress_total)) : 8;
       progressBar.style.width = `${pct}%`;
-    } else if (state.phase === 'complete' && state.message && state.message !== 'Pronto para vigiar o STJ e o TJSP.') {
+    } else if (state.phase === 'complete' && state.message && state.message !== 'Pronto para vigiar o STJ.') {
       progressPanel.hidden = false;
       progressTitle.textContent = 'Rodada concluída';
       progressMessage.textContent = state.message;

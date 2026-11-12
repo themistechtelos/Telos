@@ -2,11 +2,19 @@
   "data_coleta": "2026-11-12",
   "fonte": "STJ",
   "tipo_item": "tema repetitivo",
-  "observacao": "Rodada baseada em temas repetitivos do STJ. A coleta de decisões do período até 09/10/2026 não foi possível por bloqueio/tempo esgotado da rede neste ambiente.",
+  "observacao": "Cinco temas repetitivos do STJ com avisos diretos confirmados por dois pareceres e um item separado para revisão: o Tema 577 trata do momento da devolução no distrato, enquanto os casos relacionados discutem principalmente o percentual retido. São precedentes qualificados publicados, não decisões novas da janela de três semanas.",
   "decisions": [
     {
-      "file": "demo_stj/tema_0996.txt",
-      "area": "Imobiliário"
+      "file": "demo_stj/tema_0027.txt",
+      "area": "Bancário"
+    },
+    {
+      "file": "demo_stj/tema_0929.txt",
+      "area": "Bancário"
+    },
+    {
+      "file": "demo_stj/tema_1061.txt",
+      "area": "Bancário"
     },
     {
       "file": "demo_stj/tema_0970.txt",
@@ -17,25 +25,133 @@
       "area": "Empresarial"
     },
     {
-      "file": "demo_stj/tema_0922.txt",
-      "area": "Bancário"
-    },
-    {
-      "file": "demo_stj/tema_0971.txt",
+      "file": "demo_stj/tema_0577.txt",
       "area": "Imobiliário"
     }
   ],
   "alerts": [
     {
+      "decisao": "demo_stj/tema_0027.txt",
+      "arquivo_caso": "caso_28.txt",
+      "caso": "Caso 28 — Juros remuneratórios abusivos",
+      "resumo": "O STJ admitiu a revisão de juros remuneratórios em situações excepcionais, desde que haja relação de consumo e abusividade cabalmente demonstrada.",
+      "motivo_relacao": "A tese firmada resolve a mesma questão jurídica descrita: revisão judicial de taxa de juros remuneratórios por abusividade. A aplicação concreta depende de comprovar os requisitos da tese, sem que o material permita afirmar que já foram preenchidos.",
+      "resultado": "Tese repetitiva firmada pelo STJ.",
+      "trecho_resultado": "",
+      "posicao_cliente": "Favorável à posição descrita do cliente.",
+      "motivo_favorabilidade": "A tese admite a revisão judicial pedida pelo cliente, embora condicionada à demonstração dos requisitos nela indicados.",
+      "trecho_favorabilidade": "É admitida a revisão das taxas de juros remuneratórios em situações excepcionais",
+      "trechos_relacao": [
+        "É admitida a revisão das taxas de juros remuneratórios em situações excepcionais",
+        "desde que caracterizada a relação de consumo",
+        "desde que caracterizada a relação de consumo e que a abusividade (capaz de colocar o consumidor em desvantagem exagerada (art. 51, §1º, do CDC) fique cabalmente demonstrada"
+      ],
+      "link_oficial": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=27&cod_tema_final=27&novaConsulta=true&tipo_pesquisa=T",
+      "numero_processo": "REsp 1061530/RS",
+      "foro": "Superior Tribunal de Justiça",
+      "vara": "órgão julgador não identificado no material",
+      "data_decisao": "10/03/2009",
+      "tema_repetitivo": "27",
+      "tese_firmada": "É admitida a revisão das taxas de juros remuneratórios em situações excepcionais, desde que caracterizada a relação de consumo e que a abusividade (capaz de colocar o consumidor em desvantagem exagerada (art. 51, §1º, do CDC) fique cabalmente demonstrada, ante às peculiaridades do julgamento em concreto.",
+      "somente_ementa": false,
+      "texto_parcial": false,
+      "favorabilidade_a_confirmar": false,
+      "tribunal": "STJ"
+    },
+    {
+      "decisao": "demo_stj/tema_0027.txt",
+      "arquivo_caso": "caso_29.txt",
+      "caso": "Caso 29 — Juros abusivos no financiamento",
+      "resumo": "O STJ admitiu a revisão de juros remuneratórios em situações excepcionais, desde que haja relação de consumo e abusividade cabalmente demonstrada.",
+      "motivo_relacao": "A tese firmada resolve a mesma questão jurídica descrita: revisão judicial da taxa de juros remuneratórios por abusividade. A aplicação concreta depende de comprovar os requisitos da tese, sem que o material permita afirmar que já foram preenchidos.",
+      "resultado": "Tese repetitiva firmada pelo STJ.",
+      "trecho_resultado": "",
+      "posicao_cliente": "Favorável à posição descrita do cliente.",
+      "motivo_favorabilidade": "A tese admite a revisão judicial pedida pelo cliente, embora condicionada à demonstração dos requisitos nela indicados.",
+      "trecho_favorabilidade": "É admitida a revisão das taxas de juros remuneratórios em situações excepcionais",
+      "trechos_relacao": [
+        "É admitida a revisão das taxas de juros remuneratórios em situações excepcionais",
+        "desde que caracterizada a relação de consumo",
+        "desde que caracterizada a relação de consumo e que a abusividade (capaz de colocar o consumidor em desvantagem exagerada (art. 51, §1º, do CDC) fique cabalmente demonstrada"
+      ],
+      "link_oficial": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=27&cod_tema_final=27&novaConsulta=true&tipo_pesquisa=T",
+      "numero_processo": "REsp 1061530/RS",
+      "foro": "Superior Tribunal de Justiça",
+      "vara": "órgão julgador não identificado no material",
+      "data_decisao": "10/03/2009",
+      "tema_repetitivo": "27",
+      "tese_firmada": "É admitida a revisão das taxas de juros remuneratórios em situações excepcionais, desde que caracterizada a relação de consumo e que a abusividade (capaz de colocar o consumidor em desvantagem exagerada (art. 51, §1º, do CDC) fique cabalmente demonstrada, ante às peculiaridades do julgamento em concreto.",
+      "somente_ementa": false,
+      "texto_parcial": false,
+      "favorabilidade_a_confirmar": false,
+      "tribunal": "STJ"
+    },
+    {
+      "decisao": "demo_stj/tema_0929.txt",
+      "arquivo_caso": "caso_36.txt",
+      "caso": "Caso 36 — Tarifa bancária não contratada",
+      "resumo": "O STJ firmou que a repetição em dobro da cobrança indevida cabe quando ela contrariar a boa-fé objetiva, considerando a omissão ou recusa do fornecedor como indício e cabendo a este demonstrar que agiu de boa-fé.",
+      "motivo_relacao": "A tese resolve a mesma questão de repetição em dobro de cobranças indevidas; o caso descreve pedido prévio de interrupção e devolução, recusa do banco e manutenção dos débitos. A aplicação concreta ainda depende dos requisitos da tese e da demonstração cabível ao fornecedor.",
+      "resultado": "Tese repetitiva firmada pelo STJ.",
+      "trecho_resultado": "",
+      "posicao_cliente": "Favorável à posição descrita do cliente.",
+      "motivo_favorabilidade": "A tese admite repetição em dobro quando a cobrança contraria a boa-fé objetiva e considera a omissão ou recusa após pedido prévio como indício, fatos descritos no caso; a aplicação depende da avaliação dos requisitos e da demonstração do fornecedor.",
+      "trecho_favorabilidade": "A demonstração da omissão ou da recusa do fornecedor- como, por exemplo, em resposta a pedido informal e prévio do consumidor apontando a irregularidade da cobrança - será indício suficiente para embasar a pretensão de repetição em dobro.",
+      "trechos_relacao": [
+        "A restituição em dobro do indébito (art.42, parágrafo único, do CDC) independe da natureza do elemento volitivo do fornecedor que realizou a cobrança indevida, sendo cabível quando a referida cobrança consubstanciar conduta contrária à boa-fé objetiva.",
+        "A demonstração da omissão ou da recusa do fornecedor- como, por exemplo, em resposta a pedido informal e prévio do consumidor apontando a irregularidade da cobrança - será indício suficiente para embasar a pretensão de repetição em dobro.",
+        "Caberá ao fornecedor, na contestação ou na fase instrutória do processo, demonstrar que não atuou em contrariedade à boa-fé objetiva, isto é, que não agiu deforma desleal ou descuidada."
+      ],
+      "link_oficial": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=929&cod_tema_final=929&novaConsulta=true&tipo_pesquisa=T",
+      "numero_processo": "REsp 1963770/CE",
+      "foro": "Superior Tribunal de Justiça",
+      "vara": "órgão julgador não identificado no material",
+      "data_decisao": "03/11/2026",
+      "tema_repetitivo": "929",
+      "tese_firmada": "(i) A restituição em dobro do indébito (art.42, parágrafo único, do CDC) independe da natureza do elemento volitivo do fornecedor que realizou a cobrança indevida, sendo cabível quando a referida cobrança consubstanciar conduta contrária à boa-fé objetiva. (i. a) A demonstração da omissão ou da recusa do fornecedor- como, por exemplo, em resposta a pedido informal e prévio do consumidor apontando a irregularidade da cobrança - será indício suficiente para embasar a pretensão de repetição em dobro. (i. b) Caberá ao fornecedor, na contestação ou na fase instrutória do processo, demonstrar que não atuou em contrariedade à boa-fé objetiva, isto é, que não agiu deforma desleal ou descuidada. (i. c) Se houver divergência jurisprudencial em relação ao objeto da cobrança indevida ou a cláusula contratual em que se baseie for posteriormente declarada nula, configurar-se-á hipótese de engano justificável, excludente apta a afastar a incidência da sanção civil de repetição em dobro do indébito.",
+      "somente_ementa": false,
+      "texto_parcial": false,
+      "favorabilidade_a_confirmar": false,
+      "tribunal": "STJ"
+    },
+    {
+      "decisao": "demo_stj/tema_0929.txt",
+      "arquivo_caso": "caso_37.txt",
+      "caso": "Caso 37 — Seguro cobrado sem autorização",
+      "resumo": "O STJ firmou que a repetição em dobro da cobrança indevida cabe quando ela contrariar a boa-fé objetiva, considerando a omissão ou recusa do fornecedor como indício e cabendo a este demonstrar que agiu de boa-fé.",
+      "motivo_relacao": "A tese resolve a mesma questão de repetição em dobro de cobranças indevidas; o caso descreve reclamação sobre a irregularidade e continuidade dos débitos. A aplicação concreta ainda depende dos requisitos da tese e da demonstração cabível ao fornecedor.",
+      "resultado": "Tese repetitiva firmada pelo STJ.",
+      "trecho_resultado": "",
+      "posicao_cliente": "Favorável à posição descrita do cliente.",
+      "motivo_favorabilidade": "A tese admite repetição em dobro quando a cobrança contraria a boa-fé objetiva e considera a omissão ou recusa após reclamação prévia como indício, fatos descritos no caso; a aplicação depende da avaliação dos requisitos e da demonstração do fornecedor.",
+      "trecho_favorabilidade": "A demonstração da omissão ou da recusa do fornecedor- como, por exemplo, em resposta a pedido informal e prévio do consumidor apontando a irregularidade da cobrança - será indício suficiente para embasar a pretensão de repetição em dobro.",
+      "trechos_relacao": [
+        "A restituição em dobro do indébito (art.42, parágrafo único, do CDC) independe da natureza do elemento volitivo do fornecedor que realizou a cobrança indevida, sendo cabível quando a referida cobrança consubstanciar conduta contrária à boa-fé objetiva.",
+        "A demonstração da omissão ou da recusa do fornecedor- como, por exemplo, em resposta a pedido informal e prévio do consumidor apontando a irregularidade da cobrança - será indício suficiente para embasar a pretensão de repetição em dobro.",
+        "Caberá ao fornecedor, na contestação ou na fase instrutória do processo, demonstrar que não atuou em contrariedade à boa-fé objetiva, isto é, que não agiu deforma desleal ou descuidada."
+      ],
+      "link_oficial": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=929&cod_tema_final=929&novaConsulta=true&tipo_pesquisa=T",
+      "numero_processo": "REsp 1963770/CE",
+      "foro": "Superior Tribunal de Justiça",
+      "vara": "órgão julgador não identificado no material",
+      "data_decisao": "03/11/2026",
+      "tema_repetitivo": "929",
+      "tese_firmada": "(i) A restituição em dobro do indébito (art.42, parágrafo único, do CDC) independe da natureza do elemento volitivo do fornecedor que realizou a cobrança indevida, sendo cabível quando a referida cobrança consubstanciar conduta contrária à boa-fé objetiva. (i. a) A demonstração da omissão ou da recusa do fornecedor- como, por exemplo, em resposta a pedido informal e prévio do consumidor apontando a irregularidade da cobrança - será indício suficiente para embasar a pretensão de repetição em dobro. (i. b) Caberá ao fornecedor, na contestação ou na fase instrutória do processo, demonstrar que não atuou em contrariedade à boa-fé objetiva, isto é, que não agiu deforma desleal ou descuidada. (i. c) Se houver divergência jurisprudencial em relação ao objeto da cobrança indevida ou a cláusula contratual em que se baseie for posteriormente declarada nula, configurar-se-á hipótese de engano justificável, excludente apta a afastar a incidência da sanção civil de repetição em dobro do indébito.",
+      "somente_ementa": false,
+      "texto_parcial": false,
+      "favorabilidade_a_confirmar": false,
+      "tribunal": "STJ"
+    },
+    {
       "decisao": "demo_stj/tema_0970.txt",
       "arquivo_caso": "caso_1.txt",
       "caso": "Caso 1 — Apartamento entregue com atraso",
-      "resumo": "O TJSP...",
-      "motivo_relacao": "A tese firmada trata diretamente da possibilidade de cumular lucros cessantes com cláusula penal moratória pelo atraso na entrega de imóvel, questão que corresponde aos pedidos descritos no caso. A aplicação depende de a cláusula ser moratória e ter valor equivalente ao locativo.",
+      "resumo": "O STJ decidiu que, em regra, a cláusula penal moratória equivalente ao valor locatício afasta sua cumulação com lucros cessantes.",
+      "motivo_relacao": "A tese firmada resolve expressamente a possibilidade de cumular lucros cessantes e cláusula penal moratória pelo atraso na entrega do imóvel, questão apresentada no caso. A aplicação concreta ainda depende de verificar as condições do contrato e os valores envolvidos.",
       "resultado": "Tese repetitiva firmada pelo STJ.",
       "trecho_resultado": "",
-      "posicao_cliente": "Desfavorável à posição descrita do cliente.",
-      "motivo_favorabilidade": "A posição descrita inclui o pedido cumulativo de lucros cessantes e multa; a tese afasta essa cumulação, em regra, se a multa moratória tiver valor equivalente ao locativo.",
+      "posicao_cliente": "Favorabilidade a confirmar: os dois pareceres concordaram que a relação é direta, mas divergiram sobre o resultado ou seus efeitos para o cliente.",
+      "motivo_favorabilidade": "A relação direta foi confirmada pelos dois pareceres; confirme manualmente o resultado ou a favorabilidade no texto oficial.",
       "trecho_favorabilidade": "afasta-se sua cumulação com lucros cessantes",
       "trechos_relacao": [
         "A cláusula penal moratória tem a finalidade de indenizar pelo adimplemento tardio da obrigação",
@@ -48,133 +164,86 @@
       "foro": "Superior Tribunal de Justiça",
       "vara": "órgão julgador não identificado no material",
       "data_decisao": "2019-06-25",
-      "tema_repetitivo": "0970",
+      "tema_repetitivo": "970",
       "tese_firmada": "A cláusula penal moratória tem a finalidade de indenizar pelo adimplemento tardio da obrigação, e, em regra, estabelecida em valor equivalente ao locativo, afasta-se sua cumulação com lucros cessantes.",
       "somente_ementa": false,
       "texto_parcial": false,
-      "favorabilidade_a_confirmar": false,
+      "favorabilidade_a_confirmar": true,
       "tribunal": "STJ"
     },
     {
-      "decisao": "demo_stj/tema_0996.txt",
-      "arquivo_caso": "caso_1.txt",
-      "caso": "Caso 1 — Apartamento entregue com atraso",
-      "resumo": "O STJ firmou que, no atraso da entrega do imóvel, o prejuízo pela privação do uso é presumido e gera indenização mensal com base no valor locatício de imóvel semelhante.",
-      "motivo_relacao": "A tese responde à questão dos lucros cessantes pelo atraso, na forma de valor locatício. A aplicação ao caso concreto depende de verificar se estão presentes os requisitos e o âmbito de incidência indicados na tese; a decisão não resolve a multa contratual mencionada no caso.",
+      "decisao": "demo_stj/tema_0970.txt",
+      "arquivo_caso": "caso_32.txt",
+      "caso": "Caso 32 — Multa e lucros cessantes",
+      "resumo": "O STJ decidiu que, em regra, a cláusula penal moratória equivalente ao valor locatício afasta sua cumulação com lucros cessantes.",
+      "motivo_relacao": "A tese firmada resolve expressamente a possibilidade de cumular lucros cessantes e cláusula penal moratória por atraso na entrega de imóvel, questão apresentada no caso. A aplicação concreta ainda depende de verificar as condições do contrato e os valores envolvidos.",
       "resultado": "Tese repetitiva firmada pelo STJ.",
       "trecho_resultado": "",
-      "posicao_cliente": "Favorável à posição descrita do cliente.",
-      "motivo_favorabilidade": "A tese reconhece indenização mensal pelo valor locatício em caso de atraso na entrega, o que favorece a pretensão descrita de lucros cessantes, sujeito à verificação de sua aplicabilidade.",
-      "trecho_favorabilidade": "a ensejar o pagamento de indenização, na forma de aluguel mensal, com base no valor locatício de imóvel assemelhado",
+      "posicao_cliente": "Favorabilidade a confirmar: os dois pareceres concordaram que a relação é direta, mas divergiram sobre o resultado ou seus efeitos para o cliente.",
+      "motivo_favorabilidade": "A relação direta foi confirmada pelos dois pareceres; confirme manualmente o resultado ou a favorabilidade no texto oficial.",
+      "trecho_favorabilidade": "afasta-se sua cumulação com lucros cessantes",
       "trechos_relacao": [
-        "No caso de descumprimento do prazo para a entrega do imóvel, incluído o período de tolerância, o prejuízo do comprador é presumido, consistente na injusta privação do uso do bem, a ensejar o pagamento de indenização, na forma de aluguel mensal, com base no valor locatício de imóvel assemelhado"
+        "A cláusula penal moratória tem a finalidade de indenizar pelo adimplemento tardio da obrigação",
+        "em regra, estabelecida em valor equivalente ao locativo, afasta-se sua cumulação com lucros cessantes",
+        "Definir acerca da possibilidade ou não de cumulação da indenização por lucros cessantes com a cláusula penal",
+        "A cláusula penal moratória tem a finalidade de indenizar pelo adimplemento tardio da obrigação, e, em regra, estabelecida em valor equivalente ao locativo, afasta-se sua cumulação com lucros cessantes."
       ],
-      "link_oficial": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=996&cod_tema_final=996&novaConsulta=true&tipo_pesquisa=T",
-      "numero_processo": "REsp 1729593",
+      "link_oficial": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=970&cod_tema_final=970&novaConsulta=true&tipo_pesquisa=T",
+      "numero_processo": "REsp 1635428",
       "foro": "Superior Tribunal de Justiça",
       "vara": "órgão julgador não identificado no material",
-      "data_decisao": "2019-09-27",
-      "tema_repetitivo": "0996",
-      "tese_firmada": "As teses firmadas, para os fins do artigo 1.036 do CPC/2015, em contrato de promessa de compra e venda de imóvel na planta, no âmbito do Programa Minha Casa, Minha Vida, para os beneficiários das faixas de renda 1, 5, 2 e 3, foram as seguintes:1.1. Na aquisição de unidades autônomas em construção, o contrato deverá estabelecer, de forma clara, expressa e inteligível, o prazo certo para a entrega do imóvel, o qual não poderá estar  vinculado à concessão do financiamento, ou a nenhum outro negócio jurídico, exceto o acréscimo do prazo de tolerância; 1.2. No caso de descumprimento do prazo para a entrega do imóvel, incluído o período de tolerância, o prejuízo do comprador é presumido, consistente na injusta privação do uso do bem, a ensejar o pagamento de indenização, na forma de aluguel mensal, com base no valor locatício de imóvel assemelhado, com termo final na data da disponibilização da posse direta ao adquirente da unidade autônoma. 1.3. É ilícito cobrar do adquirente juros de obra, ou outro encargo equivalente, após o prazo ajustado no contrato para a entrega das chaves da unidade autônoma, incluído o período de tolerância.1.4. O descumprimento do prazo de entrega do imóvel, computado o período de tolerância, faz cessar a incidência de correção monetária sobre o saldo devedor com base em indexador setorial, que reflete o custo da construção civil, o qual deverá ser substituído pelo IPCA, salvo quando este último for mais gravoso ao consumidor.",
+      "data_decisao": "2019-06-25",
+      "tema_repetitivo": "970",
+      "tese_firmada": "A cláusula penal moratória tem a finalidade de indenizar pelo adimplemento tardio da obrigação, e, em regra, estabelecida em valor equivalente ao locativo, afasta-se sua cumulação com lucros cessantes.",
       "somente_ementa": false,
       "texto_parcial": false,
-      "favorabilidade_a_confirmar": false,
+      "favorabilidade_a_confirmar": true,
       "tribunal": "STJ"
     },
     {
-      "decisao": "demo_stj/tema_0996.txt",
-      "arquivo_caso": "caso_2.txt",
-      "caso": "Caso 2 — Correção do saldo durante o atraso",
-      "resumo": "O STJ firmou que, após o atraso da entrega, a correção do saldo devedor por indexador setorial deve cessar e ser substituída pelo IPCA, salvo quando este for mais gravoso ao consumidor.",
-      "motivo_relacao": "A tese responde à questão específica da correção do saldo devedor por indexador setorial durante o atraso. A aplicação ao caso concreto depende de verificar o âmbito de incidência da tese e se o indexador substituto seria mais gravoso ao consumidor.",
+      "decisao": "demo_stj/tema_0970.txt",
+      "arquivo_caso": "caso_33.txt",
+      "caso": "Caso 33 — Multa moratória e aluguel",
+      "resumo": "O STJ decidiu que, em regra, a cláusula penal moratória equivalente ao valor locatício afasta sua cumulação com lucros cessantes.",
+      "motivo_relacao": "A tese firmada responde expressamente à questão sobre acumular lucros cessantes e multa moratória contratual por atraso na entrega de imóvel. A aplicação concreta ainda depende de verificar as condições do contrato e os valores envolvidos.",
       "resultado": "Tese repetitiva firmada pelo STJ.",
       "trecho_resultado": "",
-      "posicao_cliente": "Favorável à posição descrita do cliente.",
-      "motivo_favorabilidade": "A tese prevê o afastamento do indexador setorial durante o atraso, embora ressalve a substituição por índice geral e a hipótese de este ser mais gravoso ao consumidor.",
-      "trecho_favorabilidade": "faz cessar a incidência de correção monetária sobre o saldo devedor com base em indexador setorial",
+      "posicao_cliente": "Favorabilidade a confirmar: os dois pareceres concordaram que a relação é direta, mas divergiram sobre o resultado ou seus efeitos para o cliente.",
+      "motivo_favorabilidade": "A relação direta foi confirmada pelos dois pareceres; confirme manualmente o resultado ou a favorabilidade no texto oficial.",
+      "trecho_favorabilidade": "afasta-se sua cumulação com lucros cessantes",
       "trechos_relacao": [
-        "O descumprimento do prazo de entrega do imóvel, computado o período de tolerância, faz cessar a incidência de correção monetária sobre o saldo devedor com base em indexador setorial, que reflete o custo da construção civil, o qual deverá ser substituído pelo IPCA, salvo quando este último for mais gravoso ao consumidor",
-        "O descumprimento do prazo de entrega do imóvel, computado o período de tolerância, faz cessar a incidência de correção monetária sobre o saldo devedor com base em indexador setorial",
-        "o qual deverá ser substituído pelo IPCA, salvo quando este último for mais gravoso ao consumidor"
+        "A cláusula penal moratória tem a finalidade de indenizar pelo adimplemento tardio da obrigação",
+        "em regra, estabelecida em valor equivalente ao locativo, afasta-se sua cumulação com lucros cessantes",
+        "Definir acerca da possibilidade ou não de cumulação da indenização por lucros cessantes com a cláusula penal",
+        "A cláusula penal moratória tem a finalidade de indenizar pelo adimplemento tardio da obrigação, e, em regra, estabelecida em valor equivalente ao locativo, afasta-se sua cumulação com lucros cessantes."
       ],
-      "link_oficial": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=996&cod_tema_final=996&novaConsulta=true&tipo_pesquisa=T",
-      "numero_processo": "REsp 1729593",
+      "link_oficial": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=970&cod_tema_final=970&novaConsulta=true&tipo_pesquisa=T",
+      "numero_processo": "REsp 1635428",
       "foro": "Superior Tribunal de Justiça",
       "vara": "órgão julgador não identificado no material",
-      "data_decisao": "2019-09-27",
-      "tema_repetitivo": "0996",
-      "tese_firmada": "As teses firmadas, para os fins do artigo 1.036 do CPC/2015, em contrato de promessa de compra e venda de imóvel na planta, no âmbito do Programa Minha Casa, Minha Vida, para os beneficiários das faixas de renda 1, 5, 2 e 3, foram as seguintes:1.1. Na aquisição de unidades autônomas em construção, o contrato deverá estabelecer, de forma clara, expressa e inteligível, o prazo certo para a entrega do imóvel, o qual não poderá estar  vinculado à concessão do financiamento, ou a nenhum outro negócio jurídico, exceto o acréscimo do prazo de tolerância; 1.2. No caso de descumprimento do prazo para a entrega do imóvel, incluído o período de tolerância, o prejuízo do comprador é presumido, consistente na injusta privação do uso do bem, a ensejar o pagamento de indenização, na forma de aluguel mensal, com base no valor locatício de imóvel assemelhado, com termo final na data da disponibilização da posse direta ao adquirente da unidade autônoma. 1.3. É ilícito cobrar do adquirente juros de obra, ou outro encargo equivalente, após o prazo ajustado no contrato para a entrega das chaves da unidade autônoma, incluído o período de tolerância.1.4. O descumprimento do prazo de entrega do imóvel, computado o período de tolerância, faz cessar a incidência de correção monetária sobre o saldo devedor com base em indexador setorial, que reflete o custo da construção civil, o qual deverá ser substituído pelo IPCA, salvo quando este último for mais gravoso ao consumidor.",
+      "data_decisao": "2019-06-25",
+      "tema_repetitivo": "970",
+      "tese_firmada": "A cláusula penal moratória tem a finalidade de indenizar pelo adimplemento tardio da obrigação, e, em regra, estabelecida em valor equivalente ao locativo, afasta-se sua cumulação com lucros cessantes.",
       "somente_ementa": false,
       "texto_parcial": false,
-      "favorabilidade_a_confirmar": false,
-      "tribunal": "STJ"
-    },
-    {
-      "decisao": "demo_stj/tema_0996.txt",
-      "arquivo_caso": "caso_17.txt",
-      "caso": "Caso 17 — Lucros cessantes por atraso",
-      "resumo": "O STJ firmou que, no atraso da entrega do imóvel, o prejuízo pela privação do uso é presumido e gera indenização mensal com base no valor locatício de imóvel semelhante.",
-      "motivo_relacao": "A tese responde à mesma questão jurídica descrita: indenização por privação do uso calculada pelo valor locatício durante o atraso. A aplicação depende de verificar os requisitos e o âmbito de incidência da tese no caso concreto.",
-      "resultado": "Tese repetitiva firmada pelo STJ.",
-      "trecho_resultado": "",
-      "posicao_cliente": "Favorável à posição descrita do cliente.",
-      "motivo_favorabilidade": "A tese prevê indenização mensal calculada pelo valor locatício em razão da privação injusta do uso, favorecendo a pretensão descrita, condicionada à aplicabilidade ao caso concreto.",
-      "trecho_favorabilidade": "a ensejar o pagamento de indenização, na forma de aluguel mensal, com base no valor locatício de imóvel assemelhado",
-      "trechos_relacao": [
-        "No caso de descumprimento do prazo para a entrega do imóvel, incluído o período de tolerância, o prejuízo do comprador é presumido, consistente na injusta privação do uso do bem, a ensejar o pagamento de indenização, na forma de aluguel mensal, com base no valor locatício de imóvel assemelhado, com termo final na data da disponibilização da posse direta ao adquirente da unidade autônoma",
-        "No caso de descumprimento do prazo para a entrega do imóvel, incluído o período de tolerância, o prejuízo do comprador é presumido, consistente na injusta privação do uso do bem, a ensejar o pagamento de indenização, na forma de aluguel mensal, com base no valor locatício de imóvel assemelhado"
-      ],
-      "link_oficial": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=996&cod_tema_final=996&novaConsulta=true&tipo_pesquisa=T",
-      "numero_processo": "REsp 1729593",
-      "foro": "Superior Tribunal de Justiça",
-      "vara": "órgão julgador não identificado no material",
-      "data_decisao": "2019-09-27",
-      "tema_repetitivo": "0996",
-      "tese_firmada": "As teses firmadas, para os fins do artigo 1.036 do CPC/2015, em contrato de promessa de compra e venda de imóvel na planta, no âmbito do Programa Minha Casa, Minha Vida, para os beneficiários das faixas de renda 1, 5, 2 e 3, foram as seguintes:1.1. Na aquisição de unidades autônomas em construção, o contrato deverá estabelecer, de forma clara, expressa e inteligível, o prazo certo para a entrega do imóvel, o qual não poderá estar  vinculado à concessão do financiamento, ou a nenhum outro negócio jurídico, exceto o acréscimo do prazo de tolerância; 1.2. No caso de descumprimento do prazo para a entrega do imóvel, incluído o período de tolerância, o prejuízo do comprador é presumido, consistente na injusta privação do uso do bem, a ensejar o pagamento de indenização, na forma de aluguel mensal, com base no valor locatício de imóvel assemelhado, com termo final na data da disponibilização da posse direta ao adquirente da unidade autônoma. 1.3. É ilícito cobrar do adquirente juros de obra, ou outro encargo equivalente, após o prazo ajustado no contrato para a entrega das chaves da unidade autônoma, incluído o período de tolerância.1.4. O descumprimento do prazo de entrega do imóvel, computado o período de tolerância, faz cessar a incidência de correção monetária sobre o saldo devedor com base em indexador setorial, que reflete o custo da construção civil, o qual deverá ser substituído pelo IPCA, salvo quando este último for mais gravoso ao consumidor.",
-      "somente_ementa": false,
-      "texto_parcial": false,
-      "favorabilidade_a_confirmar": false,
-      "tribunal": "STJ"
-    },
-    {
-      "decisao": "demo_stj/tema_0996.txt",
-      "arquivo_caso": "caso_25.txt",
-      "caso": "Caso 25 — Indenização pelo período sem uso",
-      "resumo": "O STJ firmou que, no atraso da entrega do imóvel, o prejuízo pela privação do uso é presumido e gera indenização mensal com base no valor locatício de imóvel semelhante.",
-      "motivo_relacao": "A tese responde à mesma questão jurídica descrita: indenização pelo período sem uso, calculada pelo valor locatício de unidade semelhante. A aplicação depende de verificar os requisitos e o âmbito de incidência da tese no caso concreto.",
-      "resultado": "Tese repetitiva firmada pelo STJ.",
-      "trecho_resultado": "",
-      "posicao_cliente": "Favorável à posição descrita do cliente.",
-      "motivo_favorabilidade": "A tese prevê indenização mensal com base no valor locatício por privação injusta do uso, favorecendo a pretensão descrita, condicionada à aplicabilidade ao caso concreto.",
-      "trecho_favorabilidade": "a ensejar o pagamento de indenização, na forma de aluguel mensal, com base no valor locatício de imóvel assemelhado",
-      "trechos_relacao": [
-        "No caso de descumprimento do prazo para a entrega do imóvel, incluído o período de tolerância, o prejuízo do comprador é presumido, consistente na injusta privação do uso do bem, a ensejar o pagamento de indenização, na forma de aluguel mensal, com base no valor locatício de imóvel assemelhado"
-      ],
-      "link_oficial": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=996&cod_tema_final=996&novaConsulta=true&tipo_pesquisa=T",
-      "numero_processo": "REsp 1729593",
-      "foro": "Superior Tribunal de Justiça",
-      "vara": "órgão julgador não identificado no material",
-      "data_decisao": "2019-09-27",
-      "tema_repetitivo": "0996",
-      "tese_firmada": "As teses firmadas, para os fins do artigo 1.036 do CPC/2015, em contrato de promessa de compra e venda de imóvel na planta, no âmbito do Programa Minha Casa, Minha Vida, para os beneficiários das faixas de renda 1, 5, 2 e 3, foram as seguintes:1.1. Na aquisição de unidades autônomas em construção, o contrato deverá estabelecer, de forma clara, expressa e inteligível, o prazo certo para a entrega do imóvel, o qual não poderá estar  vinculado à concessão do financiamento, ou a nenhum outro negócio jurídico, exceto o acréscimo do prazo de tolerância; 1.2. No caso de descumprimento do prazo para a entrega do imóvel, incluído o período de tolerância, o prejuízo do comprador é presumido, consistente na injusta privação do uso do bem, a ensejar o pagamento de indenização, na forma de aluguel mensal, com base no valor locatício de imóvel assemelhado, com termo final na data da disponibilização da posse direta ao adquirente da unidade autônoma. 1.3. É ilícito cobrar do adquirente juros de obra, ou outro encargo equivalente, após o prazo ajustado no contrato para a entrega das chaves da unidade autônoma, incluído o período de tolerância.1.4. O descumprimento do prazo de entrega do imóvel, computado o período de tolerância, faz cessar a incidência de correção monetária sobre o saldo devedor com base em indexador setorial, que reflete o custo da construção civil, o qual deverá ser substituído pelo IPCA, salvo quando este último for mais gravoso ao consumidor.",
-      "somente_ementa": false,
-      "texto_parcial": false,
-      "favorabilidade_a_confirmar": false,
+      "favorabilidade_a_confirmar": true,
       "tribunal": "STJ"
     },
     {
       "decisao": "demo_stj/tema_1051.txt",
-      "arquivo_caso": "caso_12.txt",
-      "caso": "Caso 12 — Crédito na recuperação judicial",
-      "resumo": "O TJSP decidiu que, para a submissão aos efeitos da recuperação judicial, a existência do crédito é definida pela data do fato gerador.",
-      "motivo_relacao": "A tese firmada responde à questão da existência do crédito no contexto da recuperação judicial. A aplicação ao crédito concreto pode depender da identificação da data do fato gerador, que não consta na descrição.",
+      "arquivo_caso": "caso_34.txt",
+      "caso": "Caso 34 — Crédito anterior à recuperação",
+      "resumo": "O STJ firmou que, para a submissão aos efeitos da recuperação judicial, a existência do crédito é determinada pela data de seu fato gerador.",
+      "motivo_relacao": "A tese responde expressamente à controvérsia descrita: define se a existência do crédito se determina pela data do fato gerador ou pelo trânsito em julgado. A aplicação concreta depende da confirmação das circunstâncias do crédito.",
       "resultado": "Tese repetitiva firmada pelo STJ.",
       "trecho_resultado": "",
       "posicao_cliente": "Não tenho certeza se é favorável ou desfavorável com base no texto disponível.",
-      "motivo_favorabilidade": "A tese fixa o critério temporal para reconhecer a existência do crédito, mas não há informação sobre a data do fato gerador em relação à recuperação judicial.",
+      "motivo_favorabilidade": "A descrição apresenta a controvérsia, mas não informa qual resultado o cliente defende; por isso não é possível determinar se a tese favorece sua posição.",
       "trecho_favorabilidade": "",
       "trechos_relacao": [
-        "Para o fim de submissão aos efeitos da recuperação judicial, considera-se que a existência do crédito é determinada pela data em que ocorreu o seu fato gerador."
+        "Interpretação do artigo 49, caput, da Lei n. 11.101/2005, de modo a definir se a existência do crédito é determinada pela data de seu fato gerador ou pelo trânsito em julgado da sentença que o reconhece.",
+        "Para o fim de submissão aos efeitos da recuperação judicial, considera-se que a existência do crédito é determinada pela data em que ocorreu o seu fato gerador.",
+        "Questão submetida a julgamento: Interpretação do artigo 49, caput, da Lei n. 11.101/2005, de modo a definir se a existência do crédito é determinada pela data de seu fato gerador ou pelo trânsito em julgado da sentença que o reconhece."
       ],
       "link_oficial": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=1051&cod_tema_final=1051&novaConsulta=true&tipo_pesquisa=T",
       "numero_processo": "REsp 1843332",
@@ -187,23 +256,99 @@
       "texto_parcial": false,
       "favorabilidade_a_confirmar": false,
       "tribunal": "STJ"
+    },
+    {
+      "decisao": "demo_stj/tema_1051.txt",
+      "arquivo_caso": "caso_35.txt",
+      "caso": "Caso 35 — Crédito reconhecido após recuperação",
+      "resumo": "O STJ firmou que, para a submissão aos efeitos da recuperação judicial, a existência do crédito é determinada pela data de seu fato gerador.",
+      "motivo_relacao": "A tese resolve expressamente a controvérsia entre a data do fato gerador e a do trânsito em julgado para determinar a submissão do crédito à recuperação. A aplicação concreta depende da confirmação das circunstâncias descritas.",
+      "resultado": "Tese repetitiva firmada pelo STJ.",
+      "trecho_resultado": "",
+      "posicao_cliente": "Não tenho certeza se é favorável ou desfavorável com base no texto disponível.",
+      "motivo_favorabilidade": "A descrição informa a controvérsia, mas não indica qual posição o cliente sustenta sobre o critério de submissão à recuperação judicial.",
+      "trecho_favorabilidade": "",
+      "trechos_relacao": [
+        "Interpretação do artigo 49, caput, da Lei n. 11.101/2005, de modo a definir se a existência do crédito é determinada pela data de seu fato gerador ou pelo trânsito em julgado da sentença que o reconhece.",
+        "Para o fim de submissão aos efeitos da recuperação judicial, considera-se que a existência do crédito é determinada pela data em que ocorreu o seu fato gerador.",
+        "Questão submetida a julgamento: Interpretação do artigo 49, caput, da Lei n. 11.101/2005, de modo a definir se a existência do crédito é determinada pela data de seu fato gerador ou pelo trânsito em julgado da sentença que o reconhece."
+      ],
+      "link_oficial": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=1051&cod_tema_final=1051&novaConsulta=true&tipo_pesquisa=T",
+      "numero_processo": "REsp 1843332",
+      "foro": "Superior Tribunal de Justiça",
+      "vara": "órgão julgador não identificado no material",
+      "data_decisao": "2020-12-17",
+      "tema_repetitivo": "1051",
+      "tese_firmada": "Para o fim de submissão aos efeitos da recuperação judicial, considera-se que a existência do crédito é determinada pela data em que ocorreu o seu fato gerador.",
+      "somente_ementa": false,
+      "texto_parcial": false,
+      "favorabilidade_a_confirmar": false,
+      "tribunal": "STJ"
+    },
+    {
+      "decisao": "demo_stj/tema_1061.txt",
+      "arquivo_caso": "caso_26.txt",
+      "caso": "Caso 26 — Consignado não contratado",
+      "resumo": "O STJ decidiu que, quando o consumidor impugna assinatura em contrato bancário juntado pelo banco, cabe à instituição financeira provar sua autenticidade.",
+      "motivo_relacao": "O caso descreve consignados bancários com assinaturas impugnadas e pedido para que o banco comprove sua autenticidade, exatamente a questão resolvida pela tese; a aplicação concreta depende de verificar os requisitos descritos.",
+      "resultado": "Tese repetitiva firmada pelo STJ.",
+      "trecho_resultado": "",
+      "posicao_cliente": "Favorável à posição descrita do cliente.",
+      "motivo_favorabilidade": "A tese atribui ao banco o ônus de provar as assinaturas impugnadas, conforme pedido descrito no caso.",
+      "trecho_favorabilidade": "caberá a esta o ônus de provar a autenticidade",
+      "trechos_relacao": [
+        "Na hipótese em que o consumidor/autor impugnar a autenticidade da assinatura constante em contrato bancário juntado ao processo pela instituição financeira, caberá a esta o ônus de provar a autenticidade"
+      ],
+      "link_oficial": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=1061&cod_tema_final=1061&novaConsulta=true&tipo_pesquisa=T",
+      "numero_processo": "REsp 1846649/MA",
+      "foro": "Superior Tribunal de Justiça",
+      "vara": "órgão julgador não identificado no material",
+      "data_decisao": "09/12/2021",
+      "tema_repetitivo": "1061",
+      "tese_firmada": "Na hipótese em que o consumidor/autor impugnar a autenticidade da assinatura constante em contrato bancário juntado ao processo pela instituição financeira, caberá a esta o ônus de provar a autenticidade (CPC, arts. 6º, 369 e 429, II).",
+      "somente_ementa": false,
+      "texto_parcial": false,
+      "favorabilidade_a_confirmar": false,
+      "tribunal": "STJ"
+    },
+    {
+      "decisao": "demo_stj/tema_1061.txt",
+      "arquivo_caso": "caso_27.txt",
+      "caso": "Caso 27 — Assinatura contestada em consignado",
+      "resumo": "O STJ decidiu que, quando o consumidor impugna assinatura em contrato bancário juntado pelo banco, cabe à instituição financeira provar sua autenticidade.",
+      "motivo_relacao": "O caso descreve impugnação de assinaturas em contratos bancários consignados; a tese resolve essa mesma questão de ônus probatório, embora a aplicação dependa de conferir os requisitos no processo concreto.",
+      "resultado": "Tese repetitiva firmada pelo STJ.",
+      "trecho_resultado": "",
+      "posicao_cliente": "Favorável à posição descrita do cliente.",
+      "motivo_favorabilidade": "A tese favorece a posição descrita ao colocar sobre o banco o ônus de provar a autenticidade das assinaturas contestadas.",
+      "trecho_favorabilidade": "caberá a esta o ônus de provar a autenticidade",
+      "trechos_relacao": [
+        "Na hipótese em que o consumidor/autor impugnar a autenticidade da assinatura constante em contrato bancário juntado ao processo pela instituição financeira, caberá a esta o ônus de provar a autenticidade"
+      ],
+      "link_oficial": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=1061&cod_tema_final=1061&novaConsulta=true&tipo_pesquisa=T",
+      "numero_processo": "REsp 1846649/MA",
+      "foro": "Superior Tribunal de Justiça",
+      "vara": "órgão julgador não identificado no material",
+      "data_decisao": "09/12/2021",
+      "tema_repetitivo": "1061",
+      "tese_firmada": "Na hipótese em que o consumidor/autor impugnar a autenticidade da assinatura constante em contrato bancário juntado ao processo pela instituição financeira, caberá a esta o ônus de provar a autenticidade (CPC, arts. 6º, 369 e 429, II).",
+      "somente_ementa": false,
+      "texto_parcial": false,
+      "favorabilidade_a_confirmar": false,
+      "tribunal": "STJ"
     }
   ],
   "reviews": [
     {
-      "decisao": "demo_stj/tema_0922.txt",
-      "link_oficial": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=922&cod_tema_final=922&novaConsulta=true&tipo_pesquisa=T",
-      "numero_processo": "REsp 1386424",
+      "decisao": "demo_stj/tema_0577.txt",
+      "link_oficial": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=577&cod_tema_final=577&novaConsulta=true&tipo_pesquisa=T",
+      "numero_processo": "não identificado no material",
       "foro": "Superior Tribunal de Justiça",
       "vara": "órgão julgador não identificado no material",
-      "data_decisao": "2016-05-16",
-      "tema_repetitivo": "0922",
-      "tese_firmada": "A inscrição indevida comandada pelo credor em cadastro de inadimplentes, quando preexistente legítima anotação, não enseja indenização por dano moral, ressalvado o direito ao cancelamento. Inteligência da Súmula 385/STJ.",
-      "motivos": [
-        "as análises discordam sobre a relação com caso_15.txt",
-        "as análises discordam sobre a relação com caso_8.txt",
-        "as análises discordam sobre a relação com caso_22.txt"
-      ],
+      "data_decisao": "não identificada no material",
+      "tema_repetitivo": "577",
+      "tese_firmada": "Em contratos submetidos ao Código de Defesa do Consumidor, é abusiva a cláusula contratual que determina a restituição dos valores devidos somente ao término da obra ou de forma parcelada, na hipótese de resolução de contato de promessa de compra e venda de imóvel, por culpa de qualquer dos contratantes.",
+      "motivos": [],
       "resposta_1": {
         "resultado_decisao": {
           "classificacao": "nao_identificado",
@@ -213,18 +358,161 @@
         },
         "casos": [
           {
+            "arquivo": "caso_1.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese trata do prazo e da forma de restituição de valores após a resolução do contrato, não da cumulação de lucros cessantes com multa moratória.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não resolve a questão descrita no caso nem informa resultado que favoreça ou desfavoreça essa posição.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_10.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese trata da restituição de valores em contrato de promessa de compra e venda de imóvel, não de rescisão de franquia ou multa rescisória.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não resolve a questão descrita no caso nem informa resultado que favoreça ou desfavoreça essa posição.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_11.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata de retirada de sócio ou apuração de haveres.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não resolve a questão descrita no caso nem informa resultado que favoreça ou desfavoreça essa posição.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_12.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese trata da restituição de valores em promessa de compra e venda de imóvel, não de habilitação de crédito em recuperação judicial.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não resolve a questão descrita no caso nem informa resultado que favoreça ou desfavoreça essa posição.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_13.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata de horas extras ou de relação de emprego.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não resolve a questão descrita no caso nem informa resultado que favoreça ou desfavoreça essa posição.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_14.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata de juros bancários nem de cobrança de juros em contrato de empréstimo.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não resolve a questão descrita no caso nem informa resultado que favoreça ou desfavoreça essa posição.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
             "arquivo": "caso_15.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata de negativação por dívida paga.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não resolve a questão descrita no caso nem informa resultado que favoreça ou desfavoreça essa posição.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_16.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata de garantias em contratos de financiamento.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não resolve a questão descrita no caso nem informa resultado que favoreça ou desfavoreça essa posição.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_2.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese trata da restituição de valores após a resolução do contrato, não da correção do saldo devedor pelo INCC durante atraso de obra.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não resolve a questão descrita no caso nem informa resultado que favoreça ou desfavoreça essa posição.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_3.txt",
             "relacao": "indireta",
-            "resumo": "O TJSP não é o tribunal referido no material; a tese do STJ afasta indenização por dano moral em inscrição indevida quando já existe anotação legítima anterior, sem afastar o direito ao cancelamento.",
-            "motivo": "Há proximidade porque o caso envolve negativação que o cliente afirma indevida. Contudo, a tese resolve especificamente a indenização por dano moral quando preexiste anotação legítima, circunstância e pedido que não constam da descrição do caso; aplicar a tese exige essa condição.",
+            "resumo": "O STJ considerou abusiva a cláusula que adia ou parcela a restituição de valores devidos após a resolução de promessa de compra e venda de imóvel.",
+            "motivo": "A tese trata da forma e do momento da restituição após a resolução, enquanto o caso discute o percentual que pode ser retido; aplicá-la exigiria analogia.",
             "evidencias": [
               {
-                "trecho": "A inscrição indevida comandada pelo credor em cadastro de inadimplentes, quando preexistente legítima anotação, não enseja indenização por dano moral, ressalvado o direito ao cancelamento.",
+                "trecho": "é abusiva a cláusula contratual que determina a restituição dos valores devidos somente ao término da obra ou de forma parcelada",
                 "conferida_no_arquivo": true
               }
             ],
             "favorabilidade": "incerta",
-            "motivo_favorabilidade": "A descrição não informa se há anotação legítima anterior nem se o cliente pede indenização por dano moral; o efeito da tese para sua posição não fica demonstrado.",
+            "motivo_favorabilidade": "A tese não define o percentual de retenção pretendido nem resolve a questão descrita.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_4.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata de defeitos construtivos ou obrigação de reparação.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não resolve a questão descrita no caso nem informa resultado que favoreça ou desfavoreça essa posição.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_5.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata de cobrança de taxas condominiais.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não resolve a questão descrita no caso nem informa resultado que favoreça ou desfavoreça essa posição.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_6.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata de despejo ou cobrança de aluguéis vencidos.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não resolve a questão descrita no caso nem informa resultado que favoreça ou desfavoreça essa posição.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_7.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata de renovação de locação comercial ou revisão de aluguel.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não resolve a questão descrita no caso nem informa resultado que favoreça ou desfavoreça essa posição.",
             "evidencia_favorabilidade": "",
             "evidencia_favorabilidade_conferida_no_arquivo": null
           },
@@ -232,10 +520,81 @@
             "arquivo": "caso_8.txt",
             "relacao": "nenhuma",
             "resumo": "",
-            "motivo": "A tese trata de inscrição em cadastro de inadimplentes, não de protesto de duplicata por serviço não prestado.",
+            "motivo": "A tese não trata de duplicata, protesto ou indenização por serviço não prestado.",
             "evidencias": [],
             "favorabilidade": "incerta",
-            "motivo_favorabilidade": "O material não permite avaliar efeito sobre a posição do cliente neste caso.",
+            "motivo_favorabilidade": "O material não resolve a questão descrita no caso nem informa resultado que favoreça ou desfavoreça essa posição.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_9.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata de cobrança de notas fiscais por fornecimento de mercadorias.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não resolve a questão descrita no caso nem informa resultado que favoreça ou desfavoreça essa posição.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_17.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese trata da restituição de valores após a resolução do contrato, não de lucros cessantes por atraso na entrega do imóvel.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não resolve a questão descrita no caso nem informa resultado que favoreça ou desfavoreça essa posição.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_18.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese trata da restituição de valores em promessa de compra e venda de imóvel, não de habilitação ou classificação de crédito em recuperação judicial.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não resolve a questão descrita no caso nem informa resultado que favoreça ou desfavoreça essa posição.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_19.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata de vícios construtivos ou reparação de infiltrações.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não resolve a questão descrita no caso nem informa resultado que favoreça ou desfavoreça essa posição.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_20.txt",
+            "relacao": "indireta",
+            "resumo": "O STJ considerou abusiva a cláusula que adia ou parcela a restituição de valores devidos após a resolução de promessa de compra e venda de imóvel.",
+            "motivo": "A tese trata do momento e da forma da restituição após a resolução, mas o caso discute o percentual de retenção; aplicá-la a essa controvérsia exigiria analogia.",
+            "evidencias": [
+              {
+                "trecho": "é abusiva a cláusula contratual que determina a restituição dos valores devidos somente ao término da obra ou de forma parcelada",
+                "conferida_no_arquivo": true
+              }
+            ],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "A tese não define o percentual de retenção pretendido nem resolve a questão descrita.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_21.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata de despejo ou cobrança de aluguéis e encargos vencidos.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não resolve a questão descrita no caso nem informa resultado que favoreça ou desfavoreça essa posição.",
             "evidencia_favorabilidade": "",
             "evidencia_favorabilidade_conferida_no_arquivo": null
           },
@@ -243,10 +602,175 @@
             "arquivo": "caso_22.txt",
             "relacao": "nenhuma",
             "resumo": "",
-            "motivo": "A tese trata de inscrição em cadastro de inadimplentes, não de protesto de duplicata ou inexigibilidade de débito por serviço não prestado.",
+            "motivo": "A tese não trata de protesto de duplicata, inexigibilidade de dívida ou indenização.",
             "evidencias": [],
             "favorabilidade": "incerta",
-            "motivo_favorabilidade": "O material não permite avaliar efeito sobre a posição do cliente neste caso.",
+            "motivo_favorabilidade": "O material não resolve a questão descrita no caso nem informa resultado que favoreça ou desfavoreça essa posição.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_23.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata de rescisão de franquia ou multa rescisória.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não resolve a questão descrita no caso nem informa resultado que favoreça ou desfavoreça essa posição.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_24.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata de dissolução parcial de sociedade ou apuração de haveres.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não resolve a questão descrita no caso nem informa resultado que favoreça ou desfavoreça essa posição.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_25.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese trata da restituição de valores após a resolução do contrato, não de indenização pelo período de privação do uso do imóvel.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não resolve a questão descrita no caso nem informa resultado que favoreça ou desfavoreça essa posição.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_26.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata de autenticidade de assinatura em contrato bancário ou de descontos consignados.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não resolve a questão descrita no caso nem informa resultado que favoreça ou desfavoreça essa posição.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_27.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata de autenticidade de assinatura em contrato bancário ou de descontos consignados.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não resolve a questão descrita no caso nem informa resultado que favoreça ou desfavoreça essa posição.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_28.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata de revisão de juros remuneratórios abusivos.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não resolve a questão descrita no caso nem informa resultado que favoreça ou desfavoreça essa posição.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_29.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata de revisão de juros remuneratórios abusivos em financiamento.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não resolve a questão descrita no caso nem informa resultado que favoreça ou desfavoreça essa posição.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_30.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata da sanção por cobrança judicial de dívida já paga.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não resolve a questão descrita no caso nem informa resultado que favoreça ou desfavoreça essa posição.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_31.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata da sanção por cobrança judicial de dívida já paga.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não resolve a questão descrita no caso nem informa resultado que favoreça ou desfavoreça essa posição.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_32.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata da cumulação de lucros cessantes com cláusula penal moratória por atraso na entrega do imóvel.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não resolve a questão descrita no caso nem informa resultado que favoreça ou desfavoreça essa posição.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_33.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata da cumulação de lucros cessantes com multa moratória por atraso na entrega.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não resolve a questão descrita no caso nem informa resultado que favoreça ou desfavoreça essa posição.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_34.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata da data do fato gerador ou do trânsito em julgado para submissão de crédito à recuperação judicial.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não resolve a questão descrita no caso nem informa resultado que favoreça ou desfavoreça essa posição.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_35.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata da data do fato gerador ou do trânsito em julgado para submissão de crédito à recuperação judicial.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não resolve a questão descrita no caso nem informa resultado que favoreça ou desfavoreça essa posição.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_36.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata de cobrança indevida de tarifa bancária nem de repetição em dobro.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não resolve a questão descrita no caso nem informa resultado que favoreça ou desfavoreça essa posição.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_37.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata de cobrança indevida de seguro nem de repetição em dobro.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não resolve a questão descrita no caso nem informa resultado que favoreça ou desfavoreça essa posição.",
             "evidencia_favorabilidade": "",
             "evidencia_favorabilidade_conferida_no_arquivo": null
           }
@@ -261,200 +785,427 @@
         },
         "casos": [
           {
+            "arquivo": "caso_1.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese trata do momento e da forma da restituição após a resolução do contrato, não da cumulação de lucros cessantes com multa moratória.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não permite avaliar a posição do cliente quanto à cumulação das verbas.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_10.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese trata da restituição de valores em contrato de promessa de compra e venda de imóvel, não de rescisão de franquia.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não trata de franquia ou de multa rescisória de franquia.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_11.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata de retirada de sócio ou apuração de haveres.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não permite avaliar a posição do sócio no caso descrito.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_12.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata de habilitação de crédito em recuperação judicial.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não permite avaliar a posição da empresa credora na recuperação judicial.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_13.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese de direito imobiliário não tem relação demonstrada com pedido de horas extras trabalhistas.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não trata de horas extras ou de relação de emprego.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_14.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata de cobrança de juros em contrato bancário.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não permite avaliar a discussão sobre os juros do empréstimo.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
             "arquivo": "caso_15.txt",
-            "relacao": "direta",
-            "resumo": "O TJSP firmou que a inscrição indevida não gera indenização por dano moral quando já existe anotação legítima anterior, mas ressalvou o direito ao cancelamento.",
-            "motivo": "A tese firmada trata expressamente de inscrição em cadastro de inadimplentes baseada em dívida inexistente, questão que corresponde à alegação de negativação por dívida já paga. A incidência da ressalva depende de haver anotação legítima anterior, dado não informado no caso.",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata de negativação por dívida alegadamente paga.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não permite avaliar a questão da negativação descrita.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_16.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata de cláusula de garantia em contrato de financiamento.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não aborda garantias em financiamento de equipamentos.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_2.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese trata da restituição de valores após resolução do contrato, não da correção do saldo devedor pelo INCC durante atraso da obra.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não resolve a questão da correção do saldo pelo INCC.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_3.txt",
+            "relacao": "indireta",
+            "resumo": "O STJ considerou abusiva, em contratos submetidos ao Código de Defesa do Consumidor, a restituição somente ao término da obra ou de forma parcelada após a resolução do contrato.",
+            "motivo": "A tese trata do momento e da forma da restituição após a resolução, enquanto o caso discute o percentual que a construtora pode reter; aplicá-la à retenção exigiria analogia.",
             "evidencias": [
               {
-                "trecho": "A inscrição indevida comandada pelo credor em cadastro de inadimplentes, quando preexistente legítima anotação, não enseja indenização por dano moral",
+                "trecho": "é abusiva a cláusula contratual que determina a restituição dos valores devidos somente ao término da obra ou de forma parcelada",
                 "conferida_no_arquivo": true
               },
               {
-                "trecho": "ressalvado o direito ao cancelamento",
+                "trecho": "na hipótese de resolução de contato de promessa de compra e venda de imóvel, por culpa de qualquer dos contratantes",
                 "conferida_no_arquivo": true
               }
             ],
             "favorabilidade": "incerta",
-            "motivo_favorabilidade": "A tese assegura o cancelamento, mas afasta indenização por dano moral apenas se houver anotação legítima anterior; o caso não informa se essa condição existe nem descreve pedido de indenização.",
-            "evidencia_favorabilidade": "ressalvado o direito ao cancelamento",
-            "evidencia_favorabilidade_conferida_no_arquivo": true
+            "motivo_favorabilidade": "A tese não resolve se a retenção de metade do valor pago é admissível; trata do momento e da forma da restituição.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_4.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata de reparação de defeitos construtivos ou de obrigação de fazer reparos.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não aborda vícios construtivos ou reparos.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_5.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata de cobrança de taxas condominiais.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não aborda cobrança de cotas condominiais.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_6.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata de despejo ou cobrança de aluguéis vencidos.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não aborda locação residencial ou inadimplemento de aluguel.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_7.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata de renovação de locação comercial ou revisão do aluguel.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não aborda locação comercial ou valor do aluguel.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
           },
           {
             "arquivo": "caso_8.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata de duplicata, protesto ou indenização por serviço não prestado.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não aborda protesto de título ou indenização empresarial.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_9.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata de cobrança de notas fiscais por mercadorias fornecidas.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não aborda cobrança de crédito comercial por fornecimento de mercadorias.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_17.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese trata da restituição de valores após resolução do contrato, não de lucros cessantes por atraso na entrega do imóvel.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não resolve pedido de indenização por privação do uso do imóvel.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_18.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese trata da restituição em contrato de promessa de compra e venda de imóvel, não de habilitação ou classificação de crédito em recuperação judicial.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não aborda recuperação judicial ou classificação de crédito.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_19.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata de vício construtivo ou de obrigação de corrigir infiltrações.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não aborda falha de impermeabilização ou reparação de defeitos.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_20.txt",
             "relacao": "indireta",
-            "resumo": "O TJSP firmou que a inscrição indevida em cadastro de inadimplentes não gera dano moral se houver anotação legítima anterior, ressalvado o cancelamento.",
-            "motivo": "A decisão versa sobre inscrição em cadastro de inadimplentes, enquanto o caso trata de protesto de duplicata. A aplicação exigiria analogia entre formas distintas de restrição e suas consequências.",
+            "resumo": "O STJ considerou abusiva, em contratos submetidos ao Código de Defesa do Consumidor, a restituição somente ao término da obra ou de forma parcelada após a resolução do contrato.",
+            "motivo": "A tese trata do momento e da forma da restituição, enquanto o caso discute o percentual de retenção; a aplicação à controvérsia sobre o percentual exigiria analogia.",
             "evidencias": [
               {
-                "trecho": "inscrição indevida comandada pelo credor em cadastro de inadimplentes",
+                "trecho": "é abusiva a cláusula contratual que determina a restituição dos valores devidos somente ao término da obra ou de forma parcelada",
                 "conferida_no_arquivo": true
               },
               {
-                "trecho": "não enseja indenização por dano moral",
-                "conferida_no_arquivo": true
-              },
-              {
-                "trecho": "ressalvado o direito ao cancelamento",
+                "trecho": "na hipótese de resolução de contato de promessa de compra e venda de imóvel, por culpa de qualquer dos contratantes",
                 "conferida_no_arquivo": true
               }
             ],
             "favorabilidade": "incerta",
-            "motivo_favorabilidade": "A decisão não resolve diretamente os pedidos relativos ao protesto e não há informação sobre anotação legítima anterior.",
+            "motivo_favorabilidade": "A tese não define o percentual que pode ser retido e, portanto, não resolve a questão central descrita.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_21.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata de despejo ou cobrança de aluguéis e encargos vencidos.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não aborda inadimplemento em locação residencial.",
             "evidencia_favorabilidade": "",
             "evidencia_favorabilidade_conferida_no_arquivo": null
           },
           {
             "arquivo": "caso_22.txt",
-            "relacao": "indireta",
-            "resumo": "O TJSP firmou que a inscrição indevida em cadastro de inadimplentes não gera dano moral se houver anotação legítima anterior, ressalvado o cancelamento.",
-            "motivo": "A decisão versa sobre inscrição em cadastro de inadimplentes, enquanto o caso trata de protesto de duplicata e inexigibilidade de dívida. A relação exige analogia entre o registro cadastral e o protesto.",
-            "evidencias": [
-              {
-                "trecho": "inscrição indevida comandada pelo credor em cadastro de inadimplentes",
-                "conferida_no_arquivo": true
-              },
-              {
-                "trecho": "não enseja indenização por dano moral",
-                "conferida_no_arquivo": true
-              },
-              {
-                "trecho": "ressalvado o direito ao cancelamento",
-                "conferida_no_arquivo": true
-              }
-            ],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "A tese não resolve diretamente os pedidos relativos ao protesto e a aplicação de sua regra sobre dano moral depende de anotação legítima anterior, não informada.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          }
-        ]
-      },
-      "tribunal": "STJ"
-    },
-    {
-      "decisao": "demo_stj/tema_0970.txt",
-      "link_oficial": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=970&cod_tema_final=970&novaConsulta=true&tipo_pesquisa=T",
-      "numero_processo": "REsp 1635428",
-      "foro": "Superior Tribunal de Justiça",
-      "vara": "órgão julgador não identificado no material",
-      "data_decisao": "2019-06-25",
-      "tema_repetitivo": "0970",
-      "tese_firmada": "A cláusula penal moratória tem a finalidade de indenizar pelo adimplemento tardio da obrigação, e, em regra, estabelecida em valor equivalente ao locativo, afasta-se sua cumulação com lucros cessantes.",
-      "motivos": [
-        "as análises discordam sobre a relação com caso_2.txt"
-      ],
-      "resposta_1": {
-        "resultado_decisao": {
-          "classificacao": "nao_identificado",
-          "texto": "",
-          "evidencia": "",
-          "evidencia_conferida_no_arquivo": null
-        },
-        "casos": [
-          {
-            "arquivo": "caso_2.txt",
-            "relacao": "indireta",
-            "resumo": "O TJSP...",
-            "motivo": "A tese envolve atraso na entrega de imóvel, mas resolve a cumulação de lucros cessantes com cláusula penal, não a correção do saldo devedor pelo INCC. A aplicação exigiria analogia.",
-            "evidencias": [
-              {
-                "trecho": "nos casos de inadimplemento do vendedor em virtude do atraso na entrega de imóvel em construção",
-                "conferida_no_arquivo": true
-              },
-              {
-                "trecho": "afasta-se sua cumulação com lucros cessantes",
-                "conferida_no_arquivo": true
-              }
-            ],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "A tese não resolve se o saldo devedor pode continuar sendo corrigido pelo INCC durante o atraso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          }
-        ]
-      },
-      "resposta_2": {
-        "resultado_decisao": {
-          "classificacao": "nao_identificado",
-          "texto": "",
-          "evidencia": "",
-          "evidencia_conferida_no_arquivo": null
-        },
-        "casos": [
-          {
-            "arquivo": "caso_2.txt",
             "relacao": "nenhuma",
             "resumo": "",
-            "motivo": "Embora o caso envolva atraso de obra, a decisão resolve a cumulação de lucros cessantes com cláusula penal, não a correção do saldo devedor pelo INCC durante o atraso.",
+            "motivo": "A tese não trata de duplicata protestada, inexigibilidade do débito ou indenização.",
             "evidencias": [],
             "favorabilidade": "incerta",
-            "motivo_favorabilidade": "A tese não informa se o saldo pode continuar sendo corrigido pelo INCC.",
+            "motivo_favorabilidade": "O material não aborda protesto de título por serviço não contratado ou prestado.",
             "evidencia_favorabilidade": "",
             "evidencia_favorabilidade_conferida_no_arquivo": null
-          }
-        ]
-      },
-      "tribunal": "STJ"
-    },
-    {
-      "decisao": "demo_stj/tema_0971.txt",
-      "link_oficial": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=971&cod_tema_final=971&novaConsulta=true&tipo_pesquisa=T",
-      "numero_processo": "REsp 1614721",
-      "foro": "Superior Tribunal de Justiça",
-      "vara": "órgão julgador não identificado no material",
-      "data_decisao": "2019-06-25",
-      "tema_repetitivo": "0971",
-      "tese_firmada": "No contrato de adesão firmado entre o comprador e a construtora/incorporadora, havendo previsão de cláusula penal apenas para o inadimplemento do adquirente, deverá ela ser considerada para a fixação da indenização pelo inadimplemento do vendedor. As obrigações heterogêneas (obrigações de fazer e de dar) serão convertidas em dinheiro, por arbitramento judicial.",
-      "motivos": [
-        "as análises discordam sobre a relação com caso_2.txt"
-      ],
-      "resposta_1": {
-        "resultado_decisao": {
-          "classificacao": "nao_identificado",
-          "texto": "",
-          "evidencia": "",
-          "evidencia_conferida_no_arquivo": null
-        },
-        "casos": [
+          },
           {
-            "arquivo": "caso_2.txt",
+            "arquivo": "caso_23.txt",
             "relacao": "nenhuma",
             "resumo": "",
-            "motivo": "Embora ambos envolvam atraso de obra, a tese firmada trata de cláusula penal prevista apenas contra o adquirente, não da correção do saldo devedor pelo INCC durante o atraso.",
+            "motivo": "A tese não trata de rescisão de contrato de franquia ou multa rescisória.",
             "evidencias": [],
             "favorabilidade": "incerta",
-            "motivo_favorabilidade": "A tese não resolve o pedido de afastamento do INCC e o material não sustenta uma avaliação clara da posição do cliente.",
+            "motivo_favorabilidade": "O material não aborda franquia, suporte ou treinamento.",
             "evidencia_favorabilidade": "",
             "evidencia_favorabilidade_conferida_no_arquivo": null
-          }
-        ]
-      },
-      "resposta_2": {
-        "resultado_decisao": {
-          "classificacao": "nao_identificado",
-          "texto": "",
-          "evidencia": "",
-          "evidencia_conferida_no_arquivo": null
-        },
-        "casos": [
+          },
           {
-            "arquivo": "caso_2.txt",
-            "relacao": "indireta",
-            "resumo": "O STJ firmou tese sobre a consideração de cláusula penal na indenização devida pelo vendedor em razão do atraso na entrega de imóvel em construção.",
-            "motivo": "Ambos os casos envolvem atraso na entrega de imóvel, mas a tese versa sobre cláusula penal e não resolve se o saldo devedor pode continuar sendo corrigido pelo INCC durante o atraso.",
-            "evidencias": [
-              {
-                "trecho": "cláusula penal apenas para o inadimplemento do adquirente",
-                "conferida_no_arquivo": true
-              },
-              {
-                "trecho": "atraso na entrega de imóvel em construção",
-                "conferida_no_arquivo": true
-              }
-            ],
+            "arquivo": "caso_24.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata de dissolução parcial de sociedade ou apuração de haveres.",
+            "evidencias": [],
             "favorabilidade": "incerta",
-            "motivo_favorabilidade": "A tese não resolve a correção do saldo devedor pelo INCC durante o atraso, de modo que o material não permite concluir seu efeito para essa pretensão.",
+            "motivo_favorabilidade": "O material não aborda retirada de sócio ou avaliação de participação societária.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_25.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese trata da restituição de valores após resolução do contrato, não de indenização pelo período de privação do uso do imóvel.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não resolve pedido de indenização mensal calculada pelo aluguel de imóvel equivalente.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_26.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata de autenticidade de assinatura em contrato bancário ou de descontos em benefício previdenciário.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não aborda consignados, impugnação de assinatura ou restituição de descontos.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_27.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata da prova de autenticidade de assinatura em contrato bancário.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não aborda contratos consignados ou ônus de provar assinatura.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_28.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata da revisão de juros remuneratórios abusivos.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não aborda juros bancários ou revisão de taxa remuneratória.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_29.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata de revisão da taxa de juros remuneratórios em financiamento de veículo.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não aborda juros remuneratórios ou financiamento de veículo.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_30.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata da sanção em dobro por cobrança judicial de dívida já paga.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não aborda cobrança judicial de dívida quitada ou má-fé do credor.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_31.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata da sanção em dobro por cobrança judicial de dívida já paga.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não aborda cobrança judicial de dívida de cartão já quitada.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_32.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese trata da restituição após resolução do contrato, não da cumulação de lucros cessantes com cláusula penal moratória.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não resolve a cumulação das verbas pedidas.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_33.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata da cumulação de lucros cessantes e multa moratória por atraso na entrega.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não resolve se as duas verbas podem ser acumuladas.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_34.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese trata de restituição de valores em contrato imobiliário, não da data do fato gerador de crédito submetido à recuperação judicial.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não trata da data relevante para submissão do crédito à recuperação.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_35.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese trata de restituição de valores em contrato imobiliário, não da data do fato gerador de crédito submetido à recuperação judicial.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não trata da data relevante para submissão do crédito à recuperação.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_36.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata de repetição em dobro de tarifa bancária não contratada.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não aborda cobrança indevida, pedido prévio ou restituição em dobro.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          },
+          {
+            "arquivo": "caso_37.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "A tese não trata de repetição em dobro de cobrança bancária de seguro não autorizado.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "O material não aborda cobrança de seguro ou restituição em dobro.",
             "evidencia_favorabilidade": "",
             "evidencia_favorabilidade_conferida_no_arquivo": null
           }

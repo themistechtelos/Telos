@@ -1,0 +1,13 @@
+Fonte: Lista oficial de Precedentes Qualificados do STJ
+Tipo de conteúdo: Tema repetitivo com tese firmada; não é decisão nova da janela de três semanas
+Tribunal: STJ
+Área de busca: bancario
+Tema repetitivo STJ: 622
+Situação no cadastro oficial: Trânsito em Julgado
+Data do julgamento: 25/11/2015
+Data de publicação do acórdão: 16/02/2016
+Processo líder: REsp 1111270/PR
+Questão submetida a julgamento: Discute-se a necessidade ou não de ajuizamento de ação autônoma ou de oferecimento de reconvenção para que o réu faça jus à devolução em dobro por cobrança de dívida paga (artigo 1.531 do Código Civil de 1916, atual artigo 940 do Código Civil de 2002).
+Tese firmada: A aplicação da sanção civil do pagamento em dobro por cobrança judicial de dívida já adimplida (cominação encartada no artigo 1.531 do Código Civil de 1916, reproduzida no artigo 940 do Código Civil de 2002) pode ser postulada pelo réu na própria defesa, independendo da propositura de ação autônoma ou do manejo de reconvenção, sendo imprescindível a demonstração de má-fé do credor.
+Link oficial: https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=622&cod_tema_final=622&novaConsulta=true&tipo_pesquisa=T
+Observação: a relação direta só é reconhecida quando a tese firmada resolve a mesma questão jurídica descrita no caso.

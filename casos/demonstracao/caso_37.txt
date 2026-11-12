@@ -1,0 +1,3 @@
+Caso 37 — Seguro cobrado sem autorização
+Área: bancario
+O banco incluiu cobranças mensais de seguro não autorizado na conta do cliente. Mesmo após reclamação que apontava a irregularidade, os débitos continuaram. O cliente pede a devolução em dobro do que foi cobrado indevidamente.

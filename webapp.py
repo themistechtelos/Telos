@@ -33,11 +33,6 @@ CASE_AREAS = {
     "todas": (*range(1, 13), *range(14, 17)),
 }
 AREA_TERM_ENV = {
-    "imobiliario": "TJSP_SEARCH_TERMS_IMOBILIARIO",
-    "empresarial": "TJSP_SEARCH_TERMS_EMPRESARIAL",
-    "bancario": "TJSP_SEARCH_TERMS_BANCARIO",
-}
-STJ_AREA_TERM_ENV = {
     "imobiliario": "STJ_SEARCH_TERMS_IMOBILIARIO",
     "empresarial": "STJ_SEARCH_TERMS_EMPRESARIAL",
     "bancario": "STJ_SEARCH_TERMS_BANCARIO",
@@ -78,7 +73,7 @@ LATEST_ROUND = load_latest_round()
 RUN_STATE = {
     "running": False,
     "phase": "idle",
-    "message": "Pronto para vigiar o STJ e o TJSP.",
+    "message": "Pronto para vigiar o STJ.",
     "progress_current": 0,
     "progress_total": 0,
     "last_round": LATEST_ROUND,
@@ -162,32 +157,11 @@ def current_provider_settings() -> tuple[str, str, str]:
     )
 
 
-def configured_terms(area: str) -> list[str]:
-    if area == "todas":
-        groups = [
-            os.environ.get(AREA_TERM_ENV["bancario"], ""),
-            os.environ.get(AREA_TERM_ENV["imobiliario"], ""),
-            os.environ.get(AREA_TERM_ENV["empresarial"], ""),
-        ]
-        joined = ";".join(value for value in groups if value.strip())
-        raw = joined or os.environ.get("TJSP_SEARCH_TERMS", "")
-    else:
-        raw = os.environ.get(AREA_TERM_ENV[area], "").strip()
-        if not raw:
-            all_terms = [
-                term.strip()
-                for term in os.environ.get("TJSP_SEARCH_TERMS", "").split(";")
-                if term.strip()
-            ]
-            raw = ";".join(all_terms[:7] if area == "imobiliario" else all_terms[7:12])
-    return [term.strip() for term in raw.split(";") if term.strip() and len(term.strip()) <= 120]
-
-
 def configured_stj_terms(area: str) -> dict[str, list[str]]:
-    """Read STJ terms by legal area, falling back to the matching TJSP terms."""
+    """Read STJ terms by legal area."""
     grouped = {}
-    for key, env_name in STJ_AREA_TERM_ENV.items():
-        raw = os.environ.get(env_name, "").strip() or os.environ.get(AREA_TERM_ENV[key], "")
+    for key, env_name in AREA_TERM_ENV.items():
+        raw = os.environ.get(env_name, "").strip() or os.environ.get("STJ_SEARCH_TERMS", "")
         grouped[key] = [term.strip() for term in raw.split(";") if term.strip() and len(term.strip()) <= 120]
     if area != "todas":
         return {area: grouped[area]}
@@ -437,7 +411,7 @@ def result_for_page(result: dict) -> dict:
     }
 
 
-def decision_candidates(terms: list[str], saved: list[Path], area: str) -> list[Path]:
+def decision_candidates(saved: list[Path], area: str) -> list[Path]:
     found: list[Path] = []
     seen: set[str] = set()
     for path in [*saved, *sorted(telos.DECISIONS_DIR.iterdir())]:
@@ -450,14 +424,10 @@ def decision_candidates(terms: list[str], saved: list[Path], area: str) -> list[
             raw = telos.read_document(path)
         except Exception:
             continue
-        match = re.search(r"(?m)^Busca(?: STJ)?:\s*(.*?)\s*$", raw)
         area_match = re.search(r"(?mi)^Área:\s*(bancario|imobiliario|empresarial)\s*$", raw)
-        is_stj = "Fonte: Portal de Dados Abertos do STJ" in raw
+        official_link = telos.find_official_link(raw)
+        is_stj = bool(official_link and telos.is_official_stj_link(official_link))
         if is_stj and (area == "todas" or (area_match and area_match.group(1).lower() == area)):
-            found.append(path)
-        elif match and match.group(1) in terms:
-            found.append(path)
-        elif area == "todas" and not match and not path.name.startswith("auto_"):
             found.append(path)
 
     completed = telos.load_analysis_state()
@@ -468,19 +438,11 @@ def decision_candidates(terms: list[str], saved: list[Path], area: str) -> list[
 
 
 def progress_callback(stage: str, current: int, total: int) -> None:
-    if stage == "searching":
+    if stage == "searching_stj":
         update_run(
             phase="searching",
-            message=(f"Buscando decisões novas no TJSP ({current} de {total} termos)…"
-                     if current else "Buscando decisões novas no TJSP…"),
-            progress_current=current,
-            progress_total=total,
-        )
-    elif stage == "searching_stj":
-        update_run(
-            phase="searching",
-            message=(f"Buscando primeiro no STJ ({current} de {total} dias)…"
-                     if current else "Buscando primeiro no STJ…"),
+            message=(f"Buscando decisões no STJ ({current} de {total} dias)…"
+                     if current else "Buscando decisões no STJ…"),
             progress_current=current,
             progress_total=total,
         )
@@ -546,7 +508,7 @@ def demo_round(area: str, decision_count: int, extra_email: str) -> None:
     reviews = [item for item in fixture.get("reviews", []) if item.get("decisao") in selected_files]
     no_impact_items = [item for item in fixture.get("sem_impacto", []) if item.get("decisao") in selected_files]
     total = len(decisions)
-    source = str(fixture.get("fonte", "STJ e TJSP"))
+    source = str(fixture.get("fonte", "STJ"))
     noun = "tema" if fixture.get("tipo_item") == "tema repetitivo" else "decisão"
     noun_plural = "temas" if noun == "tema" else "decisões"
     update_run(phase="searching", message=f"Buscando itens do {source}…", progress_current=0, progress_total=total)
@@ -611,7 +573,8 @@ def run_round(area: str, decision_count: int, extra_email: str, demo: bool = Fal
     try:
         if provider not in {"openai", "gemini", "groq"} or not api_key:
             raise RuntimeError("O provedor de IA não está configurado.")
-        terms = configured_terms(area)
+        terms_by_area = configured_stj_terms(area)
+        terms = [term for group in terms_by_area.values() for term in group]
         if not terms:
             raise RuntimeError("Não há termos de busca configurados para esta área.")
 
@@ -620,7 +583,7 @@ def run_round(area: str, decision_count: int, extra_email: str, demo: bool = Fal
         try:
             stj_saved = telos.search_stj(
                 area=area,
-                terms_by_area=configured_stj_terms(area),
+                terms_by_area=terms_by_area,
                 date_start=period_start,
                 date_end=period_end,
                 progress_callback=progress_callback,
@@ -629,17 +592,9 @@ def run_round(area: str, decision_count: int, extra_email: str, demo: bool = Fal
             stj_saved = []
             update_run(
                 phase="searching",
-                message=f"A busca do STJ falhou ({type(error).__name__}); continuando a busca no TJSP…",
+                message=f"A busca do STJ falhou ({type(error).__name__}); vou conferir as decisões já salvas.",
             )
-        saved_tjsp = telos.search_tjsp(
-            progress_callback=progress_callback,
-            search_terms_override=";".join(terms),
-            date_start=period_start.strftime("%d/%m/%Y"),
-            date_end=period_end.strftime("%d/%m/%Y"),
-            pages=range(1, 4),
-        )
-        saved = [*stj_saved, *saved_tjsp]
-        candidates = decision_candidates(terms, saved, area)[:decision_count]
+        candidates = decision_candidates(stj_saved, area)[:decision_count]
         if not candidates:
             update_run(
                 phase="complete",
@@ -796,9 +751,9 @@ def api_run():
     try:
         decision_count = int(body.get("decision_count", 5))
     except (TypeError, ValueError):
-        return jsonify({"error": "Escolha de uma a cinco decisões."}), 400
-    if decision_count < 1 or decision_count > 5:
-        return jsonify({"error": "Escolha de uma a cinco decisões."}), 400
+        return jsonify({"error": "Escolha de uma a seis decisões."}), 400
+    if decision_count < 1 or decision_count > 6:
+        return jsonify({"error": "Escolha de uma a seis decisões."}), 400
     extra_email = str(body.get("extra_email", "")).strip()
     if extra_email and not re.fullmatch(r"[^@\s,]+@[^@\s,]+\.[^@\s,]+", extra_email):
         return jsonify({"error": "Digite um endereço de e-mail válido."}), 400
