@@ -6,6 +6,7 @@
   const progressTitle = document.getElementById('progress-title');
   const progressMessage = document.getElementById('progress-message');
   const progressBar = document.getElementById('progress-bar');
+  const progressSymbol = document.getElementById('progress-symbol');
   const content = document.getElementById('last-round-content');
   const date = document.getElementById('last-round-date');
   const emailAction = document.getElementById('email-action');
@@ -133,12 +134,19 @@
     button.disabled = running;
     button.querySelector('span:first-child').textContent = running ? 'Rodada em andamento' : 'Vigiar agora';
     if (running || state.phase === 'error') {
+      const failed = state.phase === 'error';
+      progressSymbol.className = `progress-symbol ${failed ? 'is-error' : 'is-running'}`;
+      progressSymbol.textContent = failed ? '!' : '';
+      progressSymbol.setAttribute('aria-label', failed ? 'Rodada encerrada com erro' : 'Rodada em andamento');
       progressPanel.hidden = false;
-      progressTitle.textContent = running ? 'O Telos está trabalhando' : 'Não foi possível concluir';
+      progressTitle.textContent = failed ? 'Não foi possível concluir' : 'O Telos está trabalhando';
       progressMessage.textContent = state.message || 'A última rodada continua disponível abaixo.';
       const pct = state.progress_total ? Math.max(5, Math.min(100, 100 * state.progress_current / state.progress_total)) : 8;
       progressBar.style.width = `${pct}%`;
     } else if (state.phase === 'complete' && state.message && state.message !== 'Pronto para vigiar o STJ.') {
+      progressSymbol.className = 'progress-symbol is-complete';
+      progressSymbol.textContent = '✓';
+      progressSymbol.setAttribute('aria-label', 'Rodada concluída');
       progressPanel.hidden = false;
       progressTitle.textContent = 'Rodada concluída';
       progressMessage.textContent = state.message;
