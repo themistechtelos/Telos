@@ -1,0 +1,16 @@
+Fonte: Portal de Dados Abertos do STJ — Precedentes qualificados
+Tipo de conteúdo: Ficha de precedente qualificado; não é uma decisão nova da janela de três semanas
+Área de busca: bancario
+Casos com relação temática para conferência: Caso 15 — inscrição por dívida inexistente
+Tema repetitivo STJ: 922
+Situação no cadastro oficial: Trânsito em Julgado
+Data do julgamento: 2016-04-27
+Data de publicação do acórdão: 2016-05-16
+Processo líder: REsp 1386424
+Número de registro: 201301746445
+Questão submetida a julgamento: Discute-se a "ocorrência de dano moral indenizável na hipótese de inscrição em cadastro de inadimplentes com base em dívida inexistente, quando preexistente legítima inscrição anterior".
+Tese firmada: A inscrição indevida comandada pelo credor em cadastro de inadimplentes, quando preexistente legítima anotação, não enseja indenização por dano moral, ressalvado o direito ao cancelamento. Inteligência da Súmula 385/STJ.
+Link oficial: https://scon.stj.jus.br/SCON/GetInteiroTeorDoAcordao?num_registro=201301746445&dt_publicacao=16/05/2016
+Consulta do tema no STJ: https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=922&cod_tema_final=922&novaConsulta=true&tipo_pesquisa=T
+
+Observação: a seleção foi feita por correspondência temática nos dados públicos; não é uma análise de relação direta nem um aviso sobre processo do escritório.

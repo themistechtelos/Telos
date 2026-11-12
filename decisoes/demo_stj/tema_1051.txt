@@ -1,0 +1,16 @@
+Fonte: Portal de Dados Abertos do STJ — Precedentes qualificados
+Tipo de conteúdo: Ficha de precedente qualificado; não é uma decisão nova da janela de três semanas
+Área de busca: empresarial
+Casos com relação temática para conferência: Caso 12 — existência do crédito na recuperação judicial
+Tema repetitivo STJ: 1051
+Situação no cadastro oficial: Trânsito em Julgado
+Data do julgamento: 2020-12-09
+Data de publicação do acórdão: 2020-12-17
+Processo líder: REsp 1843332
+Número de registro: 201903100530
+Questão submetida a julgamento: Interpretação do artigo 49, caput, da Lei n. 11.101/2005, de modo a definir se a existência do crédito é determinada pela data de seu fato gerador ou pelo trânsito em julgado da sentença que o reconhece.
+Tese firmada: Para o fim de submissão aos efeitos da recuperação judicial, considera-se que a existência do crédito é determinada pela data em que ocorreu o seu fato gerador.
+Link oficial: https://scon.stj.jus.br/SCON/GetInteiroTeorDoAcordao?num_registro=201903100530&dt_publicacao=17/12/2020
+Consulta do tema no STJ: https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=1051&cod_tema_final=1051&novaConsulta=true&tipo_pesquisa=T
+
+Observação: a seleção foi feita por correspondência temática nos dados públicos; não é uma análise de relação direta nem um aviso sobre processo do escritório.

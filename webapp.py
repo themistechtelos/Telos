@@ -78,7 +78,7 @@ LATEST_ROUND = load_latest_round()
 RUN_STATE = {
     "running": False,
     "phase": "idle",
-    "message": "Pronto para vigiar o TJSP.",
+    "message": "Pronto para vigiar o STJ e o TJSP.",
     "progress_current": 0,
     "progress_total": 0,
     "last_round": LATEST_ROUND,
@@ -546,16 +546,19 @@ def demo_round(area: str, decision_count: int, extra_email: str) -> None:
     reviews = [item for item in fixture.get("reviews", []) if item.get("decisao") in selected_files]
     no_impact_items = [item for item in fixture.get("sem_impacto", []) if item.get("decisao") in selected_files]
     total = len(decisions)
-    update_run(phase="searching", message="Buscando decisões no TJSP…", progress_current=0, progress_total=total)
+    source = str(fixture.get("fonte", "STJ e TJSP"))
+    noun = "tema" if fixture.get("tipo_item") == "tema repetitivo" else "decisão"
+    noun_plural = "temas" if noun == "tema" else "decisões"
+    update_run(phase="searching", message=f"Buscando itens do {source}…", progress_current=0, progress_total=total)
     time.sleep(2)
-    update_run(phase="searching", message="Decisões selecionadas. Preparando a análise…", progress_current=0, progress_total=total)
+    update_run(phase="searching", message=f"{noun_plural.capitalize()} selecionados. Preparando a análise…", progress_current=0, progress_total=total)
     time.sleep(1.5)
     for index, item in enumerate(decisions, start=1):
-        update_run(phase="analyzing", message=f"Analisando a decisão {index} de {total}…", progress_current=index - 1, progress_total=total)
+        update_run(phase="analyzing", message=f"Analisando o {noun} {index} de {total}…", progress_current=index - 1, progress_total=total)
         time.sleep(1.2)
-        update_run(phase="second_opinion", message=f"Segundo parecer — decisão {index} de {total}…", progress_current=index - 1, progress_total=total)
+        update_run(phase="second_opinion", message=f"Segundo parecer — {noun} {index} de {total}…", progress_current=index - 1, progress_total=total)
         time.sleep(1.2)
-        update_run(phase="analyzing", message=f"Análise concluída para a decisão {index} de {total}.", progress_current=index, progress_total=total)
+        update_run(phase="analyzing", message=f"Análise concluída para o {noun} {index} de {total}.", progress_current=index, progress_total=total)
         time.sleep(0.35)
 
     no_impact = [dict(item, metadata=telos.decision_metadata_text(item)) for item in no_impact_items]
@@ -570,7 +573,8 @@ def demo_round(area: str, decision_count: int, extra_email: str) -> None:
     }[area]
     result.update({"data_rodada": datetime.now().astimezone().isoformat(timespec="minutes"),
                    "area": area_label, "modo_demo": True,
-                   "data_coleta": fixture.get("data_coleta")})
+                   "data_coleta": fixture.get("data_coleta"),
+                   "tipo_item": fixture.get("tipo_item")})
     PENDING_EMAIL = {"alerts": alerts, "reviews": reviews,
                      "completed_count": total, "selected_count": total,
                      "interrupted": False, "extra_recipients": extra_email or None,

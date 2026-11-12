@@ -1,0 +1,16 @@
+Fonte: Portal de Dados Abertos do STJ — Precedentes qualificados
+Tipo de conteúdo: Ficha de precedente qualificado; não é uma decisão nova da janela de três semanas
+Área de busca: imobiliario
+Casos com relação temática para conferência: Caso 1 — cláusula penal por atraso
+Tema repetitivo STJ: 971
+Situação no cadastro oficial: Trânsito em Julgado
+Data do julgamento: 2019-05-22
+Data de publicação do acórdão: 2019-06-25
+Processo líder: REsp 1614721
+Número de registro: 201601879526
+Questão submetida a julgamento: Definir acerca da possibilidade ou não de inversão, em desfavor da construtora (fornecedor), da cláusula penal estipulada exclusivamente para o adquirente (consumidor), nos casos de inadimplemento da construtora em virtude de atraso na entrega de imóvel em construção objeto de contrato ou de promessa de compra e venda.
+Tese firmada: No contrato de adesão firmado entre o comprador e a construtora/incorporadora, havendo previsão de cláusula penal apenas para o inadimplemento do adquirente, deverá ela ser considerada para a fixação da indenização pelo inadimplemento do vendedor. As obrigações heterogêneas (obrigações de fazer e de dar) serão convertidas em dinheiro, por arbitramento judicial.
+Link oficial: https://scon.stj.jus.br/SCON/GetInteiroTeorDoAcordao?num_registro=201601879526&dt_publicacao=25/06/2019
+Consulta do tema no STJ: https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=971&cod_tema_final=971&novaConsulta=true&tipo_pesquisa=T
+
+Observação: a seleção foi feita por correspondência temática nos dados públicos; não é uma análise de relação direta nem um aviso sobre processo do escritório.

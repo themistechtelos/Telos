@@ -1,0 +1,16 @@
+Fonte: Portal de Dados Abertos do STJ — Precedentes qualificados
+Tipo de conteúdo: Ficha de precedente qualificado; não é uma decisão nova da janela de três semanas
+Área de busca: imobiliario
+Casos com relação temática para conferência: Caso 1 — lucros cessantes e cláusula penal
+Tema repetitivo STJ: 970
+Situação no cadastro oficial: Trânsito em Julgado
+Data do julgamento: 2019-05-22
+Data de publicação do acórdão: 2019-06-25
+Processo líder: REsp 1635428
+Número de registro: 201602850005
+Questão submetida a julgamento: Definir acerca da possibilidade ou não de cumulação da indenização por lucros cessantes com a cláusula penal, nos casos de inadimplemento do vendedor em virtude do atraso na entrega de imóvel em construção objeto de contrato ou promessa de compra e venda.
+Tese firmada: A cláusula penal moratória tem a finalidade de indenizar pelo adimplemento tardio da obrigação, e, em regra, estabelecida em valor equivalente ao locativo, afasta-se sua cumulação com lucros cessantes.
+Link oficial: https://scon.stj.jus.br/SCON/GetInteiroTeorDoAcordao?num_registro=201602850005&dt_publicacao=25/06/2019
+Consulta do tema no STJ: https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=970&cod_tema_final=970&novaConsulta=true&tipo_pesquisa=T
+
+Observação: a seleção foi feita por correspondência temática nos dados públicos; não é uma análise de relação direta nem um aviso sobre processo do escritório.

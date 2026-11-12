@@ -67,7 +67,7 @@ DEFAULT_GEMINI_MODEL = "gemini-3.1-flash-lite"
 DEFAULT_OPENAI_MODEL = "gpt-6-luna"
 MAX_DECISIONS_PER_RUN = 5
 MAX_GROQ_DECISION_CHARS = 18000
-ANALYSIS_VERSION = 5
+ANALYSIS_VERSION = 6
 ANALYSIS_STATE_FILE = BASE_DIR / ".telos_processadas.json"
 STJ_API_BASE = "https://dadosabertos.web.stj.jus.br/api/3/action/"
 STJ_DECISIONS_DATASET = "integras-de-decisoes-terminativas-e-acordaos-do-diario-da-justica"
@@ -195,6 +195,9 @@ def official_link_description(candidate: str) -> str:
 
 
 def official_email_button(candidate: str) -> str:
+    query = urllib.parse.parse_qs(urllib.parse.urlparse(candidate).query)
+    if query.get("cod_tema_inicial"):
+        return "Ver o tema repetitivo no site oficial do STJ"
     return f"Ver a decisão no site oficial do {official_court_name(candidate)}"
 
 
@@ -256,12 +259,20 @@ def decision_email_metadata(decision_text: str, official_link: str) -> dict[str,
     query = urllib.parse.parse_qs(urllib.parse.urlparse(official_link).query)
     if is_official_stj_link(official_link):
         process_match = re.search(r"(?mi)^Processo STJ:\s*(.+)$", decision_text)
+        if not process_match:
+            process_match = re.search(r"(?mi)^Processo líder:\s*(.+)$", decision_text)
         published_match = re.search(r"(?mi)^Data de publicação no DJe:\s*(.+)$", decision_text)
+        if not published_match:
+            published_match = re.search(r"(?mi)^Data de publicação do acórdão:\s*(.+)$", decision_text)
+        topic_match = re.search(r"(?mi)^Tema repetitivo STJ:\s*(\d+)\s*$", decision_text)
+        thesis_match = re.search(r"(?mi)^Tese firmada:\s*(.+)", decision_text)
         return {
             "numero_processo": process_match.group(1).strip() if process_match else "não identificado no material",
             "foro": "Superior Tribunal de Justiça",
             "vara": "órgão julgador não identificado no material",
             "data_decisao": published_match.group(1).strip() if published_match else "não identificada no material",
+            "tema_repetitivo": topic_match.group(1) if topic_match else "",
+            "tese_firmada": thesis_match.group(1).strip() if thesis_match else "",
         }
     linked_process = query.get("processo.numero", [""])[0]
     process_number = process_number or linked_process
@@ -867,7 +878,7 @@ def download_stj_qualified_precedents(*, quiet: bool = False) -> dict[str, list[
             published = process.get("dataPbulicacaoAcordao", "").strip()
             decision_link = stj_decision_url(registry, published) if registry and published else ""
             topic_link = stj_qualified_topic_url(number)
-            official_link = decision_link or topic_link
+            official_link = topic_link
             if not is_official_stj_link(official_link):
                 continue
             text = "\n".join([
@@ -884,7 +895,7 @@ def download_stj_qualified_precedents(*, quiet: bool = False) -> dict[str, list[
                 f"Questão submetida a julgamento: {row.get('questaoSubmetidaAJulgamento', '').strip()}",
                 f"Tese firmada: {row.get('teseFirmada', '').strip() or 'Ainda não consta tese firmada no CSV; tema afetado, sem mérito publicado.'}",
                 f"Link oficial: {official_link}",
-                f"Consulta do tema no STJ: {topic_link}",
+                f"Acórdão do processo líder (inteiro teor): {decision_link or 'não informado'}",
                 "",
                 "Observação: a seleção foi feita por correspondência temática nos dados públicos; não é uma análise de relação direta nem um aviso sobre processo do escritório.",
             ])
@@ -1270,6 +1281,8 @@ Para cada caso, classifique a relação em uma destas categorias:
 
 Não classifique como direta só por haver palavras em comum ou por ambos os casos pertencerem à mesma área do Direito. A decisão precisa resolver a mesma questão jurídica discutida no caso e funcionar como precedente para essa questão, não apenas tratar de assunto semelhante. Quando houver qualquer passo analógico para chegar ao caso, classifique como "indireta". Não presuma fatos que não aparecem nos casos. Use trechos literais curtos que comprovem a questão da decisão e a relação. Se não houver evidência literal suficiente, escolha "incerta".
 
+Quando o material for uma ficha de precedente qualificado do STJ, avalie a relação pela tese firmada, e não apenas pela questão submetida a julgamento ou pelo tema. Tema apenas "Afetado" ou sem tese firmada não pode ser tratado como tese resolvida: use "incerta". Se uma tese firmada responder expressamente à mesma questão jurídica descrita no caso, classifique a relação como "direta", mesmo que ainda seja necessário conferir algum requisito de aplicação aos fatos concretos; explique essa condição no motivo, sem afirmar que ela já foi preenchida. Não transforme a falta de um dado de aplicação em relação indireta quando a questão jurídica resolvida for a mesma.
+
 Extraia também o resultado da decisão. Use "procedente", "improcedente" ou "parcialmente_procedente" somente se o texto declarar expressamente esse resultado para a ação/pedido. Se o texto disponível só disser, por exemplo, que um recurso foi provido, use "outro_resultado_explicito" e copie a formulação literal em "texto". Se não houver resultado expresso no material disponível, use "nao_identificado" e deixe "texto" e "evidencia" vazios. Não infira o resultado do processo a partir da ementa quando ela não o disser.
 
 Avalie a favorabilidade à posição descrita para o cliente em cada caso, não à posição de uma parte cujo papel processual não foi informado. Use "favoravel" ou "desfavoravel" somente se o próprio texto trouxer trecho que sustente claramente essa leitura; use "mista" se beneficiar e prejudicar a posição descrita em aspectos relevantes; caso contrário, use "incerta". A favorabilidade não determina por si só se a decisão afeta o caso.
@@ -1434,13 +1447,20 @@ def print_decision_result(path: Path, official_link: str, result: dict, decision
         outcome = result["resultado_decisao"]
         outcome_class = outcome["classificacao"]
         outcome_quote = outcome["evidencia"].strip()
+        qualified_topic = bool(email_metadata.get("tema_repetitivo"))
+        if qualified_topic:
+            outcome_quote = email_metadata.get("tese_firmada", "").strip()
         valid_outcome_quote = bool(outcome_quote and normalized(outcome_quote) in normalized(decision_text))
         outcome_labels = {
             "procedente": "procedente",
             "improcedente": "improcedente",
             "parcialmente_procedente": "parcialmente procedente",
         }
-        if outcome_class == "nao_identificado" or not valid_outcome_quote:
+        if qualified_topic and valid_outcome_quote:
+            outcome_message = "Tese repetitiva firmada pelo STJ."
+        elif qualified_topic:
+            outcome_message = "Tema repetitivo afetado; ainda não há tese firmada no material."
+        elif outcome_class == "nao_identificado" or not valid_outcome_quote:
             if content_type.lower().startswith("ementa"):
                 outcome_message = "O resultado não está indicado na ementa disponível."
             else:
@@ -1553,10 +1573,12 @@ def round_email_subject(alert_count: int, review_count: int) -> str:
 def decision_metadata_text(item: dict) -> str:
     tribunal = item.get("tribunal", "")
     if tribunal == "STJ" or is_official_stj_link(item.get("link_oficial", "")):
-        return (
+        details = (
             f"Processo: {item.get('numero_processo', 'não identificado no material')} · "
             f"Tribunal: STJ · Data de publicação: {item.get('data_decisao', 'não identificada no material')}"
         )
+        topic = item.get("tema_repetitivo")
+        return f"{details} · Tema repetitivo {topic}" if topic else details
     return (
         f"Processo: {item.get('numero_processo', 'não identificado no material')} · "
         f"Foro: {item.get('foro', 'não informado')} · "

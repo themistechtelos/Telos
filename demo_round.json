@@ -1,655 +1,230 @@
 {
-  "data_coleta": "2026-11-11",
+  "data_coleta": "2026-11-12",
+  "fonte": "STJ",
+  "tipo_item": "tema repetitivo",
+  "observacao": "Rodada baseada em temas repetitivos do STJ. A coleta de decisões do período até 09/10/2026 não foi possível por bloqueio/tempo esgotado da rede neste ambiente.",
   "decisions": [
     {
-      "file": "auto_cjpg_13b0f8ff11aab399.txt",
+      "file": "demo_stj/tema_0996.txt",
       "area": "Imobiliário"
     },
     {
-      "file": "auto_cjpg_b3c65848a8f797c4.txt",
+      "file": "demo_stj/tema_0970.txt",
       "area": "Imobiliário"
     },
     {
-      "file": "auto_cjpg_a0f480a068bddd25.txt",
+      "file": "demo_stj/tema_1051.txt",
       "area": "Empresarial"
     },
     {
-      "file": "auto_cjpg_3c1591a9f0cab2dc.txt",
-      "area": "Empresarial"
-    },
-    {
-      "file": "auto_cjsg_f944897c35b584b4.txt",
+      "file": "demo_stj/tema_0922.txt",
       "area": "Bancário"
+    },
+    {
+      "file": "demo_stj/tema_0971.txt",
+      "area": "Imobiliário"
     }
   ],
   "alerts": [
     {
-      "decisao": "auto_cjpg_13b0f8ff11aab399.txt",
+      "decisao": "demo_stj/tema_0970.txt",
       "arquivo_caso": "caso_1.txt",
       "caso": "Caso 1 — Apartamento entregue com atraso",
-      "resumo": "O TJSP reconheceu o atraso e condenou as rés ao pagamento de lucros cessantes, mas rejeitou a multa contratual e o pedido de danos morais.",
-      "motivo_relacao": "A decisão resolve a questão dos lucros cessantes pela privação do uso decorrente do atraso na entrega de apartamento na planta, embora tenha rejeitado a multa contratual pedida também no caso.",
-      "resultado": "Parcialmente procedente.",
-      "trecho_resultado": "Diante do exposto, JULGO PARCIALMENTE PROCEDENTE o pedido formulado",
-      "posicao_cliente": "Favorabilidade a confirmar: os dois pareceres concordaram que a relação é direta, mas divergiram sobre o resultado ou seus efeitos para o cliente.",
-      "motivo_favorabilidade": "A relação direta foi confirmada pelos dois pareceres; confirme manualmente o resultado ou a favorabilidade no texto oficial.",
-      "trecho_favorabilidade": "",
+      "resumo": "O TJSP...",
+      "motivo_relacao": "A tese firmada trata diretamente da possibilidade de cumular lucros cessantes com cláusula penal moratória pelo atraso na entrega de imóvel, questão que corresponde aos pedidos descritos no caso. A aplicação depende de a cláusula ser moratória e ter valor equivalente ao locativo.",
+      "resultado": "Tese repetitiva firmada pelo STJ.",
+      "trecho_resultado": "",
+      "posicao_cliente": "Desfavorável à posição descrita do cliente.",
+      "motivo_favorabilidade": "A posição descrita inclui o pedido cumulativo de lucros cessantes e multa; a tese afasta essa cumulação, em regra, se a multa moratória tiver valor equivalente ao locativo.",
+      "trecho_favorabilidade": "afasta-se sua cumulação com lucros cessantes",
       "trechos_relacao": [
-        "o prejuízo do comprador é presumido, consistente na injusta privação do uso do bem, a ensejar o pagamento de indenização, na forma de aluguel mensal",
-        "condenar solidariamente as rés ao pagamento de indenização por lucros cessantes no valor de R$ 5.366,67",
-        "o pedido principal de condenação ao pagamento de multa contratual de 1% ao mês sobre o valor do contrato deve ser julgado improcedente",
-        "A indenização por lucros cessantes é, portanto, devida no caso concreto",
-        "com base no valor locatício de imóvel assemelhado"
+        "A cláusula penal moratória tem a finalidade de indenizar pelo adimplemento tardio da obrigação",
+        "em regra, estabelecida em valor equivalente ao locativo, afasta-se sua cumulação com lucros cessantes",
+        "Definir acerca da possibilidade ou não de cumulação da indenização por lucros cessantes com a cláusula penal",
+        "A cláusula penal moratória tem a finalidade de indenizar pelo adimplemento tardio da obrigação, e, em regra, estabelecida em valor equivalente ao locativo, afasta-se sua cumulação com lucros cessantes."
       ],
-      "link_oficial": "https://esaj.tjsp.jus.br/cpopg/show.do?processo.codigo=CJ000VTKL0000&processo.foro=451&processo.numero=1005418-33.2025.8.26.0451&gateway=true",
-      "numero_processo": "1005418-33.2025.8.26.0451",
-      "foro": "Foro de Piracicaba",
-      "vara": "4ª Vara Cível",
-      "data_decisao": "08 de julho de 2026",
+      "link_oficial": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=970&cod_tema_final=970&novaConsulta=true&tipo_pesquisa=T",
+      "numero_processo": "REsp 1635428",
+      "foro": "Superior Tribunal de Justiça",
+      "vara": "órgão julgador não identificado no material",
+      "data_decisao": "2019-06-25",
+      "tema_repetitivo": "0970",
+      "tese_firmada": "A cláusula penal moratória tem a finalidade de indenizar pelo adimplemento tardio da obrigação, e, em regra, estabelecida em valor equivalente ao locativo, afasta-se sua cumulação com lucros cessantes.",
       "somente_ementa": false,
       "texto_parcial": false,
-      "favorabilidade_a_confirmar": true
+      "favorabilidade_a_confirmar": false,
+      "tribunal": "STJ"
     },
     {
-      "decisao": "auto_cjpg_13b0f8ff11aab399.txt",
+      "decisao": "demo_stj/tema_0996.txt",
+      "arquivo_caso": "caso_1.txt",
+      "caso": "Caso 1 — Apartamento entregue com atraso",
+      "resumo": "O STJ firmou que, no atraso da entrega do imóvel, o prejuízo pela privação do uso é presumido e gera indenização mensal com base no valor locatício de imóvel semelhante.",
+      "motivo_relacao": "A tese responde à questão dos lucros cessantes pelo atraso, na forma de valor locatício. A aplicação ao caso concreto depende de verificar se estão presentes os requisitos e o âmbito de incidência indicados na tese; a decisão não resolve a multa contratual mencionada no caso.",
+      "resultado": "Tese repetitiva firmada pelo STJ.",
+      "trecho_resultado": "",
+      "posicao_cliente": "Favorável à posição descrita do cliente.",
+      "motivo_favorabilidade": "A tese reconhece indenização mensal pelo valor locatício em caso de atraso na entrega, o que favorece a pretensão descrita de lucros cessantes, sujeito à verificação de sua aplicabilidade.",
+      "trecho_favorabilidade": "a ensejar o pagamento de indenização, na forma de aluguel mensal, com base no valor locatício de imóvel assemelhado",
+      "trechos_relacao": [
+        "No caso de descumprimento do prazo para a entrega do imóvel, incluído o período de tolerância, o prejuízo do comprador é presumido, consistente na injusta privação do uso do bem, a ensejar o pagamento de indenização, na forma de aluguel mensal, com base no valor locatício de imóvel assemelhado"
+      ],
+      "link_oficial": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=996&cod_tema_final=996&novaConsulta=true&tipo_pesquisa=T",
+      "numero_processo": "REsp 1729593",
+      "foro": "Superior Tribunal de Justiça",
+      "vara": "órgão julgador não identificado no material",
+      "data_decisao": "2019-09-27",
+      "tema_repetitivo": "0996",
+      "tese_firmada": "As teses firmadas, para os fins do artigo 1.036 do CPC/2015, em contrato de promessa de compra e venda de imóvel na planta, no âmbito do Programa Minha Casa, Minha Vida, para os beneficiários das faixas de renda 1, 5, 2 e 3, foram as seguintes:1.1. Na aquisição de unidades autônomas em construção, o contrato deverá estabelecer, de forma clara, expressa e inteligível, o prazo certo para a entrega do imóvel, o qual não poderá estar  vinculado à concessão do financiamento, ou a nenhum outro negócio jurídico, exceto o acréscimo do prazo de tolerância; 1.2. No caso de descumprimento do prazo para a entrega do imóvel, incluído o período de tolerância, o prejuízo do comprador é presumido, consistente na injusta privação do uso do bem, a ensejar o pagamento de indenização, na forma de aluguel mensal, com base no valor locatício de imóvel assemelhado, com termo final na data da disponibilização da posse direta ao adquirente da unidade autônoma. 1.3. É ilícito cobrar do adquirente juros de obra, ou outro encargo equivalente, após o prazo ajustado no contrato para a entrega das chaves da unidade autônoma, incluído o período de tolerância.1.4. O descumprimento do prazo de entrega do imóvel, computado o período de tolerância, faz cessar a incidência de correção monetária sobre o saldo devedor com base em indexador setorial, que reflete o custo da construção civil, o qual deverá ser substituído pelo IPCA, salvo quando este último for mais gravoso ao consumidor.",
+      "somente_ementa": false,
+      "texto_parcial": false,
+      "favorabilidade_a_confirmar": false,
+      "tribunal": "STJ"
+    },
+    {
+      "decisao": "demo_stj/tema_0996.txt",
+      "arquivo_caso": "caso_2.txt",
+      "caso": "Caso 2 — Correção do saldo durante o atraso",
+      "resumo": "O STJ firmou que, após o atraso da entrega, a correção do saldo devedor por indexador setorial deve cessar e ser substituída pelo IPCA, salvo quando este for mais gravoso ao consumidor.",
+      "motivo_relacao": "A tese responde à questão específica da correção do saldo devedor por indexador setorial durante o atraso. A aplicação ao caso concreto depende de verificar o âmbito de incidência da tese e se o indexador substituto seria mais gravoso ao consumidor.",
+      "resultado": "Tese repetitiva firmada pelo STJ.",
+      "trecho_resultado": "",
+      "posicao_cliente": "Favorável à posição descrita do cliente.",
+      "motivo_favorabilidade": "A tese prevê o afastamento do indexador setorial durante o atraso, embora ressalve a substituição por índice geral e a hipótese de este ser mais gravoso ao consumidor.",
+      "trecho_favorabilidade": "faz cessar a incidência de correção monetária sobre o saldo devedor com base em indexador setorial",
+      "trechos_relacao": [
+        "O descumprimento do prazo de entrega do imóvel, computado o período de tolerância, faz cessar a incidência de correção monetária sobre o saldo devedor com base em indexador setorial, que reflete o custo da construção civil, o qual deverá ser substituído pelo IPCA, salvo quando este último for mais gravoso ao consumidor",
+        "O descumprimento do prazo de entrega do imóvel, computado o período de tolerância, faz cessar a incidência de correção monetária sobre o saldo devedor com base em indexador setorial",
+        "o qual deverá ser substituído pelo IPCA, salvo quando este último for mais gravoso ao consumidor"
+      ],
+      "link_oficial": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=996&cod_tema_final=996&novaConsulta=true&tipo_pesquisa=T",
+      "numero_processo": "REsp 1729593",
+      "foro": "Superior Tribunal de Justiça",
+      "vara": "órgão julgador não identificado no material",
+      "data_decisao": "2019-09-27",
+      "tema_repetitivo": "0996",
+      "tese_firmada": "As teses firmadas, para os fins do artigo 1.036 do CPC/2015, em contrato de promessa de compra e venda de imóvel na planta, no âmbito do Programa Minha Casa, Minha Vida, para os beneficiários das faixas de renda 1, 5, 2 e 3, foram as seguintes:1.1. Na aquisição de unidades autônomas em construção, o contrato deverá estabelecer, de forma clara, expressa e inteligível, o prazo certo para a entrega do imóvel, o qual não poderá estar  vinculado à concessão do financiamento, ou a nenhum outro negócio jurídico, exceto o acréscimo do prazo de tolerância; 1.2. No caso de descumprimento do prazo para a entrega do imóvel, incluído o período de tolerância, o prejuízo do comprador é presumido, consistente na injusta privação do uso do bem, a ensejar o pagamento de indenização, na forma de aluguel mensal, com base no valor locatício de imóvel assemelhado, com termo final na data da disponibilização da posse direta ao adquirente da unidade autônoma. 1.3. É ilícito cobrar do adquirente juros de obra, ou outro encargo equivalente, após o prazo ajustado no contrato para a entrega das chaves da unidade autônoma, incluído o período de tolerância.1.4. O descumprimento do prazo de entrega do imóvel, computado o período de tolerância, faz cessar a incidência de correção monetária sobre o saldo devedor com base em indexador setorial, que reflete o custo da construção civil, o qual deverá ser substituído pelo IPCA, salvo quando este último for mais gravoso ao consumidor.",
+      "somente_ementa": false,
+      "texto_parcial": false,
+      "favorabilidade_a_confirmar": false,
+      "tribunal": "STJ"
+    },
+    {
+      "decisao": "demo_stj/tema_0996.txt",
       "arquivo_caso": "caso_17.txt",
       "caso": "Caso 17 — Lucros cessantes por atraso",
-      "resumo": "O TJSP reconheceu o atraso na entrega e condenou as rés a indenizar os lucros cessantes pelo período de privação do uso do imóvel.",
-      "motivo_relacao": "A decisão resolve a mesma questão de indenização calculada como aluguel de imóvel semelhante durante o atraso na entrega de apartamento na planta.",
-      "resultado": "Parcialmente procedente.",
-      "trecho_resultado": "Diante do exposto, JULGO PARCIALMENTE PROCEDENTE o pedido formulado",
+      "resumo": "O STJ firmou que, no atraso da entrega do imóvel, o prejuízo pela privação do uso é presumido e gera indenização mensal com base no valor locatício de imóvel semelhante.",
+      "motivo_relacao": "A tese responde à mesma questão jurídica descrita: indenização por privação do uso calculada pelo valor locatício durante o atraso. A aplicação depende de verificar os requisitos e o âmbito de incidência da tese no caso concreto.",
+      "resultado": "Tese repetitiva firmada pelo STJ.",
+      "trecho_resultado": "",
       "posicao_cliente": "Favorável à posição descrita do cliente.",
-      "motivo_favorabilidade": "A decisão reconhece o direito a lucros cessantes pelo período de atraso, com base no valor locatício de imóvel assemelhado.",
-      "trecho_favorabilidade": "na forma de aluguel mensal, com base no valor locatício de imóvel assemelhado",
+      "motivo_favorabilidade": "A tese prevê indenização mensal calculada pelo valor locatício em razão da privação injusta do uso, favorecendo a pretensão descrita, condicionada à aplicabilidade ao caso concreto.",
+      "trecho_favorabilidade": "a ensejar o pagamento de indenização, na forma de aluguel mensal, com base no valor locatício de imóvel assemelhado",
       "trechos_relacao": [
-        "o prejuízo do comprador é presumido, consistente na injusta privação do uso do bem, a ensejar o pagamento de indenização, na forma de aluguel mensal, com base no valor locatício de imóvel assemelhado",
-        "A indenização por lucros cessantes é, portanto, devida no caso concreto",
-        "condenar solidariamente as rés ao pagamento de indenização por lucros cessantes"
+        "No caso de descumprimento do prazo para a entrega do imóvel, incluído o período de tolerância, o prejuízo do comprador é presumido, consistente na injusta privação do uso do bem, a ensejar o pagamento de indenização, na forma de aluguel mensal, com base no valor locatício de imóvel assemelhado, com termo final na data da disponibilização da posse direta ao adquirente da unidade autônoma",
+        "No caso de descumprimento do prazo para a entrega do imóvel, incluído o período de tolerância, o prejuízo do comprador é presumido, consistente na injusta privação do uso do bem, a ensejar o pagamento de indenização, na forma de aluguel mensal, com base no valor locatício de imóvel assemelhado"
       ],
-      "link_oficial": "https://esaj.tjsp.jus.br/cpopg/show.do?processo.codigo=CJ000VTKL0000&processo.foro=451&processo.numero=1005418-33.2025.8.26.0451&gateway=true",
-      "numero_processo": "1005418-33.2025.8.26.0451",
-      "foro": "Foro de Piracicaba",
-      "vara": "4ª Vara Cível",
-      "data_decisao": "08 de julho de 2026",
+      "link_oficial": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=996&cod_tema_final=996&novaConsulta=true&tipo_pesquisa=T",
+      "numero_processo": "REsp 1729593",
+      "foro": "Superior Tribunal de Justiça",
+      "vara": "órgão julgador não identificado no material",
+      "data_decisao": "2019-09-27",
+      "tema_repetitivo": "0996",
+      "tese_firmada": "As teses firmadas, para os fins do artigo 1.036 do CPC/2015, em contrato de promessa de compra e venda de imóvel na planta, no âmbito do Programa Minha Casa, Minha Vida, para os beneficiários das faixas de renda 1, 5, 2 e 3, foram as seguintes:1.1. Na aquisição de unidades autônomas em construção, o contrato deverá estabelecer, de forma clara, expressa e inteligível, o prazo certo para a entrega do imóvel, o qual não poderá estar  vinculado à concessão do financiamento, ou a nenhum outro negócio jurídico, exceto o acréscimo do prazo de tolerância; 1.2. No caso de descumprimento do prazo para a entrega do imóvel, incluído o período de tolerância, o prejuízo do comprador é presumido, consistente na injusta privação do uso do bem, a ensejar o pagamento de indenização, na forma de aluguel mensal, com base no valor locatício de imóvel assemelhado, com termo final na data da disponibilização da posse direta ao adquirente da unidade autônoma. 1.3. É ilícito cobrar do adquirente juros de obra, ou outro encargo equivalente, após o prazo ajustado no contrato para a entrega das chaves da unidade autônoma, incluído o período de tolerância.1.4. O descumprimento do prazo de entrega do imóvel, computado o período de tolerância, faz cessar a incidência de correção monetária sobre o saldo devedor com base em indexador setorial, que reflete o custo da construção civil, o qual deverá ser substituído pelo IPCA, salvo quando este último for mais gravoso ao consumidor.",
       "somente_ementa": false,
       "texto_parcial": false,
-      "favorabilidade_a_confirmar": false
+      "favorabilidade_a_confirmar": false,
+      "tribunal": "STJ"
     },
     {
-      "decisao": "auto_cjpg_13b0f8ff11aab399.txt",
+      "decisao": "demo_stj/tema_0996.txt",
       "arquivo_caso": "caso_25.txt",
       "caso": "Caso 25 — Indenização pelo período sem uso",
-      "resumo": "O TJSP reconheceu o atraso na entrega e condenou as rés a indenizar os lucros cessantes pelo período de privação do uso do imóvel.",
-      "motivo_relacao": "A decisão resolve a mesma questão de indenização mensal, baseada no valor locatício de imóvel semelhante, pela privação do uso decorrente do atraso de entrega.",
-      "resultado": "Parcialmente procedente.",
-      "trecho_resultado": "Diante do exposto, JULGO PARCIALMENTE PROCEDENTE o pedido formulado",
+      "resumo": "O STJ firmou que, no atraso da entrega do imóvel, o prejuízo pela privação do uso é presumido e gera indenização mensal com base no valor locatício de imóvel semelhante.",
+      "motivo_relacao": "A tese responde à mesma questão jurídica descrita: indenização pelo período sem uso, calculada pelo valor locatício de unidade semelhante. A aplicação depende de verificar os requisitos e o âmbito de incidência da tese no caso concreto.",
+      "resultado": "Tese repetitiva firmada pelo STJ.",
+      "trecho_resultado": "",
       "posicao_cliente": "Favorável à posição descrita do cliente.",
-      "motivo_favorabilidade": "A decisão reconhece indenização por lucros cessantes calculada segundo o valor locatício durante o período de atraso.",
-      "trecho_favorabilidade": "com base no valor locatício de imóvel assemelhado",
+      "motivo_favorabilidade": "A tese prevê indenização mensal com base no valor locatício por privação injusta do uso, favorecendo a pretensão descrita, condicionada à aplicabilidade ao caso concreto.",
+      "trecho_favorabilidade": "a ensejar o pagamento de indenização, na forma de aluguel mensal, com base no valor locatício de imóvel assemelhado",
       "trechos_relacao": [
-        "o prejuízo do comprador é presumido, consistente na injusta privação do uso do bem, a ensejar o pagamento de indenização, na forma de aluguel mensal, com base no valor locatício de imóvel assemelhado",
-        "A indenização por lucros cessantes é, portanto, devida no caso concreto"
+        "No caso de descumprimento do prazo para a entrega do imóvel, incluído o período de tolerância, o prejuízo do comprador é presumido, consistente na injusta privação do uso do bem, a ensejar o pagamento de indenização, na forma de aluguel mensal, com base no valor locatício de imóvel assemelhado"
       ],
-      "link_oficial": "https://esaj.tjsp.jus.br/cpopg/show.do?processo.codigo=CJ000VTKL0000&processo.foro=451&processo.numero=1005418-33.2025.8.26.0451&gateway=true",
-      "numero_processo": "1005418-33.2025.8.26.0451",
-      "foro": "Foro de Piracicaba",
-      "vara": "4ª Vara Cível",
-      "data_decisao": "08 de julho de 2026",
+      "link_oficial": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=996&cod_tema_final=996&novaConsulta=true&tipo_pesquisa=T",
+      "numero_processo": "REsp 1729593",
+      "foro": "Superior Tribunal de Justiça",
+      "vara": "órgão julgador não identificado no material",
+      "data_decisao": "2019-09-27",
+      "tema_repetitivo": "0996",
+      "tese_firmada": "As teses firmadas, para os fins do artigo 1.036 do CPC/2015, em contrato de promessa de compra e venda de imóvel na planta, no âmbito do Programa Minha Casa, Minha Vida, para os beneficiários das faixas de renda 1, 5, 2 e 3, foram as seguintes:1.1. Na aquisição de unidades autônomas em construção, o contrato deverá estabelecer, de forma clara, expressa e inteligível, o prazo certo para a entrega do imóvel, o qual não poderá estar  vinculado à concessão do financiamento, ou a nenhum outro negócio jurídico, exceto o acréscimo do prazo de tolerância; 1.2. No caso de descumprimento do prazo para a entrega do imóvel, incluído o período de tolerância, o prejuízo do comprador é presumido, consistente na injusta privação do uso do bem, a ensejar o pagamento de indenização, na forma de aluguel mensal, com base no valor locatício de imóvel assemelhado, com termo final na data da disponibilização da posse direta ao adquirente da unidade autônoma. 1.3. É ilícito cobrar do adquirente juros de obra, ou outro encargo equivalente, após o prazo ajustado no contrato para a entrega das chaves da unidade autônoma, incluído o período de tolerância.1.4. O descumprimento do prazo de entrega do imóvel, computado o período de tolerância, faz cessar a incidência de correção monetária sobre o saldo devedor com base em indexador setorial, que reflete o custo da construção civil, o qual deverá ser substituído pelo IPCA, salvo quando este último for mais gravoso ao consumidor.",
       "somente_ementa": false,
       "texto_parcial": false,
-      "favorabilidade_a_confirmar": false
+      "favorabilidade_a_confirmar": false,
+      "tribunal": "STJ"
     },
     {
-      "decisao": "auto_cjpg_3c1591a9f0cab2dc.txt",
-      "arquivo_caso": "caso_22.txt",
-      "caso": "Caso 22 — Duplicata protestada sem serviço",
-      "resumo": "O TJSP declarou inexigível a duplicata, determinou o cancelamento do protesto e concedeu indenização porque não houve prova da contratação ou da prestação do serviço.",
-      "motivo_relacao": "A decisão resolve a mesma questão descrita: protesto de duplicata por serviço não contratado ou prestado, com pedidos de inexigibilidade, cancelamento e indenização.",
-      "resultado": "Parcialmente procedente.",
-      "trecho_resultado": "Ante o exposto, JULGO PARCIALMENTE PROCEDENTES os pedidos",
-      "posicao_cliente": "Favorabilidade a confirmar: os dois pareceres concordaram que a relação é direta, mas divergiram sobre o resultado ou seus efeitos para o cliente.",
-      "motivo_favorabilidade": "A relação direta foi confirmada pelos dois pareceres; confirme manualmente o resultado ou a favorabilidade no texto oficial.",
+      "decisao": "demo_stj/tema_1051.txt",
+      "arquivo_caso": "caso_12.txt",
+      "caso": "Caso 12 — Crédito na recuperação judicial",
+      "resumo": "O TJSP decidiu que, para a submissão aos efeitos da recuperação judicial, a existência do crédito é definida pela data do fato gerador.",
+      "motivo_relacao": "A tese firmada responde à questão da existência do crédito no contexto da recuperação judicial. A aplicação ao crédito concreto pode depender da identificação da data do fato gerador, que não consta na descrição.",
+      "resultado": "Tese repetitiva firmada pelo STJ.",
+      "trecho_resultado": "",
+      "posicao_cliente": "Não tenho certeza se é favorável ou desfavorável com base no texto disponível.",
+      "motivo_favorabilidade": "A tese fixa o critério temporal para reconhecer a existência do crédito, mas não há informação sobre a data do fato gerador em relação à recuperação judicial.",
       "trecho_favorabilidade": "",
       "trechos_relacao": [
-        "jamais contratou ou autorizou a primeira ré a executar serviços de terraplanagem",
-        "não há nos autos contrato de prestação de serviços de terraplanagem firmado com o autor",
-        "declarar a inexigibilidade do débito representado pela duplicata",
-        "determinar o cancelamento definitivo do protesto",
-        "condenar a referida corré ao pagamento de indenização por danos morais no valor de R$ 5.000,00",
-        "E desse ônus a primeira ré não se desincumbiu: não há nos autos contrato de prestação de serviços de terraplanagem firmado com o autor",
-        "Impõe-se, portanto, o reconhecimento da inexigibilidade do débito representado pela duplicata",
-        "o cancelamento definitivo do respectivo protesto"
+        "Para o fim de submissão aos efeitos da recuperação judicial, considera-se que a existência do crédito é determinada pela data em que ocorreu o seu fato gerador."
       ],
-      "link_oficial": "https://esaj.tjsp.jus.br/cpopg/show.do?processo.codigo=8L000FA4F0000&processo.foro=309&processo.numero=1000181-61.2022.8.26.0309&gateway=true",
-      "numero_processo": "1000181-61.2022.8.26.0309",
-      "foro": "Foro de Jundiaí",
-      "vara": "2ª Vara Cível",
-      "data_decisao": "09 de junho de 2026",
+      "link_oficial": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=1051&cod_tema_final=1051&novaConsulta=true&tipo_pesquisa=T",
+      "numero_processo": "REsp 1843332",
+      "foro": "Superior Tribunal de Justiça",
+      "vara": "órgão julgador não identificado no material",
+      "data_decisao": "2020-12-17",
+      "tema_repetitivo": "1051",
+      "tese_firmada": "Para o fim de submissão aos efeitos da recuperação judicial, considera-se que a existência do crédito é determinada pela data em que ocorreu o seu fato gerador.",
       "somente_ementa": false,
       "texto_parcial": false,
-      "favorabilidade_a_confirmar": true
-    },
-    {
-      "decisao": "auto_cjpg_3c1591a9f0cab2dc.txt",
-      "arquivo_caso": "caso_8.txt",
-      "caso": "Caso 8 — Duplicata protestada sem serviço",
-      "resumo": "O TJSP declarou inexigível a duplicata, determinou o cancelamento do protesto e concedeu indenização porque não houve prova da contratação ou da prestação do serviço.",
-      "motivo_relacao": "A decisão resolve a mesma questão descrita: protesto de duplicata por serviço não prestado, com pedidos de cancelamento e indenização.",
-      "resultado": "Parcialmente procedente.",
-      "trecho_resultado": "Ante o exposto, JULGO PARCIALMENTE PROCEDENTES os pedidos",
-      "posicao_cliente": "Favorabilidade a confirmar: os dois pareceres concordaram que a relação é direta, mas divergiram sobre o resultado ou seus efeitos para o cliente.",
-      "motivo_favorabilidade": "A relação direta foi confirmada pelos dois pareceres; confirme manualmente o resultado ou a favorabilidade no texto oficial.",
-      "trecho_favorabilidade": "",
-      "trechos_relacao": [
-        "jamais contratou ou autorizou a primeira ré a executar serviços de terraplanagem",
-        "não há nos autos contrato de prestação de serviços de terraplanagem firmado com o autor",
-        "declarar a inexigibilidade do débito representado pela duplicata",
-        "determinar o cancelamento definitivo do protesto",
-        "condenar a referida corré ao pagamento de indenização por danos morais no valor de R$ 5.000,00",
-        "E desse ônus a primeira ré não se desincumbiu: não há nos autos contrato de prestação de serviços de terraplanagem firmado com o autor",
-        "Impõe-se, portanto, o reconhecimento da inexigibilidade do débito representado pela duplicata",
-        "o cancelamento definitivo do respectivo protesto"
-      ],
-      "link_oficial": "https://esaj.tjsp.jus.br/cpopg/show.do?processo.codigo=8L000FA4F0000&processo.foro=309&processo.numero=1000181-61.2022.8.26.0309&gateway=true",
-      "numero_processo": "1000181-61.2022.8.26.0309",
-      "foro": "Foro de Jundiaí",
-      "vara": "2ª Vara Cível",
-      "data_decisao": "09 de junho de 2026",
-      "somente_ementa": false,
-      "texto_parcial": false,
-      "favorabilidade_a_confirmar": true
-    },
-    {
-      "decisao": "auto_cjpg_a0f480a068bddd25.txt",
-      "arquivo_caso": "caso_11.txt",
-      "caso": "Caso 11 — Sócio que quer sair",
-      "resumo": "O TJSP julgou procedente a apuração de haveres e reconheceu crédito à sócia excluída, calculado pelo balanço de determinação.",
-      "motivo_relacao": "A decisão resolve questão de retirada/exclusão de sócia em sociedade limitada e apuração do valor de sua participação, matéria coincidente com o caso.",
-      "resultado": "Procedente.",
-      "trecho_resultado": "JULGO PROCEDENTE o pedido remanescente de apuração de haveres",
-      "posicao_cliente": "Favorável à posição descrita do cliente.",
-      "motivo_favorabilidade": "A decisão reconheceu o direito da sócia a haveres e fixou crédito, resultado favorável à posição de quem busca receber o valor da participação.",
-      "trecho_favorabilidade": "RECONHECER o crédito da autora Elizandra Aparecida Brito, a título de apuração de haveres sociais, no montante nominal líquido de R$ 156.556,51",
-      "trechos_relacao": [
-        "ação de dissolução parcial de sociedade c.c. apuração e pagamento de haveres",
-        "a quota liquidar-se-á com base na situação patrimonial da sociedade à data da resolução, apurada em balanço especialmente levantado",
-        "JULGO PROCEDENTE o pedido remanescente de apuração de haveres",
-        "A controvérsia central repousa na higidez do método adotado para apuração da participação societária de 25% pertencente à autora",
-        "adota-se o balanço de determinação, avaliando-se os bens e direitos do ativo e do passivo a preço de saída"
-      ],
-      "link_oficial": "https://esaj.tjsp.jus.br/cpopg/show.do?processo.codigo=36000RTSE0000&processo.foro=114&processo.numero=1007713-26.2021.8.26.0114&gateway=true",
-      "numero_processo": "1007713-26.2021.8.26.0114",
-      "foro": "Foro de Campinas",
-      "vara": "3ª Vara Cível",
-      "data_decisao": "26 de outubro de 2026",
-      "somente_ementa": false,
-      "texto_parcial": false,
-      "favorabilidade_a_confirmar": false
-    },
-    {
-      "decisao": "auto_cjpg_a0f480a068bddd25.txt",
-      "arquivo_caso": "caso_24.txt",
-      "caso": "Caso 24 — Apuração de haveres",
-      "resumo": "O TJSP julgou procedente a apuração de haveres e reconheceu crédito à sócia excluída, com base no balanço de determinação.",
-      "motivo_relacao": "A decisão examina apuração judicial do valor da participação de sócia em sociedade limitada, questão coincidente com a descrita no caso.",
-      "resultado": "Procedente.",
-      "trecho_resultado": "JULGO PROCEDENTE o pedido remanescente de apuração de haveres",
-      "posicao_cliente": "Favorável à posição descrita do cliente.",
-      "motivo_favorabilidade": "O texto reconhece o direito à apuração e fixa crédito para a sócia; essa orientação favorece a posição de quem busca apuração judicial de sua participação.",
-      "trecho_favorabilidade": "RECONHECER o crédito da autora Elizandra Aparecida Brito, a título de apuração de haveres sociais, no montante nominal líquido de R$ 156.556,51",
-      "trechos_relacao": [
-        "ação de dissolução parcial de sociedade c.c. apuração e pagamento de haveres",
-        "A controvérsia central repousa na higidez do método adotado para apuração da participação societária de 25%",
-        "JULGO PROCEDENTE o pedido remanescente de apuração de haveres",
-        "O processo encontra-se em sua fase de liquidação para acertamento dos haveres devidos à sócia excluída",
-        "adota-se o balanço de determinação, avaliando-se os bens e direitos do ativo e do passivo a preço de saída"
-      ],
-      "link_oficial": "https://esaj.tjsp.jus.br/cpopg/show.do?processo.codigo=36000RTSE0000&processo.foro=114&processo.numero=1007713-26.2021.8.26.0114&gateway=true",
-      "numero_processo": "1007713-26.2021.8.26.0114",
-      "foro": "Foro de Campinas",
-      "vara": "3ª Vara Cível",
-      "data_decisao": "26 de outubro de 2026",
-      "somente_ementa": false,
-      "texto_parcial": false,
-      "favorabilidade_a_confirmar": false
-    },
-    {
-      "decisao": "auto_cjpg_b3c65848a8f797c4.txt",
-      "arquivo_caso": "caso_19.txt",
-      "caso": "Caso 19 — Infiltração por falha de impermeabilização",
-      "resumo": "O TJSP reconheceu vício oculto de construção que comprometia a estanqueidade do ralo e condenou a construtora a repará-lo.",
-      "motivo_relacao": "A sentença resolve a responsabilidade da construtora por falha de impermeabilização que causava infiltração e determina a correção do vício, questão correspondente ao pedido de reparo descrito no caso.",
-      "resultado": "Parcialmente procedente.",
-      "trecho_resultado": "Posto isso, JULGO PARCIALMENTE PROCEDENTES os pedidos da inicial",
-      "posicao_cliente": "Favorável à posição descrita do cliente.",
-      "motivo_favorabilidade": "O cliente pede a correção do vício construtivo, e a sentença condenou a construtora a reparar defeito de estanqueidade e impermeabilização.",
-      "trecho_favorabilidade": "condenar a ré na obrigação de fazer consistente em proceder à completa reparação do vício oculto de estanqueidade e impermeabilização",
-      "trechos_relacao": [
-        "vício oculto de construção e de montagem do ralo da área de serviço",
-        "comprometeram definitivamente a estanqueidade hidráulica do sistema de esgoto da área de serviço",
-        "condenar a ré na obrigação de fazer consistente em proceder à completa reparação do vício oculto de estanqueidade e impermeabilização",
-        "Revelado o defeito de execução de montagem do ralo e a deficiência técnica do sistema de impermeabilização pela prova pericial, configurada está a falha na prestação do serviço e o vício de construção oculto de responsabilidade da requerida.",
-        "JULGO PARCIALMENTE PROCEDENTES os pedidos da inicial, resolvendo o mérito, nos termos do art. 487, inciso I do Código de Processo Civil para condenar a ré na obrigação de fazer consistente em proceder à completa reparação do vício oculto de estanqueidade e impermeabilização"
-      ],
-      "link_oficial": "https://esaj.tjsp.jus.br/cpopg/show.do?processo.codigo=G0000F50V0000&processo.foro=576&processo.numero=1008042-44.2020.8.26.0576&gateway=true",
-      "numero_processo": "1008042-44.2020.8.26.0576",
-      "foro": "Foro de São José do Rio Preto",
-      "vara": "1ª Vara Cível",
-      "data_decisao": "18 de junho de 2026",
-      "somente_ementa": false,
-      "texto_parcial": false,
-      "favorabilidade_a_confirmar": false
-    },
-    {
-      "decisao": "auto_cjpg_b3c65848a8f797c4.txt",
-      "arquivo_caso": "caso_4.txt",
-      "caso": "Caso 4 — Defeitos no apartamento novo",
-      "resumo": "O TJSP reconheceu vício oculto de construção que comprometia a estanqueidade do ralo e condenou a construtora a repará-lo.",
-      "motivo_relacao": "A sentença resolve a responsabilidade da construtora por vício construtivo que causou infiltrações e determina a reparação, correspondendo à questão de defeitos no imóvel e recusa de reparos descrita no caso.",
-      "resultado": "Parcialmente procedente.",
-      "trecho_resultado": "Posto isso, JULGO PARCIALMENTE PROCEDENTES os pedidos da inicial",
-      "posicao_cliente": "Favorável à posição descrita do cliente.",
-      "motivo_favorabilidade": "O cliente relata defeitos no apartamento e busca reparos; a sentença reconheceu a responsabilidade da construtora e determinou a correção do vício.",
-      "trecho_favorabilidade": "condenar a ré na obrigação de fazer consistente em proceder à completa reparação do vício oculto de estanqueidade e impermeabilização",
-      "trechos_relacao": [
-        "vício oculto de construção e de montagem do ralo da área de serviço",
-        "infiltrações na laje e no teto do apartamento vizinho de baixo",
-        "condenar a ré na obrigação de fazer consistente em proceder à completa reparação do vício oculto de estanqueidade e impermeabilização",
-        "Trata-se de vício na execução da obra de responsabilidade direta e exclusiva da construtora requerida.",
-        "JULGO PARCIALMENTE PROCEDENTES os pedidos da inicial, resolvendo o mérito, nos termos do art. 487, inciso I do Código de Processo Civil para condenar a ré na obrigação de fazer consistente em proceder à completa reparação do vício oculto de estanqueidade e impermeabilização"
-      ],
-      "link_oficial": "https://esaj.tjsp.jus.br/cpopg/show.do?processo.codigo=G0000F50V0000&processo.foro=576&processo.numero=1008042-44.2020.8.26.0576&gateway=true",
-      "numero_processo": "1008042-44.2020.8.26.0576",
-      "foro": "Foro de São José do Rio Preto",
-      "vara": "1ª Vara Cível",
-      "data_decisao": "18 de junho de 2026",
-      "somente_ementa": false,
-      "texto_parcial": false,
-      "favorabilidade_a_confirmar": false
-    },
-    {
-      "decisao": "auto_cjsg_f944897c35b584b4.txt",
-      "arquivo_caso": "caso_26.txt",
-      "caso": "Caso 26",
-      "resumo": "O TJSP manteve o reconhecimento da inexistência dos empréstimos consignados não comprovados, a cessação dos descontos e a restituição simples, com compensação dos valores revertidos em proveito da autora.",
-      "motivo_relacao": "A decisão examina empréstimos consignados não reconhecidos, impugnação de assinaturas e pedidos de cessação dos descontos e restituição, questões centrais do caso. O texto também admite compensação dos valores revertidos em proveito da autora.",
-      "resultado": "Outro resultado expresso no texto: Recurso parcialmente conhecido e, na parte conhecida, parcialmente provido..",
-      "trecho_resultado": "Recurso parcialmente conhecido e, na parte conhecida, parcialmente provido.",
-      "posicao_cliente": "Favorável à posição descrita do cliente.",
-      "motivo_favorabilidade": "A decisão reconhece a inexistência dos contratos não comprovados e determina a cessação dos descontos e a restituição, em linha com os pedidos descritos. A compensação é admitida, mas o caso já prevê compensação dos valores recebidos.",
-      "trecho_favorabilidade": "declarar a inexigibilidade de oito contratos de empréstimo consignado e determinar a cessação dos descontos",
-      "trechos_relacao": [
-        "Apelação interposta pelo réu contra sentença que julgou parcialmente procedente a ação ajuizada para declarar a inexigibilidade de oito contratos de empréstimo consignado e determinar a cessação dos descontos",
-        "Impugnada as assinaturas constantes dos contratos discutidos, é da instituição financeira o ônus de provar a sua autenticidade",
-        "de rigor a declaração da inexistência das relações jurídicas, com a consequente devolução dos valores descontados da autora",
-        "possibilitada a compensação",
-        "declarar a inexigibilidade de oito contratos de empréstimo consignado e determinar a cessação dos descontos",
-        "Réu que deixou de recolher os honorários da perícia grafotécnica deferida, não se desincumbindo do seu ônus probatório",
-        "cabendo à instituição financeira restituir os valores indevidamente descontados e à autora devolver os valores que reverteram em seu proveito, possibilitada a compensação"
-      ],
-      "link_oficial": "https://esaj.tjsp.jus.br/cjsg/getArquivo.do?cdAcordao=21138646&cdForo=0",
-      "numero_processo": "1014500-57.2024.8.26.0602",
-      "foro": "Sorocaba",
-      "vara": "não identificada no material",
-      "data_decisao": "10/11/2026",
-      "somente_ementa": true,
-      "texto_parcial": false,
-      "favorabilidade_a_confirmar": false
-    },
-    {
-      "decisao": "auto_cjsg_f944897c35b584b4.txt",
-      "arquivo_caso": "caso_27.txt",
-      "caso": "Caso 27",
-      "resumo": "O TJSP reconheceu a inexistência dos empréstimos consignados cuja autenticidade não foi demonstrada e determinou a devolução dos descontos, admitindo compensação dos valores revertidos em proveito da autora.",
-      "motivo_relacao": "A decisão resolve a mesma questão de autenticidade de assinaturas em empréstimos consignados e de descontos não autorizados, incluindo a restituição e a compensação de valores recebidos.",
-      "resultado": "Outro resultado expresso no texto: Recurso parcialmente conhecido e, na parte conhecida, parcialmente provido..",
-      "trecho_resultado": "Recurso parcialmente conhecido e, na parte conhecida, parcialmente provido.",
-      "posicao_cliente": "Favorável à posição descrita do cliente.",
-      "motivo_favorabilidade": "O reconhecimento da inexistência das relações jurídicas e a devolução dos descontos favorecem os pedidos descritos; a compensação também é admitida, conforme a posição apresentada no caso.",
-      "trecho_favorabilidade": "de rigor a declaração da inexistência das relações jurídicas, com a consequente devolução dos valores descontados da autora",
-      "trechos_relacao": [
-        "Impugnação de autenticidade das assinaturas",
-        "Réu que deixou de recolher os honorários da perícia grafotécnica deferida, não se desincumbindo do seu ônus probatório",
-        "de rigor a declaração da inexistência das relações jurídicas, com a consequente devolução dos valores descontados da autora",
-        "possibilitada a compensação",
-        "Impugnada as assinaturas constantes dos contratos discutidos, é da instituição financeira o ônus de provar a sua autenticidade",
-        "sendo de rigor a declaração da inexistência das relações jurídicas, com a consequente devolução dos valores descontados da autora"
-      ],
-      "link_oficial": "https://esaj.tjsp.jus.br/cjsg/getArquivo.do?cdAcordao=21138646&cdForo=0",
-      "numero_processo": "1014500-57.2024.8.26.0602",
-      "foro": "Sorocaba",
-      "vara": "não identificada no material",
-      "data_decisao": "10/11/2026",
-      "somente_ementa": true,
-      "texto_parcial": false,
-      "favorabilidade_a_confirmar": false
+      "favorabilidade_a_confirmar": false,
+      "tribunal": "STJ"
     }
   ],
   "reviews": [
     {
-      "decisao": "auto_cjsg_f944897c35b584b4.txt",
-      "link_oficial": "https://esaj.tjsp.jus.br/cjsg/getArquivo.do?cdAcordao=21138646&cdForo=0",
-      "numero_processo": "1014500-57.2024.8.26.0602",
-      "foro": "Sorocaba",
-      "vara": "não identificada no material",
-      "data_decisao": "10/11/2026",
+      "decisao": "demo_stj/tema_0922.txt",
+      "link_oficial": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=922&cod_tema_final=922&novaConsulta=true&tipo_pesquisa=T",
+      "numero_processo": "REsp 1386424",
+      "foro": "Superior Tribunal de Justiça",
+      "vara": "órgão julgador não identificado no material",
+      "data_decisao": "2016-05-16",
+      "tema_repetitivo": "0922",
+      "tese_firmada": "A inscrição indevida comandada pelo credor em cadastro de inadimplentes, quando preexistente legítima anotação, não enseja indenização por dano moral, ressalvado o direito ao cancelamento. Inteligência da Súmula 385/STJ.",
       "motivos": [
-        "as análises discordam sobre a relação com caso_14.txt"
+        "as análises discordam sobre a relação com caso_15.txt",
+        "as análises discordam sobre a relação com caso_8.txt",
+        "as análises discordam sobre a relação com caso_22.txt"
       ],
       "resposta_1": {
         "resultado_decisao": {
-          "classificacao": "outro_resultado_explicito",
-          "texto": "Recurso parcialmente conhecido e, na parte conhecida, parcialmente provido.",
-          "evidencia": "Recurso parcialmente conhecido e, na parte conhecida, parcialmente provido.",
-          "evidencia_conferida_no_arquivo": true
+          "classificacao": "nao_identificado",
+          "texto": "",
+          "evidencia": "",
+          "evidencia_conferida_no_arquivo": null
         },
         "casos": [
           {
-            "arquivo": "caso_1.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão trata de empréstimos consignados não reconhecidos, não de atraso na entrega de imóvel ou de lucros cessantes e multa contratual.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "O conteúdo da decisão não permite avaliar a posição do cliente neste caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_10.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão trata da regularidade de empréstimos consignados, não de rescisão de franquia ou multa rescisória.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "O conteúdo da decisão não permite avaliar a posição do cliente neste caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_11.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão trata de empréstimos consignados, não de retirada de sócio ou apuração de haveres.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "O conteúdo da decisão não permite avaliar a posição do cliente neste caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_12.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão trata de empréstimos consignados e não aborda crédito ou habilitação em recuperação judicial.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "O conteúdo da decisão não permite avaliar a posição do cliente neste caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_13.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão não trata de relação de emprego ou de horas extras.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "O conteúdo da decisão não permite avaliar a posição do cliente neste caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_14.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "Embora a decisão envolva empréstimos bancários, resolve questão de autenticidade de contratos consignados, descontos e restituição, não de juros acima do contratado em empréstimo pessoal.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "A decisão não permite avaliar a posição do cliente quanto à cobrança de juros acima do combinado.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
             "arquivo": "caso_15.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão não trata de negativação por dívida de cartão de crédito já paga; trata de empréstimos consignados não reconhecidos.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "O conteúdo da decisão não permite avaliar a posição do cliente neste caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_16.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão não aborda cláusula de garantia em financiamento de equipamentos.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "O conteúdo da decisão não permite avaliar a posição do cliente neste caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_17.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão não trata de atraso na entrega de imóvel ou de lucros cessantes.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "O conteúdo da decisão não permite avaliar a posição do cliente neste caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_18.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão não aborda crédito ou habilitação de credor em recuperação judicial.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "O conteúdo da decisão não permite avaliar a posição do cliente neste caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_19.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão não trata de vício construtivo, infiltração ou reparo de imóvel.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "O conteúdo da decisão não permite avaliar a posição do cliente neste caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_2.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão não trata de correção do saldo devedor por INCC durante atraso de obra.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "O conteúdo da decisão não permite avaliar a posição do cliente neste caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_20.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão não trata de resolução de compra de imóvel na planta ou de percentual de retenção de parcelas.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "O conteúdo da decisão não permite avaliar a posição do cliente neste caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_21.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão não trata de despejo ou cobrança de aluguéis e encargos vencidos.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "O conteúdo da decisão não permite avaliar a posição do cliente neste caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_22.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão não trata de duplicata, protesto ou prestação de serviço não contratada ou realizada.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "O conteúdo da decisão não permite avaliar a posição do cliente neste caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_23.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão não trata de franquia, suporte ou multa rescisória.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "O conteúdo da decisão não permite avaliar a posição do cliente neste caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_24.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão não trata de dissolução parcial de sociedade ou apuração de haveres.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "O conteúdo da decisão não permite avaliar a posição do cliente neste caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_25.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão não trata de atraso na entrega de imóvel nem de indenização pelo período sem uso.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "O conteúdo da decisão não permite avaliar a posição do cliente neste caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_26.txt",
-            "relacao": "direta",
-            "resumo": "O TJSP manteve o reconhecimento da inexistência dos empréstimos consignados não comprovados, a cessação dos descontos e a restituição simples, com compensação dos valores revertidos em proveito da autora.",
-            "motivo": "A decisão examina empréstimos consignados não reconhecidos, impugnação de assinaturas e pedidos de cessação dos descontos e restituição, questões centrais do caso. O texto também admite compensação dos valores revertidos em proveito da autora.",
+            "relacao": "indireta",
+            "resumo": "O TJSP não é o tribunal referido no material; a tese do STJ afasta indenização por dano moral em inscrição indevida quando já existe anotação legítima anterior, sem afastar o direito ao cancelamento.",
+            "motivo": "Há proximidade porque o caso envolve negativação que o cliente afirma indevida. Contudo, a tese resolve especificamente a indenização por dano moral quando preexiste anotação legítima, circunstância e pedido que não constam da descrição do caso; aplicar a tese exige essa condição.",
             "evidencias": [
               {
-                "trecho": "Apelação interposta pelo réu contra sentença que julgou parcialmente procedente a ação ajuizada para declarar a inexigibilidade de oito contratos de empréstimo consignado e determinar a cessação dos descontos",
-                "conferida_no_arquivo": true
-              },
-              {
-                "trecho": "Impugnada as assinaturas constantes dos contratos discutidos, é da instituição financeira o ônus de provar a sua autenticidade",
-                "conferida_no_arquivo": true
-              },
-              {
-                "trecho": "de rigor a declaração da inexistência das relações jurídicas, com a consequente devolução dos valores descontados da autora",
-                "conferida_no_arquivo": true
-              },
-              {
-                "trecho": "possibilitada a compensação",
+                "trecho": "A inscrição indevida comandada pelo credor em cadastro de inadimplentes, quando preexistente legítima anotação, não enseja indenização por dano moral, ressalvado o direito ao cancelamento.",
                 "conferida_no_arquivo": true
               }
             ],
-            "favorabilidade": "favoravel",
-            "motivo_favorabilidade": "A decisão reconhece a inexistência dos contratos não comprovados e determina a cessação dos descontos e a restituição, em linha com os pedidos descritos. A compensação é admitida, mas o caso já prevê compensação dos valores recebidos.",
-            "evidencia_favorabilidade": "declarar a inexigibilidade de oito contratos de empréstimo consignado e determinar a cessação dos descontos",
-            "evidencia_favorabilidade_conferida_no_arquivo": true
-          },
-          {
-            "arquivo": "caso_27.txt",
-            "relacao": "direta",
-            "resumo": "O TJSP reconheceu a inexistência dos empréstimos consignados cuja autenticidade não foi demonstrada e determinou a devolução dos descontos, admitindo compensação dos valores revertidos em proveito da autora.",
-            "motivo": "A decisão resolve a mesma questão de autenticidade de assinaturas em empréstimos consignados e de descontos não autorizados, incluindo a restituição e a compensação de valores recebidos.",
-            "evidencias": [
-              {
-                "trecho": "Impugnação de autenticidade das assinaturas",
-                "conferida_no_arquivo": true
-              },
-              {
-                "trecho": "Réu que deixou de recolher os honorários da perícia grafotécnica deferida, não se desincumbindo do seu ônus probatório",
-                "conferida_no_arquivo": true
-              },
-              {
-                "trecho": "de rigor a declaração da inexistência das relações jurídicas, com a consequente devolução dos valores descontados da autora",
-                "conferida_no_arquivo": true
-              },
-              {
-                "trecho": "possibilitada a compensação",
-                "conferida_no_arquivo": true
-              }
-            ],
-            "favorabilidade": "favoravel",
-            "motivo_favorabilidade": "O reconhecimento da inexistência das relações jurídicas e a devolução dos descontos favorecem os pedidos descritos; a compensação também é admitida, conforme a posição apresentada no caso.",
-            "evidencia_favorabilidade": "de rigor a declaração da inexistência das relações jurídicas, com a consequente devolução dos valores descontados da autora",
-            "evidencia_favorabilidade_conferida_no_arquivo": true
-          },
-          {
-            "arquivo": "caso_3.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão não trata de desistência de compra de imóvel na planta ou de retenção de valores pagos.",
-            "evidencias": [],
             "favorabilidade": "incerta",
-            "motivo_favorabilidade": "O conteúdo da decisão não permite avaliar a posição do cliente neste caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_4.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão não trata de defeitos construtivos ou de obrigação de reparo pela construtora.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "O conteúdo da decisão não permite avaliar a posição do cliente neste caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_5.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão não trata de cobrança de taxas condominiais.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "O conteúdo da decisão não permite avaliar a posição do cliente neste caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_6.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão não trata de despejo por falta de pagamento ou cobrança de aluguéis.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "O conteúdo da decisão não permite avaliar a posição do cliente neste caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_7.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão não trata de renovação de locação comercial ou de revisão do valor do aluguel.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "O conteúdo da decisão não permite avaliar a posição do cliente neste caso.",
+            "motivo_favorabilidade": "A descrição não informa se há anotação legítima anterior nem se o cliente pede indenização por dano moral; o efeito da tese para sua posição não fica demonstrado.",
             "evidencia_favorabilidade": "",
             "evidencia_favorabilidade_conferida_no_arquivo": null
           },
@@ -657,21 +232,21 @@
             "arquivo": "caso_8.txt",
             "relacao": "nenhuma",
             "resumo": "",
-            "motivo": "A decisão não trata de duplicata protestada por serviço não prestado ou de cancelamento de protesto.",
+            "motivo": "A tese trata de inscrição em cadastro de inadimplentes, não de protesto de duplicata por serviço não prestado.",
             "evidencias": [],
             "favorabilidade": "incerta",
-            "motivo_favorabilidade": "O conteúdo da decisão não permite avaliar a posição do cliente neste caso.",
+            "motivo_favorabilidade": "O material não permite avaliar efeito sobre a posição do cliente neste caso.",
             "evidencia_favorabilidade": "",
             "evidencia_favorabilidade_conferida_no_arquivo": null
           },
           {
-            "arquivo": "caso_9.txt",
+            "arquivo": "caso_22.txt",
             "relacao": "nenhuma",
             "resumo": "",
-            "motivo": "A decisão não trata de cobrança de notas fiscais por mercadorias fornecidas.",
+            "motivo": "A tese trata de inscrição em cadastro de inadimplentes, não de protesto de duplicata ou inexigibilidade de débito por serviço não prestado.",
             "evidencias": [],
             "favorabilidade": "incerta",
-            "motivo_favorabilidade": "O conteúdo da decisão não permite avaliar a posição do cliente neste caso.",
+            "motivo_favorabilidade": "O material não permite avaliar efeito sobre a posição do cliente neste caso.",
             "evidencia_favorabilidade": "",
             "evidencia_favorabilidade_conferida_no_arquivo": null
           }
@@ -679,358 +254,213 @@
       },
       "resposta_2": {
         "resultado_decisao": {
-          "classificacao": "outro_resultado_explicito",
-          "texto": "Recurso parcialmente conhecido e, na parte conhecida, parcialmente provido.",
-          "evidencia": "Recurso parcialmente conhecido e, na parte conhecida, parcialmente provido.",
-          "evidencia_conferida_no_arquivo": true
+          "classificacao": "nao_identificado",
+          "texto": "",
+          "evidencia": "",
+          "evidencia_conferida_no_arquivo": null
         },
         "casos": [
           {
-            "arquivo": "caso_1.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A ementa trata de empréstimos consignados não reconhecidos, não de atraso na entrega de imóvel nem de lucros cessantes ou multa contratual.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "A decisão não examina a questão do caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_10.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão trata de empréstimos consignados, não de rescisão de contrato de franquia ou multa rescisória.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "A decisão não examina a questão do caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_11.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão trata de empréstimos consignados, não de retirada de sócio ou apuração de haveres.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "A decisão não examina a questão do caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_12.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão não trata de crédito ou habilitação em recuperação judicial.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "A decisão não examina a questão do caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_13.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão trata de empréstimos consignados em relação de consumo, não de horas extras trabalhistas.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "A decisão não examina a questão do caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_14.txt",
-            "relacao": "indireta",
-            "resumo": "O TJSP reconheceu que a regularidade dos empréstimos consignados não foi demonstrada, diante da falta de prova da autenticidade das assinaturas impugnadas.",
-            "motivo": "A decisão versa sobre contratos de empréstimo bancário, mas resolve a autenticidade de empréstimos consignados e os descontos, não a cobrança de juros acima do combinado em empréstimo pessoal. A aplicação exigiria analogia.",
+            "arquivo": "caso_15.txt",
+            "relacao": "direta",
+            "resumo": "O TJSP firmou que a inscrição indevida não gera indenização por dano moral quando já existe anotação legítima anterior, mas ressalvou o direito ao cancelamento.",
+            "motivo": "A tese firmada trata expressamente de inscrição em cadastro de inadimplentes baseada em dívida inexistente, questão que corresponde à alegação de negativação por dívida já paga. A incidência da ressalva depende de haver anotação legítima anterior, dado não informado no caso.",
             "evidencias": [
               {
-                "trecho": "EMPRÉSTIMOS CONSIGNADOS NÃO RECONHECIDOS",
+                "trecho": "A inscrição indevida comandada pelo credor em cadastro de inadimplentes, quando preexistente legítima anotação, não enseja indenização por dano moral",
                 "conferida_no_arquivo": true
               },
               {
-                "trecho": "REGULARIDADE DAS CONTRATAÇÕES NÃO DEMONSTRADA",
-                "conferida_no_arquivo": true
-              },
-              {
-                "trecho": "Impugnada as assinaturas constantes dos contratos discutidos, é da instituição financeira o ônus de provar a sua autenticidade",
+                "trecho": "ressalvado o direito ao cancelamento",
                 "conferida_no_arquivo": true
               }
             ],
             "favorabilidade": "incerta",
-            "motivo_favorabilidade": "A decisão não trata da cobrança de juros acima do contratado.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
+            "motivo_favorabilidade": "A tese assegura o cancelamento, mas afasta indenização por dano moral apenas se houver anotação legítima anterior; o caso não informa se essa condição existe nem descreve pedido de indenização.",
+            "evidencia_favorabilidade": "ressalvado o direito ao cancelamento",
+            "evidencia_favorabilidade_conferida_no_arquivo": true
           },
           {
-            "arquivo": "caso_15.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão não trata de negativação decorrente de dívida de cartão de crédito já paga.",
-            "evidencias": [],
+            "arquivo": "caso_8.txt",
+            "relacao": "indireta",
+            "resumo": "O TJSP firmou que a inscrição indevida em cadastro de inadimplentes não gera dano moral se houver anotação legítima anterior, ressalvado o cancelamento.",
+            "motivo": "A decisão versa sobre inscrição em cadastro de inadimplentes, enquanto o caso trata de protesto de duplicata. A aplicação exigiria analogia entre formas distintas de restrição e suas consequências.",
+            "evidencias": [
+              {
+                "trecho": "inscrição indevida comandada pelo credor em cadastro de inadimplentes",
+                "conferida_no_arquivo": true
+              },
+              {
+                "trecho": "não enseja indenização por dano moral",
+                "conferida_no_arquivo": true
+              },
+              {
+                "trecho": "ressalvado o direito ao cancelamento",
+                "conferida_no_arquivo": true
+              }
+            ],
             "favorabilidade": "incerta",
-            "motivo_favorabilidade": "A decisão não examina a questão do caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_16.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão não examina cláusula de garantia em financiamento de equipamentos.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "A decisão não examina a questão do caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_17.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão trata de empréstimos consignados, não de lucros cessantes por atraso na entrega de imóvel.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "A decisão não examina a questão do caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_18.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão não trata de habilitação ou classificação de crédito em recuperação judicial.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "A decisão não examina a questão do caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_19.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão não trata de vício construtivo, infiltração ou obrigação de reparo pela construtora.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "A decisão não examina a questão do caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_2.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão não examina correção do saldo devedor pelo INCC nem atraso de obra.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "A decisão não examina a questão do caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_20.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão não trata de resolução de compra de imóvel na planta ou percentual de retenção de parcelas.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "A decisão não examina a questão do caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_21.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão não trata de locação, despejo ou cobrança de aluguéis vencidos.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "A decisão não examina a questão do caso.",
+            "motivo_favorabilidade": "A decisão não resolve diretamente os pedidos relativos ao protesto e não há informação sobre anotação legítima anterior.",
             "evidencia_favorabilidade": "",
             "evidencia_favorabilidade_conferida_no_arquivo": null
           },
           {
             "arquivo": "caso_22.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão não trata de duplicata, protesto ou serviço não contratado ou prestado.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "A decisão não examina a questão do caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_23.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão não trata de franquia, suporte ou multa rescisória.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "A decisão não examina a questão do caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_24.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão não trata de dissolução parcial de sociedade ou apuração de haveres.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "A decisão não examina a questão do caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_25.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão trata de empréstimos consignados, não de indenização por privação do uso de imóvel em razão de atraso na entrega.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "A decisão não examina a questão do caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_26.txt",
-            "relacao": "direta",
-            "resumo": "O TJSP declarou inexistentes os contratos consignados não comprovados pelo banco, determinou a cessação dos descontos e a restituição simples dos valores, admitindo compensação.",
-            "motivo": "A decisão resolve a mesma questão central: contratos consignados contestados por impugnação de assinaturas, com pedido de cessação dos descontos e restituição. A ementa descreve oito contratos e os efeitos correspondentes.",
+            "relacao": "indireta",
+            "resumo": "O TJSP firmou que a inscrição indevida em cadastro de inadimplentes não gera dano moral se houver anotação legítima anterior, ressalvado o cancelamento.",
+            "motivo": "A decisão versa sobre inscrição em cadastro de inadimplentes, enquanto o caso trata de protesto de duplicata e inexigibilidade de dívida. A relação exige analogia entre o registro cadastral e o protesto.",
             "evidencias": [
               {
-                "trecho": "declarar a inexigibilidade de oito contratos de empréstimo consignado e determinar a cessação dos descontos",
+                "trecho": "inscrição indevida comandada pelo credor em cadastro de inadimplentes",
                 "conferida_no_arquivo": true
               },
               {
-                "trecho": "Impugnada as assinaturas constantes dos contratos discutidos, é da instituição financeira o ônus de provar a sua autenticidade",
+                "trecho": "não enseja indenização por dano moral",
                 "conferida_no_arquivo": true
               },
               {
-                "trecho": "Réu que deixou de recolher os honorários da perícia grafotécnica deferida, não se desincumbindo do seu ônus probatório",
-                "conferida_no_arquivo": true
-              },
-              {
-                "trecho": "cabendo à instituição financeira restituir os valores indevidamente descontados e à autora devolver os valores que reverteram em seu proveito, possibilitada a compensação",
+                "trecho": "ressalvado o direito ao cancelamento",
                 "conferida_no_arquivo": true
               }
             ],
-            "favorabilidade": "favoravel",
-            "motivo_favorabilidade": "A decisão favorece a posição de quem contesta empréstimos consignados e busca cessar descontos e recuperar valores, embora admita compensação com valores revertidos em proveito da pessoa autora.",
-            "evidencia_favorabilidade": "declarar a inexigibilidade de oito contratos de empréstimo consignado e determinar a cessação dos descontos, bem como para condená-lo à restituição simples dos valores descontados",
-            "evidencia_favorabilidade_conferida_no_arquivo": true
-          },
-          {
-            "arquivo": "caso_27.txt",
-            "relacao": "direta",
-            "resumo": "O TJSP declarou inexistentes os contratos consignados não comprovados pelo banco, determinou a cessação dos descontos e a restituição simples dos valores, admitindo compensação.",
-            "motivo": "A decisão resolve a mesma questão jurídica de contestação da autenticidade de contratos consignados e descontos no benefício, com declaração de inexistência, cessação dos descontos e restituição. A compensação admitida deve ser considerada nos limites descritos na ementa.",
-            "evidencias": [
-              {
-                "trecho": "Impugnada as assinaturas constantes dos contratos discutidos, é da instituição financeira o ônus de provar a sua autenticidade",
-                "conferida_no_arquivo": true
-              },
-              {
-                "trecho": "Réu que deixou de recolher os honorários da perícia grafotécnica deferida, não se desincumbindo do seu ônus probatório",
-                "conferida_no_arquivo": true
-              },
-              {
-                "trecho": "sendo de rigor a declaração da inexistência das relações jurídicas, com a consequente devolução dos valores descontados da autora",
-                "conferida_no_arquivo": true
-              },
-              {
-                "trecho": "possibilitada a compensação",
-                "conferida_no_arquivo": true
-              }
-            ],
-            "favorabilidade": "favoravel",
-            "motivo_favorabilidade": "A decisão favorece a contestação dos contratos, a interrupção dos descontos e a restituição, embora admita compensação dos valores revertidos em proveito da pessoa autora.",
-            "evidencia_favorabilidade": "declaração da inexistência das relações jurídicas, com a consequente devolução dos valores descontados da autora",
-            "evidencia_favorabilidade_conferida_no_arquivo": true
-          },
-          {
-            "arquivo": "caso_3.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão não trata de desistência de compra de imóvel na planta ou retenção de parcelas.",
-            "evidencias": [],
             "favorabilidade": "incerta",
-            "motivo_favorabilidade": "A decisão não examina a questão do caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_4.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão não trata de infiltrações, rachaduras ou reparação de defeitos construtivos.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "A decisão não examina a questão do caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_5.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão não trata de cobrança de taxas condominiais.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "A decisão não examina a questão do caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_6.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão não trata de despejo ou cobrança de aluguel por falta de pagamento.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "A decisão não examina a questão do caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_7.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão não trata de renovação de locação comercial ou revisão do aluguel.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "A decisão não examina a questão do caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_8.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão não trata de duplicata protestada, prestação de serviço ou indenização decorrente de protesto.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "A decisão não examina a questão do caso.",
-            "evidencia_favorabilidade": "",
-            "evidencia_favorabilidade_conferida_no_arquivo": null
-          },
-          {
-            "arquivo": "caso_9.txt",
-            "relacao": "nenhuma",
-            "resumo": "",
-            "motivo": "A decisão não trata de cobrança de notas fiscais por mercadorias fornecidas.",
-            "evidencias": [],
-            "favorabilidade": "incerta",
-            "motivo_favorabilidade": "A decisão não examina a questão do caso.",
+            "motivo_favorabilidade": "A tese não resolve diretamente os pedidos relativos ao protesto e a aplicação de sua regra sobre dano moral depende de anotação legítima anterior, não informada.",
             "evidencia_favorabilidade": "",
             "evidencia_favorabilidade_conferida_no_arquivo": null
           }
         ]
-      }
+      },
+      "tribunal": "STJ"
+    },
+    {
+      "decisao": "demo_stj/tema_0970.txt",
+      "link_oficial": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=970&cod_tema_final=970&novaConsulta=true&tipo_pesquisa=T",
+      "numero_processo": "REsp 1635428",
+      "foro": "Superior Tribunal de Justiça",
+      "vara": "órgão julgador não identificado no material",
+      "data_decisao": "2019-06-25",
+      "tema_repetitivo": "0970",
+      "tese_firmada": "A cláusula penal moratória tem a finalidade de indenizar pelo adimplemento tardio da obrigação, e, em regra, estabelecida em valor equivalente ao locativo, afasta-se sua cumulação com lucros cessantes.",
+      "motivos": [
+        "as análises discordam sobre a relação com caso_2.txt"
+      ],
+      "resposta_1": {
+        "resultado_decisao": {
+          "classificacao": "nao_identificado",
+          "texto": "",
+          "evidencia": "",
+          "evidencia_conferida_no_arquivo": null
+        },
+        "casos": [
+          {
+            "arquivo": "caso_2.txt",
+            "relacao": "indireta",
+            "resumo": "O TJSP...",
+            "motivo": "A tese envolve atraso na entrega de imóvel, mas resolve a cumulação de lucros cessantes com cláusula penal, não a correção do saldo devedor pelo INCC. A aplicação exigiria analogia.",
+            "evidencias": [
+              {
+                "trecho": "nos casos de inadimplemento do vendedor em virtude do atraso na entrega de imóvel em construção",
+                "conferida_no_arquivo": true
+              },
+              {
+                "trecho": "afasta-se sua cumulação com lucros cessantes",
+                "conferida_no_arquivo": true
+              }
+            ],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "A tese não resolve se o saldo devedor pode continuar sendo corrigido pelo INCC durante o atraso.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          }
+        ]
+      },
+      "resposta_2": {
+        "resultado_decisao": {
+          "classificacao": "nao_identificado",
+          "texto": "",
+          "evidencia": "",
+          "evidencia_conferida_no_arquivo": null
+        },
+        "casos": [
+          {
+            "arquivo": "caso_2.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "Embora o caso envolva atraso de obra, a decisão resolve a cumulação de lucros cessantes com cláusula penal, não a correção do saldo devedor pelo INCC durante o atraso.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "A tese não informa se o saldo pode continuar sendo corrigido pelo INCC.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          }
+        ]
+      },
+      "tribunal": "STJ"
+    },
+    {
+      "decisao": "demo_stj/tema_0971.txt",
+      "link_oficial": "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=971&cod_tema_final=971&novaConsulta=true&tipo_pesquisa=T",
+      "numero_processo": "REsp 1614721",
+      "foro": "Superior Tribunal de Justiça",
+      "vara": "órgão julgador não identificado no material",
+      "data_decisao": "2019-06-25",
+      "tema_repetitivo": "0971",
+      "tese_firmada": "No contrato de adesão firmado entre o comprador e a construtora/incorporadora, havendo previsão de cláusula penal apenas para o inadimplemento do adquirente, deverá ela ser considerada para a fixação da indenização pelo inadimplemento do vendedor. As obrigações heterogêneas (obrigações de fazer e de dar) serão convertidas em dinheiro, por arbitramento judicial.",
+      "motivos": [
+        "as análises discordam sobre a relação com caso_2.txt"
+      ],
+      "resposta_1": {
+        "resultado_decisao": {
+          "classificacao": "nao_identificado",
+          "texto": "",
+          "evidencia": "",
+          "evidencia_conferida_no_arquivo": null
+        },
+        "casos": [
+          {
+            "arquivo": "caso_2.txt",
+            "relacao": "nenhuma",
+            "resumo": "",
+            "motivo": "Embora ambos envolvam atraso de obra, a tese firmada trata de cláusula penal prevista apenas contra o adquirente, não da correção do saldo devedor pelo INCC durante o atraso.",
+            "evidencias": [],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "A tese não resolve o pedido de afastamento do INCC e o material não sustenta uma avaliação clara da posição do cliente.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          }
+        ]
+      },
+      "resposta_2": {
+        "resultado_decisao": {
+          "classificacao": "nao_identificado",
+          "texto": "",
+          "evidencia": "",
+          "evidencia_conferida_no_arquivo": null
+        },
+        "casos": [
+          {
+            "arquivo": "caso_2.txt",
+            "relacao": "indireta",
+            "resumo": "O STJ firmou tese sobre a consideração de cláusula penal na indenização devida pelo vendedor em razão do atraso na entrega de imóvel em construção.",
+            "motivo": "Ambos os casos envolvem atraso na entrega de imóvel, mas a tese versa sobre cláusula penal e não resolve se o saldo devedor pode continuar sendo corrigido pelo INCC durante o atraso.",
+            "evidencias": [
+              {
+                "trecho": "cláusula penal apenas para o inadimplemento do adquirente",
+                "conferida_no_arquivo": true
+              },
+              {
+                "trecho": "atraso na entrega de imóvel em construção",
+                "conferida_no_arquivo": true
+              }
+            ],
+            "favorabilidade": "incerta",
+            "motivo_favorabilidade": "A tese não resolve a correção do saldo devedor pelo INCC durante o atraso, de modo que o material não permite concluir seu efeito para essa pretensão.",
+            "evidencia_favorabilidade": "",
+            "evidencia_favorabilidade_conferida_no_arquivo": null
+          }
+        ]
+      },
+      "tribunal": "STJ"
     }
   ],
   "sem_impacto": []
