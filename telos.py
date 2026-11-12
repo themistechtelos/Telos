@@ -1681,7 +1681,7 @@ def _email_button(url: str, label: str) -> str:
         '<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td '
         'bgcolor="#a5a7ff" style="border-radius:6px;background-color:#a5a7ff;">'
         f'<a href="{escaped_url}" style="display:inline-block;padding:12px 18px;'
-        'font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:bold;'
+        'font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:14px;font-weight:bold;'
         'line-height:20px;color:#171827;text-decoration:none;border-radius:6px;">'
         f'{_email_escape(label)}</a></td></tr></table>'
     )
@@ -1690,35 +1690,35 @@ def _email_button(url: str, label: str) -> str:
 def render_review_opinion_html(label: str, opinion: dict, outcome: dict) -> str:
     if not model_response_is_readable({"resultado_decisao": outcome, "casos": [opinion]}):
         return (
-            f'<div style="font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:18px;'
-            f'color:#24263a;">{_email_escape(UNREADABLE_OPINION)}</div>'
+            f'<div style="font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:12px;line-height:18px;'
+            f'color:#f4f4fb;">{_email_escape(UNREADABLE_OPINION)}</div>'
         )
     relation = RELATION_LABELS.get(opinion.get("relacao", "incerta"), "incerta")
     reason = str(opinion.get("motivo", "")).strip()
     favorability = FAVORABILITY_LABELS.get(opinion.get("favorabilidade", "incerta"), "não foi possível confirmar")
     parts = [
-        f'<div style="font-family:Arial,Helvetica,sans-serif;font-size:13px;font-weight:bold;'
-        f'line-height:19px;color:#24263a;">{_email_escape(label)}</div>',
-        f'<div style="padding-top:7px;font-family:Arial,Helvetica,sans-serif;font-size:12px;'
-        f'line-height:18px;color:#24263a;"><strong>Relação:</strong> {_email_escape(relation)}'
+        f'<div style="font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:13px;font-weight:bold;'
+        f'line-height:19px;color:#f4f4fb;">{_email_escape(label)}</div>',
+        f'<div style="padding-top:7px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:12px;'
+        f'line-height:18px;color:#f4f4fb;"><strong>Relação:</strong> {_email_escape(relation)}'
         f'{" — " + _email_escape(reason) if reason else ""}</div>',
-        f'<div style="padding-top:6px;font-family:Arial,Helvetica,sans-serif;font-size:12px;'
-        f'line-height:18px;color:#24263a;"><strong>Resultado:</strong> {_email_escape(review_outcome_text(outcome))}</div>',
-        f'<div style="padding-top:6px;font-family:Arial,Helvetica,sans-serif;font-size:12px;'
-        f'line-height:18px;color:#24263a;"><strong>Favorabilidade:</strong> {_email_escape(favorability)}</div>',
+        f'<div style="padding-top:6px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:12px;'
+        f'line-height:18px;color:#f4f4fb;"><strong>Resultado:</strong> {_email_escape(review_outcome_text(outcome))}</div>',
+        f'<div style="padding-top:6px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:12px;'
+        f'line-height:18px;color:#f4f4fb;"><strong>Favorabilidade:</strong> {_email_escape(favorability)}</div>',
     ]
     for quote, checked in review_quotes(opinion, outcome):
         verification = "conferido no documento" if checked is True else "não localizado no documento" if checked is False else "sem conferência registrada"
         parts.append(
-            f'<div style="margin-top:8px;padding:8px;background-color:#ffffff;border-left:2px solid #a5a7ff;'
-            f'font-family:Georgia,serif;font-size:12px;line-height:18px;color:#24263a;">“'
-            f'{_email_escape(quote)}”<br><span style="font-family:Arial,Helvetica,sans-serif;'
-            f'font-size:10px;color:#62647a;">{_email_escape(verification)}</span></div>'
+            f'<div style="margin-top:8px;padding:8px;background-color:#202238;border-left:2px solid #a5a7ff;'
+            f'font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:12px;line-height:18px;color:#f4f4fb;">“'
+            f'{_email_escape(quote)}”<br><span style="font-family:Montserrat,Arial,Helvetica,sans-serif;'
+            f'font-size:10px;color:#c4c5d2;">{_email_escape(verification)}</span></div>'
         )
     if not review_quotes(opinion, outcome):
         parts.append(
-            '<div style="padding-top:8px;font-family:Arial,Helvetica,sans-serif;font-size:12px;'
-            'line-height:18px;color:#62647a;">Nenhum trecho citado.</div>'
+            '<div style="padding-top:8px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:12px;'
+            'line-height:18px;color:#c4c5d2;">Nenhum trecho citado.</div>'
         )
     return "".join(parts)
 
@@ -1732,32 +1732,33 @@ def render_round_email_html(
 ) -> str:
     """Render a Gmail-friendly HTML alternative using inline styles and tables."""
     navy = "#171827"
-    ink = "#24263a"
-    muted = "#62647a"
+    ink = "#f4f4fb"
+    muted = "#c4c5d2"
     lavender = "#a5a7ff"
-    light_lavender = "#f0f0ff"
-    success = "#176b50"
-    warning = "#765200"
+    light_lavender = "#292b45"
+    warning = "#ffe6a6"
     parts = [
         '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">',
         '<meta name="viewport" content="width=device-width,initial-scale=1.0">',
+        '<meta name="color-scheme" content="dark">',
+        '<meta name="supported-color-schemes" content="dark">',
         '<title>Resumo da rodada do Telos</title></head>',
-        '<body style="margin:0;padding:0;background-color:#f3f3f8;">',
+        '<body style="margin:0;padding:0;background-color:#171827;color:#f4f4fb;">',
         '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" '
-        'bgcolor="#f3f3f8" style="width:100%;background-color:#f3f3f8;"><tr><td align="center" '
+        'bgcolor="#171827" style="width:100%;background-color:#171827;color:#f4f4fb;"><tr><td align="center" '
         'style="padding:24px 12px;">',
         '<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" '
-        'style="width:100%;max-width:600px;border-collapse:collapse;">',
+        'bgcolor="#171827" style="width:100%;max-width:600px;border-collapse:collapse;background-color:#171827;color:#f4f4fb;">',
         f'<tr><td bgcolor="{navy}" style="padding:28px 30px 26px;background-color:{navy};'
         'border-radius:10px 10px 0 0;">',
-        f'<div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:3px;'
+        f'<div style="font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:3px;'
         f'font-weight:bold;color:{lavender};">THEMIS TECH</div>',
-        '<div style="padding-top:8px;font-family:Arial,Helvetica,sans-serif;font-size:30px;'
+        '<div style="padding-top:8px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:30px;'
         f'font-weight:bold;letter-spacing:5px;color:#ffffff;">TELOS</div>',
-        f'<div style="padding-top:14px;font-family:Georgia,serif;font-size:18px;line-height:26px;'
+        f'<div style="padding-top:14px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:18px;line-height:26px;'
         f'font-style:italic;color:#ffffff;">A lei mudou. Seus casos já sabem.</div>',
         '</td></tr>',
-        f'<tr><td style="padding:24px 26px 8px;font-family:Arial,Helvetica,sans-serif;color:{ink};">',
+        f'<tr><td bgcolor="{navy}" style="padding:24px 26px 8px;background-color:{navy};font-family:Montserrat,Arial,Helvetica,sans-serif;color:{ink};">',
         '<div style="font-size:17px;font-weight:bold;line-height:24px;">Resumo da rodada</div>',
         f'<div style="padding-top:5px;font-size:13px;line-height:20px;color:{muted};">'
         f'{completed_count} de {selected_count} decisões analisadas com dois pareceres.</div>',
@@ -1770,12 +1771,12 @@ def render_round_email_html(
     parts.append('</td></tr>')
 
     parts.extend([
-        f'<tr><td style="padding:16px 26px 8px;font-family:Arial,Helvetica,sans-serif;'
+        f'<tr><td bgcolor="{navy}" style="padding:16px 26px 8px;background-color:{navy};font-family:Montserrat,Arial,Helvetica,sans-serif;'
         f'font-size:14px;font-weight:bold;letter-spacing:1px;color:{ink};">AVISOS DIRETOS</td></tr>'
     ])
     if not alerts:
         parts.append(
-            f'<tr><td style="padding:0 26px 16px;font-family:Arial,Helvetica,sans-serif;'
+            f'<tr><td bgcolor="{navy}" style="padding:0 26px 16px;background-color:{navy};font-family:Montserrat,Arial,Helvetica,sans-serif;'
             f'font-size:14px;line-height:21px;color:{muted};">Nenhum aviso direto nesta rodada.</td></tr>'
         )
     for group in group_alerts_by_decision(alerts):
@@ -1783,9 +1784,9 @@ def render_round_email_html(
         if not all(direct_alert_is_readable(alert) for alert in group):
             parts.extend([
                 '<tr><td style="padding:7px 20px;"><table role="presentation" width="100%" cellpadding="0" '
-                'cellspacing="0" border="0" bgcolor="#ffffff" style="background-color:#ffffff;'
-                'border:1px solid #e2e2ec;border-radius:8px;"><tr><td style="padding:20px;">',
-                f'<div style="font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:20px;'
+                'cellspacing="0" border="0" bgcolor="#202238" style="background-color:#202238;'
+                'border:1px solid #3b3d57;border-radius:8px;"><tr><td style="padding:20px;">',
+                f'<div style="font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:13px;line-height:20px;'
                 f'color:{ink};">{_email_escape(UNREADABLE_OPINION)}</div>',
                 '<div style="padding-top:16px;">',
                 _email_button(first.get("link_oficial", ""), official_email_button(first.get("link_oficial", ""))),
@@ -1796,38 +1797,38 @@ def render_round_email_html(
         parts.extend([
             '<tr><td style="padding:7px 20px;">',
             f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" '
-            f'bgcolor="#ffffff" style="width:100%;background-color:#ffffff;border:1px solid #e2e2ec;'
+            f'bgcolor="#202238" style="width:100%;background-color:#202238;border:1px solid #3b3d57;'
             'border-radius:8px;"><tr><td style="padding:21px 22px 20px;">',
-            f'<div style="font-family:Arial,Helvetica,sans-serif;font-size:17px;font-weight:bold;'
+            f'<div style="font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:17px;font-weight:bold;'
             f'line-height:24px;color:{ink};">{_email_escape(first["resumo"])}</div>',
-            f'<div style="padding-top:10px;font-family:Arial,Helvetica,sans-serif;color:{ink};">'
-            f'<span style="font-size:30px;font-weight:bold;line-height:34px;color:{navy};">{len(group)}</span> '
+            f'<div style="padding-top:10px;font-family:Montserrat,Arial,Helvetica,sans-serif;color:{ink};">'
+            f'<span style="font-size:30px;font-weight:bold;line-height:34px;color:{lavender};">{len(group)}</span> '
             f'<span style="font-size:14px;font-weight:bold;line-height:22px;">'
             f'{"caso do escritório é afetado" if len(group) == 1 else "casos do escritório são afetados"}</span></div>',
-            f'<div style="padding-top:6px;font-family:Arial,Helvetica,sans-serif;font-size:12px;'
+            f'<div style="padding-top:6px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:12px;'
             f'line-height:18px;color:{muted};"><strong>Resultado:</strong> {_email_escape(first["resultado"])}</div>',
-            f'<div style="padding-top:5px;font-family:Arial,Helvetica,sans-serif;font-size:11px;'
+            f'<div style="padding-top:5px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:11px;'
             f'line-height:17px;color:{muted};">{_email_escape(decision_metadata_text(first))}</div>',
-            f'<div style="margin-top:15px;padding-top:11px;border-top:1px solid #e7e7ee;">',
+            f'<div style="margin-top:15px;padding-top:11px;border-top:1px solid #3a3b52;">',
             '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" '
             'style="width:100%;border-collapse:collapse;">',
         ])
         for alert in group:
             label = alert_position_label(alert)
             if label == "FAVORÁVEL AO CLIENTE":
-                badge_color, badge_ink = "#e6f4ee", success
+                badge_color, badge_ink = "#c5eed5", "#153b2b"
             elif label == "DESFAVORÁVEL AO CLIENTE":
-                badge_color, badge_ink = "#fff0ef", "#9b3434"
+                badge_color, badge_ink = "#ffd8d7", "#6d1f26"
             elif label == "FAVORABILIDADE A CONFIRMAR":
-                badge_color, badge_ink = "#fff5dc", "#805a00"
+                badge_color, badge_ink = "#ffebbb", "#5a4000"
             else:
-                badge_color, badge_ink = "#f2f2f5", muted
+                badge_color, badge_ink = "#dadbe8", "#27283a"
             parts.extend([
-                '<tr><td valign="middle" style="padding:8px 6px 8px 0;font-family:Arial,Helvetica,sans-serif;'
+                '<tr><td valign="middle" style="padding:8px 6px 8px 0;font-family:Montserrat,Arial,Helvetica,sans-serif;'
                 f'font-size:14px;line-height:20px;color:{ink};">{_email_escape(alert["caso"])}</td>',
                 f'<td align="right" valign="middle" style="padding:8px 0 8px 6px;text-align:right;">'
                 f'<span style="display:inline-block;padding:5px 9px;background-color:{badge_color};'
-                f'color:{badge_ink};border-radius:20px;font-family:Arial,Helvetica,sans-serif;'
+                f'color:{badge_ink};border-radius:20px;font-family:Montserrat,Arial,Helvetica,sans-serif;'
                 f'font-size:10px;font-weight:bold;letter-spacing:.2px;white-space:nowrap;">{label}</span></td></tr>',
             ])
         parts.append('</table></div>')
@@ -1836,14 +1837,14 @@ def render_round_email_html(
         if evidence:
             parts.append(
                 f'<div style="margin-top:12px;padding:12px 14px;background-color:{light_lavender};'
-                f'border-left:3px solid {lavender};font-family:Georgia,serif;font-size:14px;'
+                f'border-left:3px solid {lavender};font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:14px;'
                 f'line-height:21px;color:{ink};"><strong>'
                 f'{"Trecho que comprova:" if len(evidence) == 1 else "Trechos que comprovam:"}</strong>'
             )
             for case_title, quote in evidence:
                 if len(evidence) > 1:
                     parts.append(
-                        f'<div style="padding-top:7px;font-family:Arial,Helvetica,sans-serif;'
+                        f'<div style="padding-top:7px;font-family:Montserrat,Arial,Helvetica,sans-serif;'
                         f'font-size:11px;font-weight:bold;line-height:16px;color:{muted};">'
                         f'{_email_escape(case_title)}</div>'
                     )
@@ -1857,7 +1858,7 @@ def render_round_email_html(
             notes.append("A análise usou partes do texto; o trecho intermediário foi omitido.")
         if notes:
             parts.append(
-                f'<div style="padding-top:9px;font-family:Arial,Helvetica,sans-serif;font-size:11px;'
+                f'<div style="padding-top:9px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:11px;'
                 f'line-height:16px;color:{muted};">{_email_escape(" ".join(notes))}</div>'
             )
         parts.extend([
@@ -1867,23 +1868,23 @@ def render_round_email_html(
         ])
 
     parts.extend([
-        f'<tr><td style="padding:21px 26px 8px;font-family:Arial,Helvetica,sans-serif;'
+        f'<tr><td bgcolor="{navy}" style="padding:21px 26px 8px;background-color:{navy};font-family:Montserrat,Arial,Helvetica,sans-serif;'
         f'font-size:14px;font-weight:bold;letter-spacing:1px;color:{ink};">REVISAR À MÃO</td></tr>'
     ])
     if not reviews:
         parts.append(
-            f'<tr><td style="padding:0 26px 18px;font-family:Arial,Helvetica,sans-serif;'
+            f'<tr><td bgcolor="{navy}" style="padding:0 26px 18px;background-color:{navy};font-family:Montserrat,Arial,Helvetica,sans-serif;'
             f'font-size:14px;line-height:21px;color:{muted};">Nenhum item para revisão manual nesta rodada.</td></tr>'
         )
     for review in reviews:
         if not review_pair_is_readable(review):
             parts.extend([
                 '<tr><td style="padding:7px 20px;"><table role="presentation" width="100%" cellpadding="0" '
-                'cellspacing="0" border="0" bgcolor="#f0f0ff" style="background-color:#f0f0ff;'
-                'border:1px solid #d8d8ef;border-radius:8px;"><tr><td style="padding:19px 20px;">',
-                f'<div style="font-family:Arial,Helvetica,sans-serif;font-size:17px;font-weight:bold;'
+                'cellspacing="0" border="0" bgcolor="#292b45" style="background-color:#292b45;'
+                'border:1px solid #45465d;border-radius:8px;"><tr><td style="padding:19px 20px;">',
+                f'<div style="font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:17px;font-weight:bold;'
                 f'line-height:23px;color:{ink};">Decisão sob revisão</div>',
-                f'<div style="padding-top:8px;font-family:Arial,Helvetica,sans-serif;font-size:13px;'
+                f'<div style="padding-top:8px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:13px;'
                 f'line-height:20px;color:{ink};">{_email_escape(UNREADABLE_OPINION)}</div>',
                 '<div style="padding-top:16px;">',
                 _email_button(review.get("link_oficial", ""), official_email_button(review.get("link_oficial", ""))),
@@ -1894,35 +1895,35 @@ def render_round_email_html(
         parts.extend([
             '<tr><td style="padding:7px 20px;">',
             f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" '
-            f'bgcolor="#f0f0ff" style="width:100%;background-color:#f0f0ff;border:1px solid #d8d8ef;'
+            f'bgcolor="#292b45" style="width:100%;background-color:#292b45;border:1px solid #45465d;'
             'border-radius:8px;"><tr><td style="padding:19px 20px;">',
-            f'<div style="font-family:Arial,Helvetica,sans-serif;font-size:17px;font-weight:bold;'
+            f'<div style="font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:17px;font-weight:bold;'
             f'line-height:23px;color:{ink};">Decisão para revisar</div>',
-            f'<div style="padding-top:5px;font-family:Arial,Helvetica,sans-serif;font-size:12px;'
+            f'<div style="padding-top:5px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:12px;'
             f'line-height:18px;color:{muted};">{_email_escape(decision_metadata_text(review))}</div>',
         ])
         if not cases:
             parts.extend([
-                f'<div style="padding-top:10px;font-family:Arial,Helvetica,sans-serif;font-size:13px;'
+                f'<div style="padding-top:10px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:13px;'
                 f'line-height:19px;color:{muted};">Nenhum caso foi relacionado à decisão pelos pareceres.</div>'
             ])
         for item in cases:
             parts.extend([
-                f'<div style="padding-top:14px;font-family:Arial,Helvetica,sans-serif;font-size:15px;'
+                f'<div style="padding-top:14px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:15px;'
                 f'font-weight:bold;line-height:21px;color:{ink};">{_email_escape(item["titulo"])}</div>',
                 '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" '
                 'style="width:100%;margin-top:7px;border-collapse:collapse;"><tr>',
-                '<td width="50%" valign="top" style="width:50%;padding:11px;background-color:#f8f8ff;'
-                'border:1px solid #dedeee;">',
+                '<td width="50%" valign="top" bgcolor="#24263c" style="width:50%;padding:11px;background-color:#24263c;'
+                'border:1px solid #46455c;">',
                 render_review_opinion_html("Parecer 1", item["parecer_1"], item["resultado_1"]),
-                '</td><td width="50%" valign="top" style="width:50%;padding:11px;background-color:#f8f8ff;'
-                'border:1px solid #dedeee;">',
+                '</td><td width="50%" valign="top" bgcolor="#24263c" style="width:50%;padding:11px;background-color:#24263c;'
+                'border:1px solid #46455c;">',
                 render_review_opinion_html("Parecer 2", item["parecer_2"], item["resultado_2"]),
                 '</td></tr></table>',
             ])
         parts.append(
-            f'<div style="margin-top:12px;padding:10px 11px;background-color:#e5e5ff;'
-            f'font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:19px;color:{ink};">'
+            f'<div style="margin-top:12px;padding:10px 11px;background-color:#33304a;'
+            f'font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:12px;line-height:19px;color:{ink};">'
             f'<strong>Ponto de divergência:</strong> {_email_escape(review_disagreement_text(review, cases))}</div>'
         )
         parts.extend([
@@ -1931,7 +1932,7 @@ def render_round_email_html(
             '</div></td></tr></table></td></tr>',
         ])
     parts.extend([
-        f'<tr><td style="padding:18px 26px 24px;font-family:Arial,Helvetica,sans-serif;'
+        f'<tr><td style="padding:18px 26px 24px;font-family:Montserrat,Arial,Helvetica,sans-serif;'
         f'font-size:11px;line-height:17px;color:{muted};">Telos, por Themis Tech · '
         'Confira a decisão na consulta oficial antes de tomar qualquer providência.</td></tr>',
         '</table></td></tr></table></body></html>',
