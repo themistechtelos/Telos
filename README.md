@@ -2,200 +2,108 @@
 
 ## 1. O que é o Telos
 
-O Telos é um vigia de jurisprudência para escritórios de advocacia, criado pela Themis Tech. Ele busca decisões e temas repetitivos no Superior Tribunal de Justiça (STJ), compara esse material com os casos do escritório e avisa quais casos podem ter sido afetados. Os avisos informam o resultado e se ele favorece ou desfavorece a posição do cliente.
+O Telos é um vigia de jurisprudência para escritórios de advocacia, criado pela Themis Tech: busca decisões e temas repetitivos do Superior Tribunal de Justiça (STJ), compara o material com os casos do escritório e mostra quais casos podem ter sido afetados, o resultado e se ele favorece ou desfavorece a posição do cliente. Acesse o [site de apresentação](https://themistech.netlify.app), experimente o [Telos no ar](https://telos-zoor.onrender.com) ou consulte [este repositório no GitHub](https://github.com/themistechtelos/Telos).
 
-## 2. Como funciona
+## 2. Como testar em um minuto pelo site
 
-1. **Busca:** consulta no portal de dados abertos do STJ as decisões disponíveis e os temas repetitivos ligados aos termos configurados.
-2. **Análise:** a inteligência artificial compara o texto encontrado com os casos cadastrados. Cada decisão recebe dois pareceres independentes.
-3. **Aviso:** quando os pareceres concordam que há relação direta, o Telos mostra o resumo, o motivo, o resultado, trechos do documento e o link oficial.
+1. Abra o [Telos no ar](https://telos-zoor.onrender.com). Se o serviço estiver dormindo, aguarde a página carregar.
+2. Deixe a quantidade em **Todos** e escolha **Todas as áreas** ou uma área específica.
+3. Deixe o campo de e-mail vazio para não enviar mensagem e clique em **Vigiar agora**. O Telos mostra o andamento e, em cerca de 20 segundos, reapresenta a rodada de demonstração com os avisos e a seção **Revisar à mão**.
 
-## 3. Exemplo de aviso
+## 3. Como funciona
 
-A prévia [email_exemplo.html](email_exemplo.html) foi gerada com avisos da demonstração. Ela mostra como o resumo da decisão, os casos afetados, os trechos conferidos e o link oficial aparecem no e-mail.
+1. **Fontes do STJ:** na busca ao vivo, o Telos procura decisões nos arquivos diários de texto e metadados do [Portal de Dados Abertos do STJ](https://dadosabertos.web.stj.jus.br/). Também consulta os temas repetitivos e suas teses na base oficial de precedentes qualificados. Arquivos de decisão em texto ou PDF com texto selecionável podem ser colocados manualmente em `decisoes/`, com o link oficial do STJ dentro do arquivo.
+2. **Dois pareceres da IA:** o modelo analisa cada decisão duas vezes e compara cada parecer com as descrições dos casos. Só considera direta a relação em que a decisão resolve a mesma questão jurídica do caso; uma semelhança de assunto, por si só, não basta.
+3. **Aviso com fonte:** os resultados aparecem na página. Ao fim da rodada, o Telos também envia um e-mail se houver destinatário configurado. O aviso traz o resumo, o motivo, o resultado, a favorabilidade, os trechos e o link oficial. Se os pareceres discordarem sobre a relação direta, o item fica em **Revisar à mão**. O e-mail pode ser reenviado pelo botão da página.
 
-## 4. Proteções contra erros da IA
+## 4. Exemplo real de aviso da demonstração
 
-- **Citações conferidas:** o Telos verifica se cada trecho citado existe no texto da decisão. Citações que não aparecem no arquivo não são usadas como prova do aviso.
-- **Link oficial controlado pelo programa:** para decisões do STJ, o Telos monta o link do inteiro teor usando os dados do catálogo oficial; para temas repetitivos, usa a consulta oficial do tema. A IA não inventa nem escolhe o link. Para arquivos colocados manualmente, usa o link oficial informado no próprio arquivo.
-- **Segundo parecer:** uma decisão de outro processo tem relação direta quando resolve a mesma questão jurídica discutida no caso do escritório e pode servir de precedente. Por exemplo, uma decisão que concede lucros cessantes por atraso na entrega de imóvel é direta para um caso que também pede lucros cessantes pelo atraso. Se tratar de tema parecido, mas resolver outra questão, a relação é indireta. Os dois pareceres precisam concordar que a relação é direta e comprová-la com trechos encontrados no arquivo. Se concordarem sobre a relação, mas divergirem apenas sobre o resultado ou a favorabilidade, o aviso é enviado com o selo **“Favorabilidade a confirmar”**. Divergências sobre a própria relação vão para **“Revisar à mão”**, junto com os dois pareceres.
-- **Incerteza explícita:** quando o material não permite uma conclusão segura, o Telos diz **“não tenho certeza”** em vez de afirmar que a decisão afeta o caso.
+Este exemplo usa o [Tema 970 do STJ](https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=970&cod_tema_final=970&novaConsulta=true&tipo_pesquisa=T). O tema e a tese são reais; os casos do escritório abaixo são fictícios.
 
-## 5. Como mudar a área vigiada
+> O STJ decidiu que, em regra, a cláusula penal moratória equivalente ao valor locatício afasta sua cumulação com lucros cessantes. **3 casos do escritório são afetados.**
+>
+> Casos: Apartamento entregue com atraso; Multa e lucros cessantes; Multa moratória e aluguel.
+>
+> Favorabilidade: **a confirmar**.
+>
+> Trecho: “em regra, estabelecida em valor equivalente ao locativo, afasta-se sua cumulação com lucros cessantes”.
+>
+> [Conferir o Tema 970 no site oficial do STJ](https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=970&cod_tema_final=970&novaConsulta=true&tipo_pesquisa=T)
 
-O Telos acompanha Direito Bancário, Imobiliário e Empresarial. A área depende dos casos cadastrados em `casos/` e dos termos `STJ_SEARCH_TERMS_BANCARIO`, `STJ_SEARCH_TERMS_IMOBILIARIO` e `STJ_SEARCH_TERMS_EMPRESARIAL` no `.env`. Cada campo aceita vários termos separados por ponto e vírgula. Os termos são enviados ao catálogo do STJ para localizar decisões; a análise da relação com os casos é feita pela IA. Os casos de bancário recuperados do histórico são os Casos 14 a 16. O Caso 13 continua como caso de controle sem termo de busca.
+Uma [prévia do e-mail](email_exemplo.html) mostra a apresentação visual dos avisos e dos itens para revisão.
 
-## 6. Limitações
+## 5. Proteções contra erros da IA
 
-- A única fonte de jurisprudência nesta versão é o STJ.
-- No STJ, a janela de três semanas só pode cobrir datas para as quais o portal já publicou os arquivos diários de metadados e textos. O portal pode atualizar com atraso.
-- O STJ disponibiliza decisões e acórdãos em arquivos estruturados com atraso variável; temas repetitivos são consultados na lista oficial de precedentes qualificados.
-- Cada rodada analisa até seis itens. O custo depende do provedor configurado; a OpenAI cobra pelos tokens usados.
-- O Telos ajuda a localizar decisões que merecem atenção, mas não substitui a leitura da decisão nem a análise de uma advogada ou advogado.
+- **Trechos conferidos:** antes de usar uma citação como prova, o programa verifica se ela aparece no texto do arquivo analisado.
+- **Link controlado pelo programa:** o modelo não cria nem escolhe links. Para temas, o Telos monta a consulta oficial com o número do tema; para decisões do portal, usa os dados e endereços oficiais do catálogo. Em arquivos manuais, valida o link informado no próprio arquivo.
+- **Segundo parecer:** as duas análises precisam confirmar a relação direta e apresentar evidências encontradas no texto. Se divergirem sobre essa relação, o item vai para **Revisar à mão**. Se concordarem sobre a relação, mas não sobre o resultado ou a favorabilidade, o aviso sai com **“Favorabilidade a confirmar”**.
+- **Incerteza explícita:** quando o texto não permite uma conclusão segura, o Telos informa que não tem certeza em vez de afirmar um resultado. Um aviso não substitui a conferência da fonte oficial.
 
-## 7. Provedor de IA
+## 6. Sigilo no cadastro de casos
 
-O provedor padrão agora é a OpenAI, com o modelo **GPT-6 Luna**. A OpenAI o descreve como eficiente para tarefas focadas e de alto volume; ele aceita respostas estruturadas e faz parte da geração atual com recursos multilíngues. Isso combina com o Telos, que compara decisões e precisa receber campos em um formato verificável. Ainda não fizemos uma avaliação comparativa específica de qualidade em português no Telos. O preço publicado é de US$ 0,10 por milhão de tokens de entrada e US$ 0,50 por milhão de tokens de saída; cada decisão recebe dois pareceres, e o custo real depende do tamanho do texto e da resposta. Consulte a [página do modelo](https://developers.openai.com/api/docs/models/gpt-6-luna), o [catálogo de modelos](https://developers.openai.com/api/docs/models) e os [preços atuais da API](https://developers.openai.com/api/docs/pricing), que podem mudar.
+No uso local, o nome do cliente fica no arquivo `.telos_clientes.json`, no computador do escritório; esse arquivo é ignorado pelo Git. A descrição é gravada junto a um código do caso. Para a análise ao vivo, o provedor de IA recebe o código e a descrição, não o nome. Depois da resposta, o programa associa o código ao nome no próprio computador para exibir avisos e preparar e-mails. A descrição do caso e o texto da decisão são enviados ao provedor de IA escolhido; não inclua nesses textos dados que não queira compartilhar com esse serviço.
 
-Gemini e Groq continuam disponíveis como alternativas configuráveis no `.env`. Um teste anterior comparou os dois provedores usando os casos antigos de Direito Bancário, Saúde e Aviação: o Gemini deu respostas idênticas nas duas rodadas para as mesmas cinco decisões, enquanto a Groq variou em quatro de cinco. Esse resultado histórico não é um teste do GPT-6 Luna nem dos casos atuais de Direito Imobiliário e Empresarial, e não garante que respostas futuras serão sempre iguais.
+Na hospedagem, o cadastro é uma simulação: o nome e a descrição digitados são enviados ao site hospedado para selecionar uma decisão de demonstração parecida. O exemplo é calculado sem IA e os dados do formulário não são gravados. Se a pessoa informar um e-mail, o exemplo enviado por e-mail inclui o nome digitado. Essa simulação não cria um caso para rodadas futuras.
 
-## Do pitch ao produto
+## 7. Modo de demonstração
 
-Na primeira fase, apresentamos o Telos em um site (https://themistech.netlify.app) com a visão completa do produto. Nesta segunda fase, construímos uma versão real e reduzida. Esta seção mostra, com honestidade, o que foi entregue, o que foi simplificado e o que fica para uma próxima versão.
+O modo de demonstração vem ligado por padrão. A página reapresenta uma rodada fixa que já foi analisada, com seis temas repetitivos do STJ: cinco com avisos diretos e um em **Revisar à mão**. O andamento é simulado; essa rodada não faz uma nova busca no STJ nem chama a IA. A área e a quantidade escolhidas filtram os itens da rodada. **Todos** mostra todos os itens da área selecionada; **Todas as áreas** mostra a rodada completa.
 
-O que foi entregue. O Telos busca decisões no Superior Tribunal de Justiça, compara cada uma com os casos do escritório e avisa quais casos foram afetados, com o que mudou e o link oficial para conferir, como prometido no site. Também mantivemos a promessa central de nunca entregar informação sem fonte oficial: o link é montado pelo programa a partir dos dados do tribunal, e cada trecho citado pela inteligência artificial é conferido no texto da decisão. O produto pode ser configurado para qualquer área do Direito, porque a área vigiada depende dos casos cadastrados e dos termos de busca.
+O modo é controlado por `TELOS_DEMO_MODE` no `.env`. No computador, `TELOS_DEMO_MODE=false` habilita a busca e a análise ao vivo. Na hospedagem, `TELOS_HOSPEDADO=true` mantém a demonstração ligada mesmo se outra configuração pedir busca ao vivo.
 
-O que entregamos além do prometido. Cada aviso informa o resultado da decisão e se ela é favorável ou desfavorável ao cliente. Criamos ainda um "segundo parecer": cada decisão é analisada duas vezes e só vira aviso quando as duas análises concordam que a relação com o caso é direta. Se os pareceres divergirem apenas sobre o resultado ou a favorabilidade, o aviso sai marcado "Favorabilidade a confirmar". Se discordarem sobre a relação direta, a decisão vai para "Revisar à mão". Fizemos isso depois de medir que um dos modelos testados dava respostas diferentes para a mesma decisão.
+## 8. Limitações
 
-O que foi simplificado, e por quê. O site prometia vigiar leis, o Supremo Tribunal Federal, o Banco Central, o Cade e a Receita. Esta versão consulta apenas o Superior Tribunal de Justiça. O site prometia avisos na hora, por e-mail ou WhatsApp. Esta versão envia avisos por e-mail ao fim da rodada quando há destinatário configurado; o botão permite reenviar. O WhatsApp exige um acesso oficial pago, e a execução automática diária depende de um computador ou servidor ligado. O site mostrava a escolha do que vigiar escrevendo em linguagem natural. Aqui, isso é feito editando os termos de busca no arquivo de configuração. O site mostrava contratos completos. Aqui, cada caso é uma descrição curta. Cada execução limita a seis itens.
+- A única fonte de jurisprudência implementada é o STJ.
+- A busca ao vivo cobre os últimos 21 dias para os quais o portal já disponibilizou os arquivos diários correspondentes. O portal pode publicar os arquivos com atraso.
+- Cada rodada ao vivo analisa no máximo seis itens. A rodada fixa de demonstração também contém seis.
+- Os resultados dependem do texto disponível e das respostas do modelo. Dois pareceres e citações verificadas reduzem riscos, mas não garantem uma conclusão correta.
+- O Telos compara descrições curtas; não analisa contratos completos nem substitui a leitura da fonte oficial ou o trabalho de uma advogada ou advogado.
+- O serviço gratuito do Render pode dormir após 15 minutos sem acesso e apaga arquivos locais quando dorme, reinicia ou recebe uma nova publicação. A rodada de demonstração está no repositório, mas a última rodada salva e o contador local de envios podem ser reiniciados. Por isso, o limite de e-mails da hospedagem — um envio por minuto e 20 por dia — pode ser reiniciado junto com esses arquivos. Consulte as [limitações oficiais do Render](https://render.com/docs/free).
 
-Sigilo. O site prometia criptografia do início ao fim. Uma criptografia completa não é possível quando uma inteligência artificial precisa ler o texto para analisá-lo. Nesta versão, usamos casos inventados e decisões públicas. Os textos são enviados ao provedor escolhido; as regras de retenção e uso dos dados variam conforme o provedor e as configurações da conta. Em uso real, mantenha o nome do cliente no computador do escritório e envie à inteligência artificial apenas um código e a descrição do caso.
+## 9. Por que escolhemos a OpenAI
 
-Próximos passos. Acrescentar outras fontes, como os diários oficiais; execução automática diária em servidor; ampliar a leitura de documentos do STJ; cadastro de contratos inteiros; e envio de cada aviso apenas ao advogado responsável pelo caso.
+A OpenAI é o provedor padrão, com o modelo `gpt-6-luna`. O fluxo pede respostas estruturadas para conferir campos, citações e a concordância entre os dois pareceres. A OpenAI foi escolhida para esta versão por essa compatibilidade com o formato e por ser o provedor pago selecionado para o projeto; isso não significa que as respostas sejam sempre iguais.
 
-## 8. Interface web
+Nos testes anteriores com cinco decisões e o conjunto de casos disponível à época, a Groq deu respostas diferentes em quatro decisões, enquanto o Gemini repetiu as mesmas respostas nas duas rodadas. Em um teste posterior, as respostas finais da OpenAI também não foram idênticas ao repetir oito decisões. Os testes usaram conjuntos anteriores ao atual e não provam que um provedor será sempre mais consistente. Por isso, o Telos mantém o segundo parecer e a possibilidade de revisão manual. Gemini e Groq continuam disponíveis como alternativas.
 
-O modo de demonstração da página continua usando a rodada fixa já verificada. A busca ao vivo no STJ fica disponível no computador quando `TELOS_DEMO_MODE=false`; na hospedagem ela permanece desativada.
+## 10. Parte técnica
 
-A interface permite informar um e-mail para receber os avisos. Ao terminar a rodada, o Telos mostra os resultados na página e envia o e-mail automaticamente quando há destinatário configurado. No computador, o envio vai para os destinatários do `.env` e também para o endereço digitado; na hospedagem, vai somente para o endereço digitado. Se nenhum endereço for digitado na hospedagem, nenhum e-mail é enviado. Depois de um envio bem-sucedido, o botão **Enviar avisos por e-mail** fica disponível para reenviar aquela rodada. A página confirma o envio. As chaves e senhas não são enviadas à página.
+### Rodar no computador
 
-O modo de demonstração é controlado pela variável `TELOS_DEMO_MODE` no `.env` e vem ligado (`true`). Nesse modo, o botão reapresenta uma rodada fixa já verificada, com andamento simulado, sem consultar o STJ nem chamar a IA. A escolha da área e da quantidade vale também para essa rodada: “Todos” (a opção padrão) mostra todos os itens da área escolhida; as opções de 1 a 6 mostram até essa quantidade. “Todas as áreas” reúne a rodada completa. A página não exibe um aviso de que está nesse modo. No computador, para fazer buscas e análises reais, mude `TELOS_DEMO_MODE=false`; o Telos consulta os arquivos diários do STJ disponíveis para os últimos 21 dias e acrescenta arquivos novos sem apagar os anteriores. Na busca ao vivo, “Todos” respeita o limite atual de seis decisões por rodada.
-
-Em hospedagem, `TELOS_HOSPEDADO=true` força o modo de demonstração, mesmo se `TELOS_DEMO_MODE` estiver desligado, e impede buscas ao vivo no STJ. O envio usa a API transacional do Brevo com `BREVO_API_KEY` e o remetente informado em `GMAIL_SENDER`; esse endereço precisa estar cadastrado e autorizado na conta Brevo. Cada envio hospedado aceita somente o endereço digitado na página e ignora completamente `GMAIL_RECIPIENT`; não há outros destinatários que possam ver esse endereço. Há limite de um envio iniciado por minuto e 20 por dia. Para uso no computador, deixe `TELOS_HOSPEDADO=false` (ou vazio): o modo e os destinatários continuam seguindo as configurações locais de hoje, e o Gmail continua sendo usado. O arquivo local que registra o limite pode ser apagado quando o serviço gratuito reinicia; por isso, esses limites são uma proteção operacional para uma instância hospedada, não um mecanismo contra abuso distribuído.
-
-Os casos fictícios de demonstração ficam em `casos/demonstracao/`, numerados de 17 a 37. Os Casos 28 a 37 foram criados para representar questões jurídicas específicas dos temas repetitivos analisados.
-
-A rodada fixa atual usa cinco temas repetitivos do STJ com relação direta confirmada pelos dois pareceres. Cada cartão afeta pelo menos dois casos. Há também um item em **Revisar à mão**: o [Tema 577](https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=577&cod_tema_final=577&novaConsulta=true&tipo_pesquisa=T) define quando os valores do distrato devem ser devolvidos. Os Casos 3 e 20 discutem principalmente quanto pode ser retido; os dois pareceres classificaram a relação como indireta, então nenhum aviso direto foi confirmado.
-
-| Tema oficial do STJ | Área | Casos com relação direta confirmada |
-| --- | --- | ---: |
-| [Tema 27 — revisão de juros remuneratórios](https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=27&cod_tema_final=27&novaConsulta=true&tipo_pesquisa=T) | Bancário | 2 (Casos 28 e 29) |
-| [Tema 929 — devolução em dobro por cobrança indevida contrária à boa-fé](https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=929&cod_tema_final=929&novaConsulta=true&tipo_pesquisa=T) | Bancário | 2 (Casos 36 e 37) |
-| [Tema 1061 — autenticidade de assinatura bancária](https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=1061&cod_tema_final=1061&novaConsulta=true&tipo_pesquisa=T) | Bancário | 2 (Casos 26 e 27) |
-| [Tema 970 — multa contratual e lucros cessantes por atraso](https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=970&cod_tema_final=970&novaConsulta=true&tipo_pesquisa=T) | Imobiliário | 3 (Casos 1, 32 e 33) |
-| [Tema 1051 — data do crédito na recuperação judicial](https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?cod_tema_inicial=1051&cod_tema_final=1051&novaConsulta=true&tipo_pesquisa=T) | Empresarial | 2 (Casos 34 e 35) |
-
-Os temas foram conferidos na lista oficial de precedentes qualificados do STJ, e cada trecho usado nos avisos foi localizado no arquivo da tese. A rodada é formada por precedentes qualificados já publicados; não se apresenta como decisões novas das últimas três semanas.
-
-Na página **Casos do escritório**, o cadastro local grava o caso e a relação entre nome e código em `.telos_clientes.json` (ignorado pelo Git). A IA recebe somente o código e a descrição do caso. O programa acrescenta o nome aos avisos e e-mails. O novo cadastro passa a participar da próxima rodada. Na hospedagem, o formulário funciona em modo de demonstração: compara a descrição com os avisos fixos, mostra um exemplo da decisão mais parecida e não grava os dados do formulário. Se for informado um e-mail, o exemplo também é enviado, sujeito aos limites de envio.
-
-Em um teste anterior, ainda sem análises paralelas, três decisões imobiliárias levaram cerca de 2 min 29 s e 3 min 51 s; os avisos diferiram, nenhum aviso direto foi confirmado e uma decisão ficou em “Revisar à mão”. Uma medição posterior de menos de dois segundos não registrou respostas novas da API e podia estar mostrando a última rodada já salva; por isso, ela não é usada como medida de desempenho.
-
-Na validação seguinte, limpamos o estado de decisões processadas antes de cada repetição, desligamos o envio de e-mail e contamos as respostas da API OpenAI. As mesmas oito decisões marcadas para demonstração foram analisadas duas vezes em paralelo. Cada rodada gerou 16 respostas da API, todas com identificador único, e terminou em 24,93 s e 25,74 s. Os avisos não foram iguais. A tabela mostra quantos casos receberam aviso direto em cada decisão; itens para revisão manual não contam como casos afetados confirmados.
-
-| Decisão da demonstração | Rodada 1 | Rodada 2 |
-| --- | ---: | ---: |
-| Atraso na entrega do imóvel | 3 | 3 |
-| Desistência da compra na planta | 0 | 3 |
-| Defeitos no apartamento | 2 | 2 |
-| Despejo por falta de pagamento | 0 | 0 |
-| Saída de sócio | 2 | 2 |
-| Crédito na recuperação judicial | 0 | 0 |
-| Duplicata protestada | 2 | 2 |
-| Rescisão de franquia | 0 | 2 |
-
-Nas rodadas, respectivamente, cinco e duas decisões também apareceram em “Revisar à mão”. Nenhum e-mail foi enviado.
-
-Para abrir no seu computador:
-
-1. Instale as dependências conforme a seção seguinte e configure as chaves no `.env`.
-2. No Terminal, entre na pasta do Telos e execute:
-
-   ```bash
-   python webapp.py
-   ```
-
-   Se necessário, use `python3 webapp.py`. O programa usa a porta indicada por `PORT`; no computador, sem essa variável, usa a porta 5000.
-3. Abra `http://127.0.0.1:5000` no navegador. Não abra `templates/index.html` diretamente: esse arquivo é um modelo usado pelo servidor, e aberto como arquivo local ele mostra instruções internas em vez da página pronta.
-
-O andamento aparece na própria tela enquanto o trabalho continua em segundo plano. Uma nova rodada não pode começar enquanto outra estiver ativa. A página inicial também mostra a última rodada salva; no computador, ela fica em `.telos_web_data/` e continua disponível mesmo depois de fechar e abrir o programa. A página **Casos do escritório** lista os casos que estão na pasta `casos/`.
-
-### Hospedar gratuitamente
-
-O projeto inclui `render.yaml` para criar um serviço web gratuito no Render. Envie o repositório ao GitHub e, no Render, crie um **Blueprint** conectado a esse repositório. Escolha o plano gratuito. O arquivo configura `TELOS_HOSPEDADO=true`, que mantém a demonstração ativa e desativa buscas reais no STJ. Para a página e os casos, não é preciso cadastrar chaves de IA nem termos de busca. Para habilitar o envio automático de e-mail, informe apenas `GMAIL_SENDER` e `BREVO_API_KEY`; cadastre e autorize `GMAIL_SENDER` como remetente na conta Brevo. O endereço digitado na página é o único destinatário. Não configure `GMAIL_RECIPIENT`, senha de app do Gmail nem chaves de IA para a hospedagem. `TELOS_HOSPEDADO` e `TELOS_DEMO_MODE` já são definidos pelo `render.yaml`; o Render fornece `PORT` automaticamente. Os campos secretos ficam no painel do serviço; não coloque esses valores no código nem envie o `.env` ao GitHub. A instalação da hospedagem usa apenas as dependências do site, em `requirements-hosting.txt`; as dependências de coleta e análise ao vivo continuam em `requirements.txt` para uso no computador.
-
-Depois que o serviço for criado, copie o endereço `*.onrender.com` e acrescente ao site de apresentação um botão que aponte para esse endereço. Na hospedagem, o cadastro de caso funciona como uma simulação: mostra um aviso baseado na decisão de demonstração mais parecida e não grava os dados. No uso local, o cadastro é guardado para as rodadas seguintes.
-
-Há uma limitação importante do plano gratuito do Render para esta demonstração: ele apaga arquivos locais quando o serviço para, reinicia ou é publicado novamente, então a cópia da última rodada e o contador de envios podem reiniciar. O e-mail hospedado usa a API do Brevo por HTTPS. Veja as [limitações oficiais do plano gratuito](https://render.com/docs/free) e o [guia oficial de Flask no Render](https://render.com/docs/deploy-flask).
-
-## 9. Instalação e uso
-
-### Instalar
-
-Instale o Python 3.10 ou mais recente. Abra o Terminal (Mac/Linux) ou o PowerShell (Windows), entre na pasta do Telos e instale as dependências:
+É necessário ter Python 3.10 ou mais recente. Abra o Terminal (Mac ou Linux) ou o PowerShell (Windows), entre na pasta do projeto e instale as dependências:
 
 ```bash
 python -m pip install -r requirements.txt
 ```
 
-Se `python` não funcionar, tente `python3`.
-
-### Buscar no STJ sem chamar a inteligência artificial
-
-Com `TELOS_DEMO_MODE=false`, a interface do computador busca as íntegras disponíveis nos arquivos diários do portal do STJ. Para baixar apenas as decisões do STJ das últimas três semanas e atualizar as fichas dos temas repetitivos, sem chamar IA nem enviar e-mail, execute:
+Copie `.env.example` para `.env`:
 
 ```bash
-python telos.py --baixar-stj
+cp .env.example .env
 ```
 
-As decisões completas ficam em `decisoes/auto_stj_*.txt`. Os CSVs oficiais e as fichas dos precedentes ficam em `decisoes/stj_precedentes/`, subpasta que o Telos não envia para análise como se fosse uma decisão recente. O portal pode publicar os arquivos diários com atraso; se não houver o par JSON/ZIP na janela, o comando informa a última data completa encontrada e baixa os precedentes qualificados disponíveis.
+No Windows PowerShell, use `Copy-Item .env.example .env`. Abra `.env`, mantenha `TELOS_DEMO_MODE=true` para usar a demonstração ou mude para `false` para busca ao vivo. Para a análise ao vivo, escolha o provedor em `AI_PROVIDER` e preencha a chave correspondente. A OpenAI é a opção padrão; as chaves são `OPENAI_API_KEY`, `GEMINI_API_KEY` e `GROQ_API_KEY`. Os nomes dos modelos podem ser ajustados em `OPENAI_MODEL`, `GEMINI_MODEL` e `GROQ_MODEL`.
 
-### Configurar a OpenAI (provedor padrão)
+Os termos de busca são configurados em `STJ_SEARCH_TERMS_BANCARIO`, `STJ_SEARCH_TERMS_IMOBILIARIO` e `STJ_SEARCH_TERMS_EMPRESARIAL`. Separe vários termos com ponto e vírgula. Se uma variável de área estiver vazia, o Telos pode usar o campo geral `STJ_SEARCH_TERMS`. As áreas e termos são configuráveis; os exemplos atuais estão no `.env.example`.
 
-1. Crie uma chave na [página de chaves da API OpenAI](https://platform.openai.com/api-keys). A API é paga por uso; confira os preços atuais antes de rodar análises.
-2. Na pasta principal do Telos, crie o arquivo `.env` a partir do `.env.example`:
-
-   ```bash
-   cp .env.example .env
-   ```
-
-   No Windows PowerShell, use `Copy-Item .env.example .env`.
-
-3. Abra `.env`, mantenha `AI_PROVIDER=openai` e cole sua chave depois de `OPENAI_API_KEY=`. O modelo padrão é `gpt-6-luna`.
-4. Salve o arquivo. Não compartilhe a chave: `.env` fica fora do Git.
-
-### Usar o Gemini como alternativa
-
-Crie uma chave no [Google AI Studio](https://aistudio.google.com/app/apikey), cole-a depois de `GEMINI_API_KEY=` no `.env` e mude `AI_PROVIDER=openai` para `AI_PROVIDER=gemini`. O modelo padrão é `gemini-3.1-flash-lite`.
-
-### Usar a Groq como alternativa
-
-Crie uma chave na [GroqCloud](https://console.groq.com/keys), cole-a depois de `GROQ_API_KEY=` no `.env` e altere `AI_PROVIDER=groq`. O modelo padrão é `openai/gpt-oss-120b`. Se ele rejeitar uma resposta por formato incompatível, o Telos tenta uma vez com `openai/gpt-oss-20b` e informa a troca. O Telos usa o SDK oficial `groq` para Python.
-
-### Receber os avisos pelo Gmail
-
-O envio é automático ao fim da rodada quando há destinatário configurado. No computador, configure `GMAIL_SENDER` e `GMAIL_APP_PASSWORD`, mais pelo menos um destinatário em `GMAIL_RECIPIENT` ou no campo de e-mail da interface. Na hospedagem, configure `GMAIL_SENDER` autorizado no Brevo e `BREVO_API_KEY`; sem e-mail digitado na página, nada é enviado. O botão **Enviar avisos por e-mail** serve apenas para reenviar uma rodada que já foi enviada. O Telos prepara um resumo: os avisos diretos ficam em cartões separados e os itens de “Revisar à mão”, com os pareceres em frases simples lado a lado, ficam em uma seção lilás própria. Cada aviso mostra um título curto para o caso e, quando constam no material, o número do processo, o foro, a vara e a data da decisão. Campos ausentes são identificados como não informados. O resumo descreve o que o tribunal decidiu. O assunto ajusta singular e plural. O visual usa o azul-marinho e a lavanda do site de apresentação da Themis Tech. A mensagem inclui uma versão HTML compatível com o Gmail e uma alternativa em texto simples.
-
-Você pode abrir [email_exemplo.html](email_exemplo.html) no navegador para ver uma prévia. O arquivo usa resultados de uma rodada anterior, sem nomes das partes do processo.
-
-No computador, o envio continua pelo Gmail. Na hospedagem, o Telos usa a [API transacional do Brevo](https://developers.brevo.com/reference/send-transac-email), que envia por HTTPS sem depender da porta SMTP bloqueada pelo Render. Crie uma chave de API no painel do Brevo e configure `BREVO_API_KEY`; o endereço de `GMAIL_SENDER` deve estar cadastrado e autorizado como remetente na conta. O HTML e o texto simples do e-mail são mantidos. Cada envio hospedado leva um único destinatário, então nenhum outro destinatário recebe ou vê o endereço informado.
-
-Para criar a senha de app do Gmail:
-
-1. Ative a [Verificação em duas etapas](https://support.google.com/accounts/answer/185839?hl=pt-BR) na sua Conta Google.
-2. Abra a página de [senhas de app](https://myaccount.google.com/apppasswords), entre na conta que enviará os avisos e crie uma senha para o Telos. O Google mostra a senha uma única vez; guarde-a para o próximo passo.
-3. No `.env`, preencha os três campos. Use o endereço Gmail que criou a senha em `GMAIL_SENDER`, a senha gerada em `GMAIL_APP_PASSWORD` e informe em `GMAIL_RECIPIENT` o endereço ou a lista de endereços que receberá as mensagens. Separe vários endereços por vírgula. Todos recebem a mensagem em cópia oculta, sem ver o endereço dos demais. Esse fluxo é usado no computador; na hospedagem, o envio usa o Brevo:
-
-   ```text
-   GMAIL_SENDER=seu-endereco@gmail.com
-   GMAIL_APP_PASSWORD=senha-de-app-do-google
-   GMAIL_RECIPIENT=destino1@exemplo.com,destino2@exemplo.com
-   ```
-
-   Ao fim da rodada, o Telos envia pelo servidor seguro do Gmail (`smtp.gmail.com`, TLS na porta 587). O botão da interface permite reenviar a rodada. A senha de app requer Verificação em duas etapas; algumas contas de trabalho/escola, contas com Proteção Avançada ou contas que usam somente chaves de segurança podem não oferecer essa opção. Veja a [ajuda oficial do Google sobre senhas de app](https://support.google.com/accounts/answer/185833?hl=pt-BR) e os [parâmetros SMTP do Gmail](https://support.google.com/mail/answer/7104828?hl=pt-BR).
-
-### Rodar o Telos
-
-Com o Terminal ou PowerShell aberto na pasta principal, execute:
+Para abrir a página, execute:
 
 ```bash
-python telos.py
+python webapp.py
 ```
 
-O Telos busca as íntegras disponíveis do STJ e analisa os arquivos pendentes. O envio automático de avisos fica na interface web. Para analisar somente os arquivos que já estão em `decisoes/`, sem fazer uma nova busca, execute:
+Depois, abra [http://127.0.0.1:5000](http://127.0.0.1:5000) no navegador. Se definir a variável `PORT`, o programa usa essa porta; sem ela, usa `5000`. Não abra `templates/index.html` como arquivo: ele precisa do servidor Python para montar a página.
 
-```bash
-python telos.py --sem-busca
-```
+Para busca ao vivo, `TELOS_DEMO_MODE=false`, chave de IA e termos de busca válidos são necessários. Para enviar e-mail localmente, preencha `GMAIL_SENDER`, `GMAIL_APP_PASSWORD` e `GMAIL_RECIPIENT`. A senha de app do Gmail é criada na [página de senhas de app da Conta Google](https://myaccount.google.com/apppasswords); o Google exige a Verificação em duas etapas. Em `GMAIL_RECIPIENT`, pode haver vários endereços separados por vírgula; o Telos os envia em cópia oculta.
 
-Cada termo de busca do STJ pode ter até 120 caracteres. Se a busca automática falhar, também é possível colocar um arquivo `.txt` ou PDF com texto selecionável na pasta `decisoes/`; inclua nele o link oficial do STJ. PDFs digitalizados como imagem não são lidos nesta versão.
+O `.env` contém segredos e não deve ser enviado ao GitHub. O `.gitignore` já exclui esse arquivo e os dados locais de cadastro.
+
+### Hospedar no Render
+
+O arquivo `render.yaml` configura um serviço web gratuito. No Render, crie um **Blueprint** conectado a este repositório. O serviço usa `requirements-hosting.txt`, inicia o `webapp.py` com Gunicorn e recebe a porta da variável `PORT`, definida pelo Render. A configuração mantém `TELOS_HOSPEDADO=true` e `TELOS_DEMO_MODE=true`; assim, a busca ao vivo e as chaves de IA não são necessárias.
+
+No painel do Render, cadastre apenas `GMAIL_SENDER` e `BREVO_API_KEY` se quiser enviar e-mails. O endereço usado em `GMAIL_SENDER` deve estar autorizado como remetente na conta Brevo. Na hospedagem, o e-mail de cada rodada só é enviado se a pessoa preencher o campo da página; esse endereço é o único destinatário, e `GMAIL_RECIPIENT` é ignorado. Não cadastre chaves de IA, senha de app do Gmail nem termos de busca no Render para esta demonstração. Coloque valores secretos no painel do Render, nunca no código ou no GitHub.
+
+### Licença
+
+O Telos é distribuído sob a [licença MIT](LICENSE), em nome de Themis Tech, ano 2026.
