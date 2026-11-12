@@ -1,11 +1,13 @@
-"""Telos: monitora decisões do TJSP e faz triagem para casos do escritório."""
+"""Telos: monitora decisões do STJ e do TJSP para casos do escritório."""
 
 from __future__ import annotations
 
 import argparse
+import csv
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import hashlib
 import html
+import io
 import json
 import os
 import re
@@ -14,9 +16,12 @@ import ssl
 import sys
 import tempfile
 import time
+import unicodedata
 import urllib.error
 import urllib.parse
 import urllib.request
+import zipfile
+from datetime import date, datetime, timedelta
 from email.message import EmailMessage
 from email.utils import formatdate
 from pathlib import Path
@@ -64,6 +69,26 @@ MAX_DECISIONS_PER_RUN = 5
 MAX_GROQ_DECISION_CHARS = 18000
 ANALYSIS_VERSION = 5
 ANALYSIS_STATE_FILE = BASE_DIR / ".telos_processadas.json"
+STJ_API_BASE = "https://dadosabertos.web.stj.jus.br/api/3/action/"
+STJ_DECISIONS_DATASET = "integras-de-decisoes-terminativas-e-acordaos-do-diario-da-justica"
+STJ_QUALIFIED_DATASET = "precedentes-qualificados"
+STJ_PRECEDENTS_DIR = DECISIONS_DIR / "stj_precedentes"
+STJ_RELEVANT_TOPICS = {
+    "bancario": {
+        "27": "Caso 14 — juros remuneratórios",
+        "922": "Caso 15 — inscrição por dívida inexistente",
+        "1378": "Caso 14 — revisão de juros remuneratórios (tema afetado)",
+    },
+    "imobiliario": {
+        "970": "Caso 1 — lucros cessantes e cláusula penal",
+        "971": "Caso 1 — cláusula penal por atraso",
+        "996": "Casos 1 e 2 — atraso, aluguel e correção do saldo",
+    },
+    "empresarial": {
+        "465": "Caso 8 — protesto indevido de título de crédito",
+        "1051": "Caso 12 — existência do crédito na recuperação judicial",
+    },
+}
 URL_PATTERN = re.compile(r"https?://[^\s<>\]\[\)\}\"']+", re.IGNORECASE)
 EMAIL_JSON_KEYS = re.compile(
     r'''(?i)(?:["']\s*(?:casos|relacao|arquivo)\s*["']\s*:|(?:^|[\{\[,\n])\s*(?:casos|relacao|arquivo)\s*:)'''
@@ -139,6 +164,40 @@ def is_official_tjsp_link(candidate: str) -> bool:
     )
 
 
+def is_official_stj_link(candidate: str) -> bool:
+    try:
+        parsed = urllib.parse.urlparse(candidate)
+        host = (parsed.hostname or "").lower()
+    except ValueError:
+        return False
+    path = parsed.path.lower()
+    if parsed.scheme != "https" or not (host == "stj.jus.br" or host.endswith(".stj.jus.br")):
+        return False
+    query = urllib.parse.parse_qs(parsed.query)
+    is_full_text = path.endswith("/getinteiroteordoacordao")
+    is_qualified_topic = (
+        path.endswith("/repetitivos/temas_repetitivos/pesquisa.jsp")
+        and bool(query.get("cod_tema_inicial"))
+    )
+    return (is_full_text and bool(query.get("num_registro")) and bool(query.get("dt_publicacao"))) or is_qualified_topic
+
+
+def is_official_decision_link(candidate: str) -> bool:
+    return is_official_tjsp_link(candidate) or is_official_stj_link(candidate)
+
+
+def official_court_name(candidate: str) -> str:
+    return "STJ" if is_official_stj_link(candidate) else "TJSP"
+
+
+def official_link_description(candidate: str) -> str:
+    return f"link da consulta oficial do {official_court_name(candidate)}"
+
+
+def official_email_button(candidate: str) -> str:
+    return f"Ver a decisão no site oficial do {official_court_name(candidate)}"
+
+
 EMAIL_CASE_TITLES = {
     "caso_1.txt": "Caso 1 — Apartamento entregue com atraso",
     "caso_2.txt": "Caso 2 — Correção do saldo durante o atraso",
@@ -195,6 +254,15 @@ def decision_email_metadata(decision_text: str, official_link: str) -> dict[str,
                 process_number = process_match.group(0)
                 break
     query = urllib.parse.parse_qs(urllib.parse.urlparse(official_link).query)
+    if is_official_stj_link(official_link):
+        process_match = re.search(r"(?mi)^Processo STJ:\s*(.+)$", decision_text)
+        published_match = re.search(r"(?mi)^Data de publicação no DJe:\s*(.+)$", decision_text)
+        return {
+            "numero_processo": process_match.group(1).strip() if process_match else "não identificado no material",
+            "foro": "Superior Tribunal de Justiça",
+            "vara": "órgão julgador não identificado no material",
+            "data_decisao": published_match.group(1).strip() if published_match else "não identificada no material",
+        }
     linked_process = query.get("processo.numero", [""])[0]
     process_number = process_number or linked_process
 
@@ -270,7 +338,7 @@ def decision_email_metadata(decision_text: str, official_link: str) -> dict[str,
 def find_official_link(text: str) -> str | None:
     for candidate in URL_PATTERN.findall(text):
         candidate = candidate.rstrip(".,;:!?\"')")
-        if is_official_tjsp_link(candidate):
+        if is_official_decision_link(candidate):
             return candidate
     return None
 
@@ -279,18 +347,24 @@ def parse_decision_file(path: Path, raw_text: str) -> tuple[str, str | None, str
     """Return analysis text, official link, and content scope from a source file."""
     link = find_official_link(raw_text)
     content_type = "texto do arquivo"
+    source_lines = []
     body_lines = []
     for line in raw_text.splitlines():
         stripped = line.strip()
         if stripped.lower().startswith("link oficial:"):
             continue
+        if stripped.lower().startswith("consulta do tema no stj:"):
+            continue
         if stripped.lower().startswith("tipo de conteúdo:"):
             content_type = stripped.split(":", 1)[1].strip() or content_type
+            continue
+        if stripped.lower().startswith(("fonte:", "tribunal:", "área:", "área de busca:", "processo stj:", "registro stj:", "sequencial stj:", "data de publicação no dje:", "busca stj:", "casos com relação temática para conferência:", "tema repetitivo stj:", "situação no cadastro oficial:", "data do julgamento:", "data de publicação do acórdão:", "processo líder:", "número de registro:", "questão submetida a julgamento:", "tese firmada:", "observação:")):
+            source_lines.append(line)
             continue
         if stripped.lower().startswith("link oficial") and not link:
             continue
         body_lines.append(line)
-    return "\n".join(body_lines).strip(), link, content_type
+    return "\n".join(source_lines + [""] + body_lines).strip(), link, content_type
 
 
 def normalized(text: str) -> str:
@@ -527,6 +601,300 @@ def search_tjsp(
     elif not quiet:
         print("A busca automática não encontrou decisões novas para os termos definidos.")
     return saved
+
+
+def _stj_get_json(url: str) -> dict:
+    request = urllib.request.Request(url, headers={"User-Agent": "Telos/1.0 (Themis Tech; public STJ open data)"})
+    with urllib.request.urlopen(request, timeout=90) as response:
+        return json.loads(response.read().decode("utf-8"))
+
+
+def _stj_download(url: str) -> bytes:
+    request = urllib.request.Request(url, headers={"User-Agent": "Telos/1.0 (Themis Tech; public STJ open data)"})
+    with urllib.request.urlopen(request, timeout=180) as response:
+        return response.read()
+
+
+def _date_value(value: date | str | None, fallback: date) -> date:
+    if value is None:
+        return fallback
+    if isinstance(value, date):
+        return value
+    for pattern in ("%Y-%m-%d", "%d/%m/%Y"):
+        try:
+            return datetime.strptime(str(value), pattern).date()
+        except ValueError:
+            continue
+    raise ValueError(f"Data inválida para busca no STJ: {value}")
+
+
+def _stj_text_match_key(value: str) -> str:
+    folded = unicodedata.normalize("NFKD", value.casefold())
+    return "".join(char for char in folded if not unicodedata.combining(char))
+
+
+def _stj_search_terms(terms_by_area: dict[str, list[str]] | None = None) -> dict[str, list[str]]:
+    result = {}
+    for area in ("bancario", "imobiliario", "empresarial"):
+        supplied = (terms_by_area or {}).get(area)
+        raw = os.environ.get(f"STJ_SEARCH_TERMS_{area.upper()}", "").strip()
+        if supplied is not None:
+            values = supplied
+        elif raw:
+            values = raw.split(";")
+        else:
+            fallback = os.environ.get(f"TJSP_SEARCH_TERMS_{area.upper()}", "")
+            values = fallback.split(";")
+        result[area] = [str(term).strip() for term in values if str(term).strip() and len(str(term).strip()) <= 120]
+    return result
+
+
+def stj_decision_url(numero_registro: str, data_publicacao: str) -> str:
+    """Build the STJ SCON full-text URL from the STJ registry and DJe date."""
+    registration = re.sub(r"\D", "", str(numero_registro))
+    if not registration:
+        raise ValueError("O registro STJ é necessário para montar o link oficial.")
+    published = _date_value(data_publicacao, date.today())
+    query = urllib.parse.urlencode({
+        "num_registro": registration,
+        "dt_publicacao": published.strftime("%d/%m/%Y"),
+    }, safe="/")
+    url = f"https://scon.stj.jus.br/SCON/GetInteiroTeorDoAcordao?{query}"
+    if not is_official_stj_link(url):
+        raise ValueError("O link resultante não passou pela validação de domínio oficial do STJ.")
+    return url
+
+
+def _stj_plain_text(value: str) -> str:
+    value = re.sub(r"(?i)<br\s*/?>|</(?:p|div|li|tr|h[1-6])\s*>", "\n", value)
+    value = re.sub(r"<[^>]+>", " ", value)
+    value = html.unescape(value)
+    return "\n".join(" ".join(line.split()) for line in value.splitlines() if line.strip()).strip()
+
+
+def search_stj(
+    *,
+    area: str = "todas",
+    terms_by_area: dict[str, list[str]] | None = None,
+    date_start: date | str | None = None,
+    date_end: date | str | None = None,
+    progress_callback=None,
+    quiet: bool = False,
+) -> list[Path]:
+    """Fetch matching full-text decisions from the STJ open-data daily files.
+
+    The portal publishes each day as a metadata JSON plus a ZIP of text files.
+    Only publication dates in the requested range are downloaded and searched.
+    """
+    end = _date_value(date_end, date.today())
+    start = _date_value(date_start, end - timedelta(days=21))
+    if start > end:
+        raise ValueError("A data inicial não pode ser posterior à data final.")
+    area_terms = _stj_search_terms(terms_by_area)
+    selected_areas = tuple(area_terms) if area == "todas" else (area,)
+    if any(key not in area_terms for key in selected_areas):
+        raise ValueError("Área inválida para busca no STJ.")
+    flat_terms = [(key, term) for key in selected_areas for term in area_terms[key]]
+    if not flat_terms:
+        if not quiet:
+            print("Nenhum termo STJ configurado; a busca de decisões foi ignorada.")
+        return []
+
+    package = _stj_get_json(STJ_API_BASE + "package_show?id=" + urllib.parse.quote(STJ_DECISIONS_DATASET))
+    resources = package.get("result", {}).get("resources", [])
+    metadata_by_day: dict[str, dict] = {}
+    zip_by_day: dict[str, dict] = {}
+    for resource in resources:
+        name = str(resource.get("name", ""))
+        match = re.search(r"(?:metadados|textos)?(\d{8})(?:\.zip)?$", name, re.IGNORECASE)
+        if not match:
+            continue
+        day = match.group(1)
+        try:
+            resource_date = datetime.strptime(day, "%Y%m%d").date()
+        except ValueError:
+            continue
+        if not (start <= resource_date <= end):
+            continue
+        resource_format = str(resource.get("format", "")).upper()
+        if resource_format == "JSON" or name.lower().startswith("metadados"):
+            existing = metadata_by_day.get(day)
+            if not existing or str(resource.get("last_modified", "")) > str(existing.get("last_modified", "")):
+                metadata_by_day[day] = resource
+        elif resource_format == "ZIP" or name.lower().endswith(".zip"):
+            zip_by_day[day] = resource
+
+    days = sorted(set(metadata_by_day) & set(zip_by_day))
+    if not days:
+        if not quiet:
+            metadata_days = set()
+            zip_days = set()
+            for resource in resources:
+                name = str(resource.get("name", ""))
+                match = re.search(r"(?:metadados|textos)?(\d{8})(?:\.zip)?$", name, re.IGNORECASE)
+                if not match:
+                    continue
+                target = metadata_days if str(resource.get("format", "")).upper() == "JSON" or name.lower().startswith("metadados") else zip_days
+                target.add(match.group(1))
+            complete_days = sorted(metadata_days & zip_days)
+            latest = datetime.strptime(complete_days[-1], "%Y%m%d").strftime("%d/%m/%Y") if complete_days else "nenhum"
+            print(
+                f"STJ Dados Abertos: nenhum par diário de metadados e texto disponível de {start:%d/%m/%Y} a {end:%d/%m/%Y}; "
+                f"o dia mais recente com os dois arquivos no catálogo é {latest}."
+            )
+        return []
+
+    DECISIONS_DIR.mkdir(parents=True, exist_ok=True)
+    saved: list[Path] = []
+    seen: set[str] = set()
+    matched_counts = {key: 0 for key in selected_areas}
+    for day_index, day in enumerate(days, start=1):
+        if progress_callback:
+            progress_callback("searching_stj", day_index, len(days))
+        meta_bytes = _stj_download(metadata_by_day[day]["url"])
+        metadata = json.loads(meta_bytes.decode("utf-8-sig"))
+        if not isinstance(metadata, list):
+            raise ValueError(f"Formato inesperado no JSON diário do STJ ({day}).")
+        zip_bytes = _stj_download(zip_by_day[day]["url"])
+        with zipfile.ZipFile(io.BytesIO(zip_bytes)) as archive:
+            member_names = {Path(name).stem: name for name in archive.namelist() if name.lower().endswith(".txt")}
+            for record in metadata:
+                publication = str(record.get("dataPublicacao", ""))
+                try:
+                    publication_date = date.fromisoformat(publication[:10])
+                except ValueError:
+                    continue
+                if not (start <= publication_date <= end):
+                    continue
+                sequence = str(record.get("SeqDocumento", "")).strip()
+                member = member_names.get(sequence)
+                if not sequence or not member:
+                    continue
+                raw_body = archive.read(member).decode("utf-8", errors="replace")
+                body = _stj_plain_text(raw_body)
+                if not body:
+                    continue
+                folded_body = _stj_text_match_key(body)
+                matches = [(key, term) for key, term in flat_terms if _stj_text_match_key(term) in folded_body]
+                if not matches:
+                    continue
+                signature = hashlib.sha256((sequence + body).encode("utf-8")).hexdigest()
+                if signature in seen:
+                    continue
+                seen.add(signature)
+                area_match, search_term = matches[0]
+                matched_counts[area_match] += 1
+                registration = str(record.get("numeroRegistro", "")).strip()
+                if not registration:
+                    continue
+                official_link = stj_decision_url(registration, publication_date.isoformat())
+                filename = f"auto_stj_{sequence}_{signature[:10]}.txt"
+                path = DECISIONS_DIR / filename
+                if path.exists():
+                    continue
+                doc_type = str(record.get("tipoDocumento", "decisão"))
+                process = str(record.get("processo", "não informado"))
+                header = [
+                    "Fonte: Portal de Dados Abertos do STJ",
+                    f"Tipo de conteúdo: Íntegra de {doc_type.lower()} do Diário da Justiça do STJ",
+                    f"Tribunal: STJ",
+                    f"Área: {area_match}",
+                    f"Processo STJ: {process}",
+                    f"Registro STJ: {registration}",
+                    f"Sequencial STJ: {sequence}",
+                    f"Data de publicação no DJe: {publication_date:%d/%m/%Y}",
+                    f"Busca STJ: {search_term}",
+                    f"Link oficial: {official_link}",
+                    "",
+                ]
+                path.write_text("\n".join(header) + body + "\n", encoding="utf-8")
+                saved.append(path)
+
+    if not quiet:
+        by_area = ", ".join(f"{area_key}: {matched_counts[area_key]}" for area_key in selected_areas)
+        print(f"STJ Dados Abertos: {len(saved)} nova(s) decisão(ões)/acórdão(s) salva(s) ({by_area}).")
+    return saved
+
+
+def stj_qualified_topic_url(number: str) -> str:
+    clean_number = str(int(number))
+    query = urllib.parse.urlencode({
+        "cod_tema_inicial": clean_number,
+        "cod_tema_final": clean_number,
+        "novaConsulta": "true",
+        "tipo_pesquisa": "T",
+    })
+    return "https://processo.stj.jus.br/repetitivos/temas_repetitivos/pesquisa.jsp?" + query
+
+
+def download_stj_qualified_precedents(*, quiet: bool = False) -> dict[str, list[Path]]:
+    """Save official structured files and the qualified themes tied to the cases."""
+    package = _stj_get_json(STJ_API_BASE + "package_show?id=" + urllib.parse.quote(STJ_QUALIFIED_DATASET))
+    resources = package.get("result", {}).get("resources", [])
+    by_filename = {str(item.get("name", "")).casefold(): item for item in resources}
+    themes_resource = by_filename.get("temas.csv")
+    processes_resource = by_filename.get("processos.csv")
+    if not themes_resource or not processes_resource:
+        raise RuntimeError("O portal do STJ não disponibilizou os CSVs de temas e processos.")
+    themes_bytes = _stj_download(themes_resource["url"])
+    processes_bytes = _stj_download(processes_resource["url"])
+    STJ_PRECEDENTS_DIR.mkdir(parents=True, exist_ok=True)
+    (STJ_PRECEDENTS_DIR / "temas_stj.csv").write_bytes(themes_bytes)
+    (STJ_PRECEDENTS_DIR / "processos_stj.csv").write_bytes(processes_bytes)
+    themes = list(csv.DictReader(io.StringIO(themes_bytes.decode("utf-8-sig"))))
+    processes = list(csv.DictReader(io.StringIO(processes_bytes.decode("utf-8-sig"))))
+    selected_numbers = {number for area_map in STJ_RELEVANT_TOPICS.values() for number in area_map}
+    themes_by_number = {
+        row.get("numeroPrecedente", "").strip(): row
+        for row in themes
+        if row.get("tipoPrecedente", "").strip() == "Tema"
+        and row.get("numeroPrecedente", "").strip() in selected_numbers
+    }
+    process_by_number: dict[str, dict] = {}
+    for row in processes:
+        number = row.get("numeroPrecedente", "").strip()
+        if number in selected_numbers and row.get("tipoPrecedente", "").strip() == "Tema" and row.get("leadingCase", "").strip().upper() == "S":
+            process_by_number.setdefault(number, row)
+
+    result = {area: [] for area in STJ_RELEVANT_TOPICS}
+    for area, topics in STJ_RELEVANT_TOPICS.items():
+        for number, case_description in topics.items():
+            row = themes_by_number.get(number)
+            if not row:
+                continue
+            process = process_by_number.get(number, {})
+            registry = process.get("numeroRegistro", "").strip()
+            published = process.get("dataPbulicacaoAcordao", "").strip()
+            decision_link = stj_decision_url(registry, published) if registry and published else ""
+            topic_link = stj_qualified_topic_url(number)
+            official_link = decision_link or topic_link
+            if not is_official_stj_link(official_link):
+                continue
+            text = "\n".join([
+                "Fonte: Portal de Dados Abertos do STJ — Precedentes qualificados",
+                "Tipo de conteúdo: Ficha de precedente qualificado; não é uma decisão nova da janela de três semanas",
+                f"Área de busca: {area}",
+                f"Casos com relação temática para conferência: {case_description}",
+                f"Tema repetitivo STJ: {number}",
+                f"Situação no cadastro oficial: {row.get('situacao', '').strip()}",
+                f"Data do julgamento: {row.get('dataJulgamento', '').strip() or 'não informada'}",
+                f"Data de publicação do acórdão: {row.get('dataPublicacaoAcordao', '').strip() or 'não informada'}",
+                f"Processo líder: {process.get('Processo', '').strip() or 'não informado'}",
+                f"Número de registro: {registry or 'não informado'}",
+                f"Questão submetida a julgamento: {row.get('questaoSubmetidaAJulgamento', '').strip()}",
+                f"Tese firmada: {row.get('teseFirmada', '').strip() or 'Ainda não consta tese firmada no CSV; tema afetado, sem mérito publicado.'}",
+                f"Link oficial: {official_link}",
+                f"Consulta do tema no STJ: {topic_link}",
+                "",
+                "Observação: a seleção foi feita por correspondência temática nos dados públicos; não é uma análise de relação direta nem um aviso sobre processo do escritório.",
+            ])
+            path = STJ_PRECEDENTS_DIR / f"tema_{int(number):04d}.txt"
+            path.write_text(text + "\n", encoding="utf-8")
+            result[area].append(path)
+    if not quiet:
+        summary = ", ".join(f"{area}: {len(paths)}" for area, paths in result.items())
+        print(f"Precedentes qualificados STJ baixados e organizados ({summary}); arquivos estruturados brutos salvos em {STJ_PRECEDENTS_DIR}.")
+    return result
 
 
 def structured_analysis_schema() -> dict:
@@ -885,6 +1253,8 @@ def validate_result(result: dict, cases: list[dict]) -> None:
 
 
 def make_prompt(decision_text: str, content_type: str, cases: list[dict]) -> str:
+    tribunal_match = re.search(r"(?mi)^Tribunal:\s*(STJ|TJSP)\s*$", decision_text)
+    court_name = tribunal_match.group(1) if tribunal_match else "TJSP"
     case_lines = "\n\n".join(
         f"Arquivo: {case['arquivo']}\nDescrição:\n{case['texto']}" for case in cases
     )
@@ -904,7 +1274,7 @@ Extraia também o resultado da decisão. Use "procedente", "improcedente" ou "pa
 
 Avalie a favorabilidade à posição descrita para o cliente em cada caso, não à posição de uma parte cujo papel processual não foi informado. Use "favoravel" ou "desfavoravel" somente se o próprio texto trouxer trecho que sustente claramente essa leitura; use "mista" se beneficiar e prejudicar a posição descrita em aspectos relevantes; caso contrário, use "incerta". A favorabilidade não determina por si só se a decisão afeta o caso.
 
-O campo "resumo" deve ser uma frase curta em português simples que começa com "O TJSP..." e explica o que o tribunal decidiu e, se estiver claro no texto, o fundamento principal. Não repita a descrição do caso do cliente, não resuma os fatos do autor como se fossem a decisão e não use frases como "o cliente busca" ou "o cliente teve". Exemplo: "O TJSP afastou a cobrança por entender que o contrato não previa a tarifa." Se o texto não permitir dizer o que foi decidido, deixe o resumo vazio.
+O campo "resumo" deve ser uma frase curta em português simples que começa com "O {court_name}..." e explica o que o tribunal decidiu e, se estiver claro no texto, o fundamento principal. Não repita a descrição do caso do cliente, não resuma os fatos do autor como se fossem a decisão e não use frases como "o cliente busca" ou "o cliente teve". Se o texto não permitir dizer o que foi decidido, deixe o resumo vazio.
 
 Responda somente JSON válido neste formato:
 {{"resultado_decisao":{{"classificacao":"procedente|improcedente|parcialmente_procedente|outro_resultado_explicito|nao_identificado","texto":"formulação literal curta do resultado; vazio se não identificado","evidencia":"trecho literal curto que comprova o resultado; vazio se não identificado"}},"casos":[{{"arquivo":"nome exato do arquivo do caso","relacao":"direta|indireta|nenhuma|incerta","resumo":"o que o tribunal decidiu, em linguagem simples; vazio se a relação for nenhuma/incerta ou se não constar no material","motivo":"explica a correspondência direta, a necessidade de analogia, a ausência de relação ou a incerteza","evidencias":["trechos literais curtos que sustentam a classificação"],"favorabilidade":"favoravel|desfavoravel|mista|incerta","motivo_favorabilidade":"por que o resultado favorece, desfavorece, tem efeito misto ou é inconclusivo para a posição do cliente","evidencia_favorabilidade":"trecho literal curto que comprova a avaliação; vazio somente quando incerta"}}]}}
@@ -1169,7 +1539,7 @@ def print_decision_result(path: Path, official_link: str, result: dict, decision
         print(f"\n  Não tenho certeza sobre a relação com: {', '.join(uncertain)}.")
     if not direct and not indirect and not uncertain:
         print("  Esta decisão não tem relação relevante com nenhum dos casos cadastrados.")
-    print(f"  Link da consulta oficial do TJSP: {official_link}")
+    print(f"  {official_link_description(official_link).capitalize()}: {official_link}")
     return email_alerts
 
 
@@ -1181,6 +1551,12 @@ def round_email_subject(alert_count: int, review_count: int) -> str:
 
 
 def decision_metadata_text(item: dict) -> str:
+    tribunal = item.get("tribunal", "")
+    if tribunal == "STJ" or is_official_stj_link(item.get("link_oficial", "")):
+        return (
+            f"Processo: {item.get('numero_processo', 'não identificado no material')} · "
+            f"Tribunal: STJ · Data de publicação: {item.get('data_decisao', 'não identificada no material')}"
+        )
     return (
         f"Processo: {item.get('numero_processo', 'não identificado no material')} · "
         f"Foro: {item.get('foro', 'não informado')} · "
@@ -1445,7 +1821,7 @@ def format_round_email(
     for group in group_alerts_by_decision(alerts):
         first = group[0]
         if not all(direct_alert_is_readable(alert) for alert in group):
-            lines.extend(["", UNREADABLE_OPINION, f"Link da consulta oficial do TJSP: {first['link_oficial']}"])
+            lines.extend(["", UNREADABLE_OPINION, f"{official_link_description(first['link_oficial']).capitalize()}: {first['link_oficial']}"])
             continue
         lines.extend(["", first["resumo"], affected_case_count_text(len(group))])
         lines.extend([
@@ -1466,7 +1842,7 @@ def format_round_email(
                 break
         if any(alert.get("texto_parcial") for alert in group):
             lines.append("A análise usou trechos iniciais e finais; a parte intermediária não foi enviada ao modelo.")
-        lines.append(f"Link da consulta oficial do TJSP: {first['link_oficial']}")
+        lines.append(f"{official_link_description(first['link_oficial']).capitalize()}: {first['link_oficial']}")
 
     lines.extend(["", "REVISAR À MÃO"])
     if not reviews:
@@ -1477,7 +1853,7 @@ def format_round_email(
                 "",
                 decision_metadata_text(review),
                 UNREADABLE_OPINION,
-                f"Link da consulta oficial do TJSP: {review['link_oficial']}",
+                f"{official_link_description(review['link_oficial']).capitalize()}: {review['link_oficial']}",
             ])
             continue
         cases = review_cases(review)
@@ -1491,7 +1867,7 @@ def format_round_email(
                 format_review_opinion("Parecer 1", item["parecer_1"], item["resultado_1"]),
                 format_review_opinion("Parecer 2", item["parecer_2"], item["resultado_2"]),
             ])
-        lines.extend([review_disagreement_text(review, cases), f"Link da consulta oficial do TJSP: {review['link_oficial']}"])
+        lines.extend([review_disagreement_text(review, cases), f"{official_link_description(review['link_oficial']).capitalize()}: {review['link_oficial']}"])
     content = "\n".join(lines)
     verify_email_has_no_json_keys(content)
     return content
@@ -1614,7 +1990,7 @@ def render_round_email_html(
                 f'<div style="font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:20px;'
                 f'color:{ink};">{_email_escape(UNREADABLE_OPINION)}</div>',
                 '<div style="padding-top:16px;">',
-                _email_button(first.get("link_oficial", ""), "Ver a decisão no site oficial do TJSP"),
+                _email_button(first.get("link_oficial", ""), official_email_button(first.get("link_oficial", ""))),
                 '</div></td></tr></table></td></tr>',
             ])
             continue
@@ -1688,7 +2064,7 @@ def render_round_email_html(
             )
         parts.extend([
             '<div style="padding-top:18px;">',
-            _email_button(first.get("link_oficial", ""), "Ver a decisão no site oficial do TJSP"),
+            _email_button(first.get("link_oficial", ""), official_email_button(first.get("link_oficial", ""))),
             '</div></td></tr></table></td></tr>',
         ])
 
@@ -1712,7 +2088,7 @@ def render_round_email_html(
                 f'<div style="padding-top:8px;font-family:Arial,Helvetica,sans-serif;font-size:13px;'
                 f'line-height:20px;color:{ink};">{_email_escape(UNREADABLE_OPINION)}</div>',
                 '<div style="padding-top:16px;">',
-                _email_button(review.get("link_oficial", ""), "Ver a decisão no site oficial do TJSP"),
+                _email_button(review.get("link_oficial", ""), official_email_button(review.get("link_oficial", ""))),
                 '</div></td></tr></table></td></tr>',
             ])
             continue
@@ -1753,7 +2129,7 @@ def render_round_email_html(
         )
         parts.extend([
             '<div style="padding-top:16px;">',
-            _email_button(review.get("link_oficial", ""), "Ver a decisão no site oficial do TJSP"),
+            _email_button(review.get("link_oficial", ""), official_email_button(review.get("link_oficial", ""))),
             '</div></td></tr></table></td></tr>',
         ])
     parts.extend([
@@ -1930,8 +2306,9 @@ def analyze_decisions(
             continue
         text, link, content_type = parse_decision_file(path, raw_text)
         if not link:
-            print(f"\nDecisão: {path.name}\n  Não encontrei um link oficial verificável do TJSP no arquivo; não vou inventar um link.")
+            print(f"\nDecisão: {path.name}\n  Não encontrei um link oficial verificável do STJ ou do TJSP no arquivo; não vou inventar um link.")
             continue
+        tribunal = official_court_name(link)
         fingerprint = decision_fingerprint(path, raw_text)
         if fingerprint in completed:
             continue
@@ -2006,7 +2383,7 @@ def analyze_decisions(
         if consensus is None:
             print(f"\nDecisão: {path.name}")
             print_manual_review(opinions[(index, 1)], opinions[(index, 2)], disagreements, full_text)
-            print(f"  Link da consulta oficial do TJSP: {link}")
+            print(f"  {official_link_description(link).capitalize()}: {link}")
             round_reviews.append({
                 "decisao": path.name,
                 "link_oficial": link,
@@ -2069,11 +2446,18 @@ def analyze_decisions(
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Busca e analisa decisões do TJSP relacionadas aos casos cadastrados.")
+    parser = argparse.ArgumentParser(description="Busca decisões do STJ e do TJSP relacionadas aos casos cadastrados.")
     parser.add_argument("--sem-busca", action="store_true", help="analisa somente os arquivos já existentes em decisoes/")
+    parser.add_argument("--baixar-stj", action="store_true", help="baixa decisões STJ disponíveis nas últimas três semanas e temas repetitivos relacionados; não chama a IA nem envia e-mail")
     args = parser.parse_args()
 
     load_env_file()
+    if args.baixar_stj:
+        period_end = date.today()
+        period_start = period_end - timedelta(days=21)
+        search_stj(area="todas", date_start=period_start, date_end=period_end)
+        download_stj_qualified_precedents()
+        return 0
     provider = os.environ.get("AI_PROVIDER", "openai").strip().lower() or "openai"
     if provider not in {"groq", "gemini", "openai"}:
         print('Provedor inválido. Defina AI_PROVIDER como "openai", "gemini" ou "groq" no arquivo .env.')
@@ -2095,6 +2479,14 @@ def main() -> int:
         return 1
 
     if not args.sem_busca:
+        try:
+            search_stj(area="todas")
+        except Exception as error:
+            print(f"Busca STJ indisponível ({type(error).__name__}); continuarei com o TJSP.")
+        try:
+            download_stj_qualified_precedents(quiet=True)
+        except Exception as error:
+            print(f"Precedentes qualificados do STJ indisponíveis ({type(error).__name__}); continuarei com as decisões.")
         search_tjsp()
     return analyze_decisions(api_key, model, provider)
 

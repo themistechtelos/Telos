@@ -2,11 +2,11 @@
 
 ## 1. O que é o Telos
 
-O Telos é um vigia de jurisprudência para escritórios de advocacia, criado pela Themis Tech. Ele busca decisões novas no Tribunal de Justiça de São Paulo (TJSP), compara essas decisões com os casos do escritório e avisa quais casos podem ter sido afetados. Os avisos informam o resultado da decisão e se ele favorece ou desfavorece a posição do cliente.
+O Telos é um vigia de jurisprudência para escritórios de advocacia, criado pela Themis Tech. Ele busca decisões novas primeiro no Superior Tribunal de Justiça (STJ) e também no Tribunal de Justiça de São Paulo (TJSP), compara essas decisões com os casos do escritório e avisa quais casos podem ter sido afetados. Os avisos informam o resultado da decisão e se ele favorece ou desfavorece a posição do cliente.
 
 ## 2. Como funciona
 
-1. **Busca:** consulta decisões no TJSP com os termos configurados pelo escritório.
+1. **Busca:** consulta decisões no STJ e no TJSP com os termos configurados pelo escritório.
 2. **Análise:** a inteligência artificial compara o texto encontrado com os casos cadastrados. Cada decisão recebe dois pareceres independentes.
 3. **Aviso:** quando os pareceres concordam que há relação direta, o Telos mostra o resumo, o motivo, o resultado, trechos do documento e o link oficial.
 
@@ -17,19 +17,19 @@ A prévia [email_exemplo.html](email_exemplo.html) foi gerada com avisos da demo
 ## 4. Proteções contra erros da IA
 
 - **Citações conferidas:** o Telos verifica se cada trecho citado existe no texto da decisão. Citações que não aparecem no arquivo não são usadas como prova do aviso.
-- **Link oficial controlado pelo programa:** nas buscas automáticas, o Telos monta o link de consulta com identificadores recebidos do TJSP. A IA não inventa nem escolhe o link. Para arquivos colocados manualmente, o Telos usa o link oficial informado no próprio arquivo.
+- **Link oficial controlado pelo programa:** no STJ, o Telos monta o link do inteiro teor com o número de registro e a data do Diário da Justiça que vieram do catálogo oficial; no TJSP, usa os identificadores da busca. Para temas repetitivos, aponta à página oficial do tema. A IA não inventa nem escolhe o link. Para arquivos colocados manualmente, o Telos usa o link oficial informado no próprio arquivo.
 - **Segundo parecer:** uma decisão de outro processo tem relação direta quando resolve a mesma questão jurídica discutida no caso do escritório e pode servir de precedente. Por exemplo, uma decisão que concede lucros cessantes por atraso na entrega de imóvel é direta para um caso que também pede lucros cessantes pelo atraso. Se tratar de tema parecido, mas resolver outra questão, a relação é indireta. Os dois pareceres precisam concordar que a relação é direta e comprová-la com trechos encontrados no arquivo. Se concordarem sobre a relação, mas divergirem apenas sobre o resultado ou a favorabilidade, o aviso é enviado com o selo **“Favorabilidade a confirmar”**. Divergências sobre a própria relação vão para **“Revisar à mão”**, junto com os dois pareceres.
 - **Incerteza explícita:** quando o material não permite uma conclusão segura, o Telos diz **“não tenho certeza”** em vez de afirmar que a decisão afeta o caso.
 
 ## 5. Como mudar a área vigiada
 
-Nesta configuração, o Telos acompanha Direito Imobiliário, Empresarial e Bancário. A área depende dos casos cadastrados na pasta `casos/` e dos termos `TJSP_SEARCH_TERMS_IMOBILIARIO`, `TJSP_SEARCH_TERMS_EMPRESARIAL` e `TJSP_SEARCH_TERMS_BANCARIO` no arquivo `.env`. Cada variável aceita vários termos separados por ponto e vírgula. Os casos bancários recuperados do histórico são os Casos 14 a 16; os Casos 1 a 13, inclusive o Caso 13 de controle, foram preservados. O Caso 13 não tem termo de busca.
+Nesta configuração, o Telos acompanha Direito Imobiliário, Empresarial e Bancário. A área depende dos casos cadastrados na pasta `casos/` e dos termos `TJSP_SEARCH_TERMS_IMOBILIARIO`, `TJSP_SEARCH_TERMS_EMPRESARIAL`, `TJSP_SEARCH_TERMS_BANCARIO` e, opcionalmente, `STJ_SEARCH_TERMS_IMOBILIARIO`, `STJ_SEARCH_TERMS_EMPRESARIAL` e `STJ_SEARCH_TERMS_BANCARIO` no arquivo `.env`. Cada variável aceita vários termos separados por ponto e vírgula. Se os termos `STJ_SEARCH_TERMS_*` não forem definidos, o Telos usa os termos correspondentes do TJSP. Cada termo STJ é buscado literalmente no texto do documento, sem IA. Os casos bancários recuperados do histórico são os Casos 14 a 16; os Casos 1 a 13, inclusive o Caso 13 de controle, foram preservados. O Caso 13 não tem termo de busca.
 
 ## 6. Limitações
 
-- Por enquanto, as buscas automáticas são feitas somente no TJSP.
-- A busca consulta uma página por termo em cada tipo de decisão.
-- Para decisões de primeiro grau, o Telos analisa o texto disponível na busca. Para acórdãos, analisa somente a ementa; não baixa o acórdão completo.
+- O STJ é a fonte principal; o TJSP continua como fonte complementar.
+- No STJ, a janela de três semanas só pode cobrir datas para as quais o portal já publicou os arquivos diários de metadados e textos. O portal pode atualizar com atraso.
+- No STJ, decisões terminativas e acórdãos do Diário da Justiça são baixados em texto integral quando publicados nos arquivos disponíveis. No TJSP, a busca consulta até três páginas por termo; para acórdãos, analisa somente a ementa e não baixa o inteiro teor.
 - Cada rodada analisa até cinco decisões. O custo e os limites de uso dependem do provedor configurado; a OpenAI cobra pelos tokens usados.
 - O Telos ajuda a localizar decisões que merecem atenção, mas não substitui a leitura da decisão nem a análise de uma advogada ou advogado.
 
@@ -43,23 +43,25 @@ Gemini e Groq continuam disponíveis como alternativas configuráveis no `.env`.
 
 Na primeira fase, apresentamos o Telos em um site (https://themistech.netlify.app) com a visão completa do produto. Nesta segunda fase, construímos uma versão real e reduzida. Esta seção mostra, com honestidade, o que foi entregue, o que foi simplificado e o que fica para uma próxima versão.
 
-O que foi entregue. O Telos busca sozinho decisões novas no Tribunal de Justiça de São Paulo, compara cada uma com os casos do escritório e avisa quais casos foram afetados, com o que mudou e o link oficial para conferir, como prometido no site. Também mantivemos a promessa central de nunca entregar informação sem fonte oficial: o link é montado pelo programa a partir dos dados do tribunal, e cada trecho citado pela inteligência artificial é conferido no texto da decisão. O produto pode ser configurado para qualquer área do Direito, porque a área vigiada depende dos casos cadastrados e dos termos de busca.
+O que foi entregue. O Telos busca sozinho decisões novas primeiro no Superior Tribunal de Justiça e também no Tribunal de Justiça de São Paulo, compara cada uma com os casos do escritório e avisa quais casos foram afetados, com o que mudou e o link oficial para conferir, como prometido no site. Também mantivemos a promessa central de nunca entregar informação sem fonte oficial: o link é montado pelo programa a partir dos dados do tribunal, e cada trecho citado pela inteligência artificial é conferido no texto da decisão. O produto pode ser configurado para qualquer área do Direito, porque a área vigiada depende dos casos cadastrados e dos termos de busca.
 
 O que entregamos além do prometido. Cada aviso informa o resultado da decisão e se ela é favorável ou desfavorável ao cliente. Criamos ainda um "segundo parecer": cada decisão é analisada duas vezes e só vira aviso quando as duas análises concordam que a relação com o caso é direta. Se os pareceres divergirem apenas sobre o resultado ou a favorabilidade, o aviso sai marcado "Favorabilidade a confirmar". Se discordarem sobre a relação direta, a decisão vai para "Revisar à mão". Fizemos isso depois de medir que um dos modelos testados dava respostas diferentes para a mesma decisão.
 
-O que foi simplificado, e por quê. O site prometia vigiar leis, o Supremo Tribunal Federal, o Superior Tribunal de Justiça, o Banco Central, o Cade e a Receita. Esta versão vigia só o Tribunal de Justiça de São Paulo, porque a biblioteca pública que usamos para buscar decisões não cobre o Superior Tribunal de Justiça, e cada nova fonte exige um buscador próprio. O site prometia avisos na hora, por e-mail ou WhatsApp. Esta versão envia avisos por e-mail ao fim da rodada quando há destinatário configurado; o botão permite reenviar. O WhatsApp exige um acesso oficial pago, e a execução automática diária depende de um computador ou servidor ligado. O site mostrava a escolha do que vigiar escrevendo em linguagem natural. Aqui, isso é feito editando os termos de busca no arquivo de configuração. O site mostrava contratos completos. Aqui, cada caso é uma descrição curta. Os acórdãos de segundo grau são analisados apenas pela ementa, e esta primeira versão limita cada execução a cinco decisões.
+O que foi simplificado, e por quê. O site prometia vigiar leis, o Supremo Tribunal Federal, o Banco Central, o Cade e a Receita. Esta versão consulta o Superior Tribunal de Justiça e mantém o Tribunal de Justiça de São Paulo como segunda fonte. O site prometia avisos na hora, por e-mail ou WhatsApp. Esta versão envia avisos por e-mail ao fim da rodada quando há destinatário configurado; o botão permite reenviar. O WhatsApp exige um acesso oficial pago, e a execução automática diária depende de um computador ou servidor ligado. O site mostrava a escolha do que vigiar escrevendo em linguagem natural. Aqui, isso é feito editando os termos de busca no arquivo de configuração. O site mostrava contratos completos. Aqui, cada caso é uma descrição curta. No TJSP, os acórdãos de segundo grau são analisados apenas pela ementa; a execução limita a cinco decisões.
 
 Sigilo. O site prometia criptografia do início ao fim. Uma criptografia completa não é possível quando uma inteligência artificial precisa ler o texto para analisá-lo. Nesta versão, usamos casos inventados e decisões públicas. Os textos são enviados ao provedor escolhido; as regras de retenção e uso dos dados variam conforme o provedor e as configurações da conta. Em uso real, mantenha o nome do cliente no computador do escritório e envie à inteligência artificial apenas um código e a descrição do caso.
 
-Próximos passos. Novas fontes, começando pelo Superior Tribunal de Justiça e pelos diários oficiais; execução automática diária em servidor; leitura do acórdão completo; cadastro de contratos inteiros; e envio de cada aviso apenas ao advogado responsável pelo caso.
+Próximos passos. Acrescentar outras fontes, como os diários oficiais; execução automática diária em servidor; ampliar a leitura de documentos do TJSP; cadastro de contratos inteiros; e envio de cada aviso apenas ao advogado responsável pelo caso.
 
 ## 8. Interface web
 
+O modo de demonstração da página continua usando a rodada fixa já verificada. A busca ao vivo no STJ e no TJSP fica disponível no computador quando `TELOS_DEMO_MODE=false`; na hospedagem ela permanece desativada.
+
 A interface permite informar um e-mail para receber os avisos. Ao terminar a rodada, o Telos mostra os resultados na página e envia o e-mail automaticamente quando há destinatário configurado. No computador, o envio vai para os destinatários do `.env` e também para o endereço digitado; na hospedagem, vai somente para o endereço digitado. Se nenhum endereço for digitado na hospedagem, nenhum e-mail é enviado. Depois de um envio bem-sucedido, o botão **Enviar avisos por e-mail** fica disponível para reenviar aquela rodada. A página confirma o envio. As chaves e senhas não são enviadas à página.
 
-O modo de demonstração é controlado pela variável `TELOS_DEMO_MODE` no `.env` e vem ligado (`true`). Nesse modo, o botão reapresenta uma rodada fixa de decisões já verificadas, com andamento simulado, sem consultar o TJSP nem chamar a IA. A escolha da área e da quantidade vale também para essa rodada: a opção “Todas as áreas” usa a rodada completa, e as outras opções filtram as decisões e seus avisos antes de mostrar até a quantidade escolhida. A página não exibe um aviso de que está nesse modo. No computador, para fazer buscas e análises reais, mude `TELOS_DEMO_MODE=false`; a busca consulta decisões dos últimos 21 dias, até três páginas por termo, acrescentando arquivos sem apagar os anteriores.
+O modo de demonstração é controlado pela variável `TELOS_DEMO_MODE` no `.env` e vem ligado (`true`). Nesse modo, o botão reapresenta uma rodada fixa de decisões já verificadas, com andamento simulado, sem consultar o STJ ou o TJSP nem chamar a IA. A escolha da área e da quantidade vale também para essa rodada: a opção “Todas as áreas” usa a rodada completa, e as outras opções filtram as decisões e seus avisos antes de mostrar até a quantidade escolhida. A página não exibe um aviso de que está nesse modo. No computador, para fazer buscas e análises reais, mude `TELOS_DEMO_MODE=false`; a busca do TJSP consulta decisões dos últimos 21 dias, até três páginas por termo, e a do STJ consulta os arquivos diários que o portal já disponibilizou para esse período. As fontes acrescentam arquivos sem apagar os anteriores.
 
-Em hospedagem, `TELOS_HOSPEDADO=true` força o modo de demonstração, mesmo se `TELOS_DEMO_MODE` estiver desligado, e impede buscas ao vivo no TJSP. O envio usa a API transacional do Brevo com `BREVO_API_KEY` e o remetente informado em `GMAIL_SENDER`; esse endereço precisa estar cadastrado e autorizado na conta Brevo. Cada envio hospedado aceita somente o endereço digitado na página e ignora completamente `GMAIL_RECIPIENT`; não há outros destinatários que possam ver esse endereço. Há limite de um envio iniciado por minuto e 20 por dia. Para uso no computador, deixe `TELOS_HOSPEDADO=false` (ou vazio): o modo e os destinatários continuam seguindo as configurações locais de hoje, e o Gmail continua sendo usado. O arquivo local que registra o limite pode ser apagado quando o serviço gratuito reinicia; por isso, esses limites são uma proteção operacional para uma instância hospedada, não um mecanismo contra abuso distribuído.
+Em hospedagem, `TELOS_HOSPEDADO=true` força o modo de demonstração, mesmo se `TELOS_DEMO_MODE` estiver desligado, e impede buscas ao vivo no STJ e no TJSP. O envio usa a API transacional do Brevo com `BREVO_API_KEY` e o remetente informado em `GMAIL_SENDER`; esse endereço precisa estar cadastrado e autorizado na conta Brevo. Cada envio hospedado aceita somente o endereço digitado na página e ignora completamente `GMAIL_RECIPIENT`; não há outros destinatários que possam ver esse endereço. Há limite de um envio iniciado por minuto e 20 por dia. Para uso no computador, deixe `TELOS_HOSPEDADO=false` (ou vazio): o modo e os destinatários continuam seguindo as configurações locais de hoje, e o Gmail continua sendo usado. O arquivo local que registra o limite pode ser apagado quando o serviço gratuito reinicia; por isso, esses limites são uma proteção operacional para uma instância hospedada, não um mecanismo contra abuso distribuído.
 
 A rodada fixa mistura Direito Bancário, Imobiliário e Empresarial. Inclui atraso na entrega (3 casos), defeitos no apartamento (2), saída de sócio (2), duplicata protestada (2) e empréstimo consignado não reconhecido (2). A decisão bancária também tem um item para “Revisar à mão”, que apareceu nas duas rodadas de verificação. Os casos fictícios de demonstração ficam em `casos/demonstracao/`, numerados de 17 a 27; os nove casos 17 a 25 mantêm as descrições, e os Casos 26 e 27 descrevem questões de empréstimo consignado.
 
@@ -124,6 +126,16 @@ python -m pip install -r requirements.txt
 
 Se `python` não funcionar, tente `python3`.
 
+### Buscar no STJ sem chamar a inteligência artificial
+
+Com `TELOS_DEMO_MODE=false`, a interface do computador busca primeiro as íntegras do STJ disponíveis nos arquivos diários do portal e depois as decisões do TJSP. Para baixar apenas as decisões do STJ das últimas três semanas e atualizar as fichas dos temas repetitivos, sem chamar IA nem enviar e-mail, execute:
+
+```bash
+python telos.py --baixar-stj
+```
+
+As decisões completas ficam em `decisoes/auto_stj_*.txt`. Os CSVs oficiais e as fichas dos precedentes ficam em `decisoes/stj_precedentes/`, subpasta que o Telos não envia para análise como se fosse uma decisão recente. O portal pode publicar os arquivos diários com atraso; se não houver o par JSON/ZIP na janela, o comando informa a última data completa encontrada e baixa os precedentes qualificados disponíveis.
+
 ### Configurar a OpenAI (provedor padrão)
 
 1. Crie uma chave na [página de chaves da API OpenAI](https://platform.openai.com/api-keys). A API é paga por uso; confira os preços atuais antes de rodar análises.
@@ -176,10 +188,10 @@ Com o Terminal ou PowerShell aberto na pasta principal, execute:
 python telos.py
 ```
 
-O Telos busca decisões no TJSP e analisa as decisões pendentes. O envio automático de avisos fica na interface web. Para analisar somente os arquivos que já estão em `decisoes/`, sem fazer uma nova busca, execute:
+O Telos busca primeiro as íntegras do STJ disponíveis, depois as decisões do TJSP, e analisa os arquivos pendentes. O envio automático de avisos fica na interface web. Para analisar somente os arquivos que já estão em `decisoes/`, sem fazer uma nova busca, execute:
 
 ```bash
 python telos.py --sem-busca
 ```
 
-Cada termo de `TJSP_SEARCH_TERMS` pode ter até 120 caracteres. Se a busca automática falhar, também é possível colocar um arquivo `.txt` ou PDF com texto selecionável na pasta `decisoes/`; inclua nele o link oficial do TJSP. PDFs digitalizados como imagem não são lidos nesta versão.
+Cada termo de busca do TJSP ou do STJ pode ter até 120 caracteres. Se uma busca automática falhar, também é possível colocar um arquivo `.txt` ou PDF com texto selecionável na pasta `decisoes/`; inclua nele o link oficial do STJ ou do TJSP. PDFs digitalizados como imagem não são lidos nesta versão.

@@ -23,7 +23,10 @@
   function officialLink(url) {
     try {
       const parsed = new URL(url);
-      return parsed.protocol === 'https:' && (parsed.hostname === 'tjsp.jus.br' || parsed.hostname.endsWith('.tjsp.jus.br'));
+      return parsed.protocol === 'https:' && (
+        parsed.hostname === 'tjsp.jus.br' || parsed.hostname.endsWith('.tjsp.jus.br') ||
+        parsed.hostname === 'stj.jus.br' || parsed.hostname.endsWith('.stj.jus.br')
+      );
     } catch (_) { return false; }
   }
 
@@ -51,7 +54,8 @@
       card.append(node('h3', '', 'Nenhum caso com relação direta confirmada'));
       card.append(node('div', 'decision-meta', item.metadata || 'Dados do processo não informados.'));
       if (officialLink(item.link)) {
-        const link = node('a', 'official-link', 'Ver a decisão no site oficial do TJSP →');
+        const court = item.link.includes('.stj.jus.br/') ? 'STJ' : 'TJSP';
+        const link = node('a', 'official-link', `Ver a decisão no site oficial do ${court} →`);
         link.href = item.link; link.target = '_blank'; link.rel = 'noopener noreferrer'; card.append(link);
       }
       content.append(card);
@@ -89,7 +93,8 @@
         });
         if (item.somente_ementa) card.append(node('p', 'decision-meta', 'Análise feita somente com a ementa do acórdão.'));
         if (officialLink(item.link)) {
-          const link = node('a', 'official-link', 'Ver a decisão no site oficial do TJSP →');
+          const court = item.link.includes('.stj.jus.br/') ? 'STJ' : 'TJSP';
+          const link = node('a', 'official-link', `Ver a decisão no site oficial do ${court} →`);
           link.href = item.link; link.target = '_blank'; link.rel = 'noopener noreferrer';
           card.append(link);
         }
@@ -115,7 +120,8 @@
         });
         card.append(node('div', 'divergence', `Ponto de divergência: ${review.divergencia || 'Os pareceres não chegaram a uma conclusão segura em comum.'}`));
         if (officialLink(review.link)) {
-          const link = node('a', 'official-link', 'Ver a decisão no site oficial do TJSP →');
+          const court = review.link.includes('.stj.jus.br/') ? 'STJ' : 'TJSP';
+          const link = node('a', 'official-link', `Ver a decisão no site oficial do ${court} →`);
           link.href = review.link; link.target = '_blank'; link.rel = 'noopener noreferrer'; card.append(link);
         }
         reviewHeader.append(card);
@@ -188,7 +194,7 @@
       if (!response.ok) throw new Error(data.error || 'Não foi possível iniciar a rodada.');
       progressPanel.hidden = false;
       progressTitle.textContent = 'O Telos está trabalhando';
-      progressMessage.textContent = 'Buscando decisões novas no TJSP…';
+      progressMessage.textContent = 'Buscando primeiro no STJ e depois no TJSP…';
       refreshState();
     } catch (error) {
       errorBox.textContent = error.message || 'Não foi possível iniciar a rodada.';

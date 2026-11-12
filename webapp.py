@@ -37,6 +37,11 @@ AREA_TERM_ENV = {
     "empresarial": "TJSP_SEARCH_TERMS_EMPRESARIAL",
     "bancario": "TJSP_SEARCH_TERMS_BANCARIO",
 }
+STJ_AREA_TERM_ENV = {
+    "imobiliario": "STJ_SEARCH_TERMS_IMOBILIARIO",
+    "empresarial": "STJ_SEARCH_TERMS_EMPRESARIAL",
+    "bancario": "STJ_SEARCH_TERMS_BANCARIO",
+}
 app = Flask(
     __name__,
     template_folder=str(ROOT / "templates"),
@@ -178,6 +183,17 @@ def configured_terms(area: str) -> list[str]:
     return [term.strip() for term in raw.split(";") if term.strip() and len(term.strip()) <= 120]
 
 
+def configured_stj_terms(area: str) -> dict[str, list[str]]:
+    """Read STJ terms by legal area, falling back to the matching TJSP terms."""
+    grouped = {}
+    for key, env_name in STJ_AREA_TERM_ENV.items():
+        raw = os.environ.get(env_name, "").strip() or os.environ.get(AREA_TERM_ENV[key], "")
+        grouped[key] = [term.strip() for term in raw.split(";") if term.strip() and len(term.strip()) <= 120]
+    if area != "todas":
+        return {area: grouped[area]}
+    return grouped
+
+
 def case_number(path: Path) -> int | None:
     match = re.search(r"\d+", path.stem)
     return int(match.group()) if match else None
@@ -277,7 +293,7 @@ def demo_case_example(description: str, client_name: str, area: str) -> tuple[di
         linked_alerts = [item for item in fixture.get("alerts", []) if item.get("decisao") == filename]
         chosen = next((item for item in linked_alerts
                        if telos.direct_alert_is_readable(item)
-                       and telos.is_official_tjsp_link(item.get("link_oficial", ""))), None)
+                       and telos.is_official_decision_link(item.get("link_oficial", ""))), None)
         if chosen is None:
             continue
         try:
@@ -434,8 +450,12 @@ def decision_candidates(terms: list[str], saved: list[Path], area: str) -> list[
             raw = telos.read_document(path)
         except Exception:
             continue
-        match = re.search(r"(?m)^Busca:\s*(.*?)\s*$", raw)
-        if match and match.group(1) in terms:
+        match = re.search(r"(?m)^Busca(?: STJ)?:\s*(.*?)\s*$", raw)
+        area_match = re.search(r"(?mi)^Área:\s*(bancario|imobiliario|empresarial)\s*$", raw)
+        is_stj = "Fonte: Portal de Dados Abertos do STJ" in raw
+        if is_stj and (area == "todas" or (area_match and area_match.group(1).lower() == area)):
+            found.append(path)
+        elif match and match.group(1) in terms:
             found.append(path)
         elif area == "todas" and not match and not path.name.startswith("auto_"):
             found.append(path)
@@ -453,6 +473,14 @@ def progress_callback(stage: str, current: int, total: int) -> None:
             phase="searching",
             message=(f"Buscando decisões novas no TJSP ({current} de {total} termos)…"
                      if current else "Buscando decisões novas no TJSP…"),
+            progress_current=current,
+            progress_total=total,
+        )
+    elif stage == "searching_stj":
+        update_run(
+            phase="searching",
+            message=(f"Buscando primeiro no STJ ({current} de {total} dias)…"
+                     if current else "Buscando primeiro no STJ…"),
             progress_current=current,
             progress_total=total,
         )
@@ -585,13 +613,28 @@ def run_round(area: str, decision_count: int, extra_email: str, demo: bool = Fal
 
         period_end = datetime.now().date()
         period_start = period_end - timedelta(days=21)
-        saved = telos.search_tjsp(
+        try:
+            stj_saved = telos.search_stj(
+                area=area,
+                terms_by_area=configured_stj_terms(area),
+                date_start=period_start,
+                date_end=period_end,
+                progress_callback=progress_callback,
+            )
+        except Exception as error:
+            stj_saved = []
+            update_run(
+                phase="searching",
+                message=f"A busca do STJ falhou ({type(error).__name__}); continuando a busca no TJSP…",
+            )
+        saved_tjsp = telos.search_tjsp(
             progress_callback=progress_callback,
             search_terms_override=";".join(terms),
             date_start=period_start.strftime("%d/%m/%Y"),
             date_end=period_end.strftime("%d/%m/%Y"),
             pages=range(1, 4),
         )
+        saved = [*stj_saved, *saved_tjsp]
         candidates = decision_candidates(terms, saved, area)[:decision_count]
         if not candidates:
             update_run(
