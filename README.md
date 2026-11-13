@@ -6,9 +6,9 @@ O Telos é um vigia de jurisprudência para escritórios de advocacia, criado pe
 
 ## 2. Como testar em um minuto pelo site
 
-1. Abra o [Telos no ar](https://telos-zoor.onrender.com). Se o serviço estiver dormindo, aguarde a página carregar.
+1. Se quiser receber os avisos por e-mail, digite o seu endereço; se preferir não receber, deixe o campo vazio. Clique em Vigiar agora. O Telos mostra o andamento e, em cerca de 20 segundos, apresenta os avisos da rodada de demonstração e a seção Revisar à mão. O e-mail pode cair no spam.
 2. Deixe a quantidade em **Todos** e escolha **Todas as áreas** ou uma área específica.
-3. Deixe o campo de e-mail vazio para não enviar mensagem e clique em **Vigiar agora**. O Telos mostra o andamento e, em cerca de 20 segundos, reapresenta a rodada de demonstração com os avisos e a seção **Revisar à mão**.
+3. Se quiser receber os avisos por e-mail, digite o seu endereço; se preferir não receber, deixe o campo vazio. Clique em Vigiar agora. O Telos mostra o andamento e, em cerca de 20 segundos, apresenta os avisos da rodada de demonstração e a seção Revisar à mão. O e-mail pode cair no spam.
 
 ## 3. Como funciona
 
