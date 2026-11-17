@@ -12,9 +12,10 @@ import unicodedata
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, abort, jsonify, render_template, request, send_file
 
 import telos
+import petitions
 
 
 telos.load_env_file()
@@ -373,9 +374,23 @@ def result_for_page(result: dict) -> dict:
             "resumo": first.get("resumo", "Resumo não disponível."),
             "resultado": first.get("resultado", "Não identificado no material"),
             "metadata": telos.decision_metadata_text(first),
+            "tema_repetitivo": first.get("tema_repetitivo"),
             "casos": [
                 {"titulo": alert.get("caso", "Caso do escritório"),
-                 "favorabilidade": telos.alert_position_label(alert)}
+                 "favorabilidade": telos.alert_position_label(alert),
+                 "numero_caso": case_number(Path(str(alert.get("arquivo_caso", ""))))
+                     or _case_number_from_title(str(alert.get("caso", ""))),
+                 "motivo_aplicacao": str(alert.get("motivo_relacao", "")),
+                 "peticao_disponivel": petitions.can_generate(
+                     {"tema_repetitivo": first.get("tema_repetitivo"), "link": first.get("link_oficial", "")},
+                     {
+                         "titulo": str(alert.get("caso", "")),
+                         "numero_caso": case_number(Path(str(alert.get("arquivo_caso", ""))))
+                             or _case_number_from_title(str(alert.get("caso", ""))),
+                         "favorabilidade": telos.alert_position_label(alert),
+                         "motivo_aplicacao": str(alert.get("motivo_relacao", "")),
+                     },
+                 )}
                 for alert in group
             ],
             "trechos": [
@@ -423,6 +438,11 @@ def result_for_page(result: dict) -> dict:
         "email_enviado": result.get("email_sent"),
         "sem_impacto": result.get("sem_impacto", []),
     }
+
+
+def _case_number_from_title(title: str) -> int | None:
+    match = re.match(r"(?i)^caso\s+(\d+)\b", title.strip())
+    return int(match.group(1)) if match else None
 
 
 def decision_candidates(saved: list[Path], area: str) -> list[Path]:
@@ -786,6 +806,47 @@ def wallet_summary() -> dict:
 @app.get("/api/wallet")
 def api_wallet():
     return jsonify(wallet_summary())
+
+
+@app.get("/api/peticao/<int:notice_index>/<int:case_index>")
+def api_generate_petition(notice_index: int, case_index: int):
+    with STATE_LOCK:
+        round_data = RUN_STATE.get("last_round")
+    if not isinstance(round_data, dict):
+        round_data = load_latest_round()
+    notices = round_data.get("avisos", []) if isinstance(round_data, dict) else []
+    if notice_index >= len(notices) or not isinstance(notices[notice_index], dict):
+        abort(404)
+    notice = notices[notice_index]
+    cases = notice.get("casos", [])
+    if case_index >= len(cases) or not isinstance(cases[case_index], dict):
+        abort(404)
+    case = cases[case_index]
+    if not petitions.can_generate(notice, case):
+        abort(404)
+
+    number = petitions.case_number(case)
+    theme_number = petitions.theme_number(notice)
+    theme_data = petitions.load_theme(theme_number) if theme_number else None
+    if number is None or theme_number is None or theme_data is None:
+        abort(404)
+    thesis, official_url = theme_data
+    title = re.sub(r"(?i)^caso\s+\d+\s*[—-]\s*", "", str(case.get("titulo", ""))).strip()
+    file_obj = petitions.create_petition_docx(
+        title=title,
+        number=number,
+        theme=theme_number,
+        official_url=official_url,
+        thesis=thesis,
+        reason=str(case.get("motivo_aplicacao", "")).strip(),
+    )
+    filename = f"peticao-caso-{number}-tema-{theme_number}.docx"
+    return send_file(
+        file_obj,
+        mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        as_attachment=True,
+        download_name=filename,
+    )
 
 
 @app.get("/api/state")

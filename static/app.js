@@ -98,7 +98,7 @@
       content.append(node('div', 'empty-state', 'Nenhum aviso direto nesta rodada.'));
     } else {
       const grid = node('div', 'notice-grid');
-      round.avisos.forEach(item => {
+      round.avisos.forEach((item, noticeIndex) => {
         const card = node('article', 'panel notice-card');
         card.append(node('h3', '', item.resumo));
         const count = node('div', 'impact-count');
@@ -109,11 +109,19 @@
         card.append(node('div', 'decision-meta', item.metadata || 'Dados do processo não informados.'));
         if (item.casos && item.casos.length) {
           const list = node('ul', 'affected-list');
-          item.casos.forEach(affected => {
+          item.casos.forEach((affected, caseIndex) => {
             const row = node('li');
             row.append(node('span', '', affected.titulo));
             const pos = String(affected.favorabilidade || '').toLowerCase();
-            row.append(node('span', `badge ${pos.includes('favorável') ? 'good' : pos.includes('desfavorável') ? 'bad' : 'uncertain'}`, affected.favorabilidade));
+            const actions = node('div', 'affected-actions');
+            actions.append(node('span', `badge ${pos.includes('favorável') ? 'good' : pos.includes('desfavorável') ? 'bad' : 'uncertain'}`, affected.favorabilidade));
+            if (affected.peticao_disponivel && String(affected.favorabilidade || '').toUpperCase() === 'FAVORÁVEL AO CLIENTE') {
+              const petition = node('a', 'petition-button', 'Gerar petição');
+              petition.href = `/api/peticao/${noticeIndex}/${caseIndex}`;
+              petition.download = '';
+              actions.append(petition);
+            }
+            row.append(actions);
             list.append(row);
           });
           card.append(list);
