@@ -43,7 +43,3 @@
 .watch-button{margin-top:11px}
 @media(min-width:901px){.how-panel{padding:18px 24px}.how-panel .steps{margin:4px 0 5px}.how-panel .steps li{padding:5px 0}.how-panel .privacy-note{padding:7px 12px}}
 @media(max-width:640px){.area-choices{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.area-option{font-size:10px}.watch-subtitle{font-size:10px}.panel-heading{margin-bottom:17px}}
-.affected-actions{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:6px}
-.petition-button{display:inline-flex;align-items:center;justify-content:center;padding:5px 8px;border:1px solid rgba(165,167,255,.6);border-radius:6px;background:rgba(165,167,255,.12);color:#d9d9ff;font-size:9px;font-weight:750;line-height:1.25;text-decoration:none;white-space:nowrap}
-.petition-button:hover{background:rgba(165,167,255,.24);border-color:var(--lav)}
-.petition-button:focus-visible{outline:2px solid var(--lav-light);outline-offset:2px}

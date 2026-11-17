@@ -3,4 +3,3 @@
 # iniciar o site, listar os casos, exibir a rodada ou enviar e-mails pelo Brevo.
 Flask>=3.0.0,<4.0.0
 gunicorn>=22.0.0,<24.0.0
-python-docx>=1.1,<2.0
