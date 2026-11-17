@@ -7,8 +7,8 @@ O Telos é um vigia de jurisprudência para escritórios de advocacia, criado pe
 ## 2. Como testar em um minuto pelo site
 
 1. Abra https://telos-zoor.onrender.com ou clique em "Usar o Telos" no site https://themistech.netlify.app.
-2. Deixe a quantidade em **Todos** e escolha **Todas as áreas** ou uma área específica.
-3. Se quiser receber os avisos por e-mail, digite o seu endereço; se preferir não receber, deixe o campo vazio. Clique em Vigiar agora. O Telos mostra o andamento e, em cerca de 20 segundos, apresenta os avisos da rodada de demonstração e a seção Revisar à mão. O e-mail pode cair no spam.
+2. Na primeira visita, informe seu nome e e-mail, sem criar senha. Eles ficam salvos neste navegador; o nome não é enviado ao servidor, e o e-mail só é enviado na hora de mandar os avisos.
+3. Escolha **Todas as áreas** ou uma área específica e clique em **Vigiar agora**. O Telos mostra o andamento e, em cerca de 20 segundos, apresenta os avisos da rodada de demonstração e a seção **Revisar à mão**. Os avisos são enviados automaticamente ao e-mail informado; a mensagem pode cair no spam.
 
 ## 3. Como funciona
 
@@ -43,11 +43,13 @@ Uma [prévia do e-mail](email_exemplo.html) mostra a apresentação visual dos a
 
 No uso local, o nome do cliente fica no arquivo `.telos_clientes.json`, no computador do escritório; esse arquivo é ignorado pelo Git. A descrição é gravada junto a um código do caso. Para a análise ao vivo, o provedor de IA recebe o código e a descrição, não o nome. Depois da resposta, o programa associa o código ao nome no próprio computador para exibir avisos e preparar e-mails. A descrição do caso e o texto da decisão são enviados ao provedor de IA escolhido; não inclua nesses textos dados que não queira compartilhar com esse serviço.
 
-Na hospedagem, o cadastro é uma simulação: o nome e a descrição digitados são enviados ao site hospedado para selecionar uma decisão de demonstração parecida. O exemplo é calculado sem IA e os dados do formulário não são gravados. Se a pessoa informar um e-mail, o exemplo enviado por e-mail inclui o nome digitado. Essa simulação não cria um caso para rodadas futuras.
+Na página, o nome e o e-mail usados para entrar na demonstração ficam no armazenamento local do navegador; o nome nunca é enviado ao servidor. O e-mail só é enviado ao servidor no momento do envio da mensagem e não é gravado pela aplicação. O serviço de e-mail recebe o endereço para fazer a entrega.
+
+No cadastro demonstrativo hospedado, o nome e a descrição digitados são enviados ao site hospedado para selecionar uma decisão parecida. O exemplo é calculado sem IA, os dados não são gravados e essa simulação não cria um caso para rodadas futuras. No cadastro local ativo, o nome do cliente fica no arquivo `.telos_clientes.json`, ignorado pelo Git, e a descrição fica associada a um código. Na próxima rodada ao vivo, o Telos confere o caso com os temas já disponíveis para a área e acompanha novas decisões.
 
 ## 7. Modo de demonstração
 
-O modo de demonstração vem ligado por padrão. A página reapresenta uma rodada fixa que já foi analisada, com seis temas repetitivos do STJ: cinco com avisos diretos e um em **Revisar à mão**. O andamento é simulado; essa rodada não faz uma nova busca no STJ nem chama a IA. A área e a quantidade escolhidas filtram os itens da rodada. **Todos** mostra todos os itens da área selecionada; **Todas as áreas** mostra a rodada completa.
+O modo de demonstração vem ligado por padrão. A página reapresenta uma rodada fixa que já foi analisada, com seis temas repetitivos do STJ: cinco com avisos diretos e um em **Revisar à mão**. O andamento é simulado; essa rodada não faz uma nova busca no STJ nem chama a IA. A área escolhida filtra os itens; **Todas as áreas** mostra a rodada completa.
 
 O modo é controlado por `TELOS_DEMO_MODE` no `.env`. No computador, `TELOS_DEMO_MODE=false` habilita a busca e a análise ao vivo. Na hospedagem, `TELOS_HOSPEDADO=true` mantém a demonstração ligada mesmo se outra configuração pedir busca ao vivo.
 
@@ -55,7 +57,7 @@ O modo é controlado por `TELOS_DEMO_MODE` no `.env`. No computador, `TELOS_DEMO
 
 - A única fonte de jurisprudência implementada é o STJ.
 - A busca ao vivo cobre os últimos 21 dias para os quais o portal já disponibilizou os arquivos diários correspondentes. O portal pode publicar os arquivos com atraso.
-- Cada rodada ao vivo analisa no máximo seis itens. A rodada fixa de demonstração também contém seis.
+- A rodada ao vivo analisa todos os itens pendentes encontrados para a área escolhida; o tempo e o custo variam conforme a quantidade de material. A rodada fixa de demonstração contém seis itens.
 - Os resultados dependem do texto disponível e das respostas do modelo. Dois pareceres e citações verificadas reduzem riscos, mas não garantem uma conclusão correta.
 - O Telos compara descrições curtas; não analisa contratos completos nem substitui a leitura da fonte oficial ou o trabalho de uma advogada ou advogado.
 - O serviço gratuito do Render pode dormir após 15 minutos sem acesso e apaga arquivos locais quando dorme, reinicia ou recebe uma nova publicação. A rodada de demonstração está no repositório, mas a última rodada salva e o contador local de envios podem ser reiniciados. Por isso, o limite de e-mails da hospedagem — um envio por minuto e 20 por dia — pode ser reiniciado junto com esses arquivos. Consulte as [limitações oficiais do Render](https://render.com/docs/free).
@@ -92,9 +94,9 @@ Para abrir a página, execute:
 python webapp.py
 ```
 
-Depois, abra [http://127.0.0.1:5000](http://127.0.0.1:5000) no navegador. Se definir a variável `PORT`, o programa usa essa porta; sem ela, usa `5000`. Não abra `templates/index.html` como arquivo: ele precisa do servidor Python para montar a página.
+Depois, abra [http://127.0.0.1:5000](http://127.0.0.1:5000) no navegador. Na primeira visita, informe nome e e-mail na tela de demonstração; os dados ficam no navegador. Se definir a variável `PORT`, o programa usa essa porta; sem ela, usa `5000`. Não abra `templates/index.html` como arquivo: ele precisa do servidor Python para montar a página.
 
-Para busca ao vivo, `TELOS_DEMO_MODE=false`, chave de IA e termos de busca válidos são necessários. Para enviar e-mail localmente, preencha `GMAIL_SENDER`, `GMAIL_APP_PASSWORD` e `GMAIL_RECIPIENT`. A senha de app do Gmail é criada na [página de senhas de app da Conta Google](https://myaccount.google.com/apppasswords); o Google exige a Verificação em duas etapas. Em `GMAIL_RECIPIENT`, pode haver vários endereços separados por vírgula; o Telos os envia em cópia oculta.
+Para busca ao vivo, `TELOS_DEMO_MODE=false`, chave de IA e termos de busca válidos são necessários. Para enviar e-mail localmente, preencha `GMAIL_SENDER` e `GMAIL_APP_PASSWORD`. A mensagem vai ao endereço salvo no navegador e, se configurado, aos endereços de `GMAIL_RECIPIENT`. A senha de app do Gmail é criada na [página de senhas de app da Conta Google](https://myaccount.google.com/apppasswords); o Google exige a Verificação em duas etapas. Em `GMAIL_RECIPIENT`, pode haver vários endereços separados por vírgula; o Telos os envia em cópia oculta. O e-mail do navegador só é transmitido no instante do envio e não é salvo pela aplicação.
 
 O `.env` contém segredos e não deve ser enviado ao GitHub. O `.gitignore` já exclui esse arquivo e os dados locais de cadastro.
 
@@ -102,7 +104,7 @@ O `.env` contém segredos e não deve ser enviado ao GitHub. O `.gitignore` já 
 
 O arquivo `render.yaml` configura um serviço web gratuito. No Render, crie um **Blueprint** conectado a este repositório. O serviço usa `requirements-hosting.txt`, inicia o `webapp.py` com Gunicorn e recebe a porta da variável `PORT`, definida pelo Render. A configuração mantém `TELOS_HOSPEDADO=true` e `TELOS_DEMO_MODE=true`; assim, a busca ao vivo e as chaves de IA não são necessárias.
 
-No painel do Render, cadastre apenas `GMAIL_SENDER` e `BREVO_API_KEY` se quiser enviar e-mails. O endereço usado em `GMAIL_SENDER` deve estar autorizado como remetente na conta Brevo. Na hospedagem, o e-mail de cada rodada só é enviado se a pessoa preencher o campo da página; esse endereço é o único destinatário, e `GMAIL_RECIPIENT` é ignorado. Não cadastre chaves de IA, senha de app do Gmail nem termos de busca no Render para esta demonstração. Coloque valores secretos no painel do Render, nunca no código ou no GitHub.
+No painel do Render, cadastre apenas `GMAIL_SENDER` e `BREVO_API_KEY` se quiser enviar e-mails. O endereço usado em `GMAIL_SENDER` deve estar autorizado como remetente na conta Brevo. Na hospedagem, os avisos são enviados ao e-mail salvo no navegador; esse endereço só é transmitido no envio, é o único destinatário e `GMAIL_RECIPIENT` é ignorado. Não cadastre chaves de IA, senha de app do Gmail nem termos de busca no Render para esta demonstração. Coloque valores secretos no painel do Render, nunca no código ou no GitHub.
 
 ### Licença
 

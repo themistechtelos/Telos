@@ -183,8 +183,8 @@ def configured_stj_terms(area: str) -> dict[str, list[str]]:
 
 
 def case_number(path: Path) -> int | None:
-    match = re.search(r"\d+", path.stem)
-    return int(match.group()) if match else None
+    match = re.fullmatch(r"caso[_-](\d+)", path.stem, re.I)
+    return int(match.group(1)) if match else None
 
 
 def cases_for_area(area: str) -> list[Path]:
@@ -210,7 +210,7 @@ def cases_for_area(area: str) -> list[Path]:
 def case_list() -> list[dict]:
     items = []
     client_map = load_client_map()
-    for path in sorted(telos.CASES_DIR.rglob("*.txt")):
+    for path in sorted(telos.CASES_DIR.rglob("*.txt"), key=lambda item: (case_number(item) is None, case_number(item) or 0, item.as_posix())):
         try:
             content = telos.read_document(path)
         except (OSError, RuntimeError):
@@ -428,7 +428,8 @@ def result_for_page(result: dict) -> dict:
 def decision_candidates(saved: list[Path], area: str) -> list[Path]:
     found: list[Path] = []
     seen: set[str] = set()
-    for path in [*saved, *sorted(telos.DECISIONS_DIR.iterdir())]:
+    topic_paths = sorted(telos.STJ_PRECEDENTS_DIR.glob("tema_*.txt")) if telos.STJ_PRECEDENTS_DIR.exists() else []
+    for path in [*saved, *sorted(telos.DECISIONS_DIR.iterdir()), *topic_paths]:
         if not path.is_file() or path.suffix.lower() not in {".txt", ".pdf"}:
             continue
         if path.name in seen:
@@ -438,16 +439,27 @@ def decision_candidates(saved: list[Path], area: str) -> list[Path]:
             raw = telos.read_document(path)
         except Exception:
             continue
-        area_match = re.search(r"(?mi)^Área:\s*(bancario|imobiliario|empresarial)\s*$", raw)
+        area_match = re.search(r"(?mi)^Área(?: de busca)?:\s*(bancario|imobiliario|empresarial)\s*$", raw)
         official_link = telos.find_official_link(raw)
         is_stj = bool(official_link and telos.is_official_stj_link(official_link))
         if is_stj and (area == "todas" or (area_match and area_match.group(1).lower() == area)):
             found.append(path)
 
     completed = telos.load_analysis_state()
+    case_material = []
+    for case_path in cases_for_area(area):
+        try:
+            case_material.append({"arquivo": case_path.name, "texto": telos.read_document(case_path)})
+        except Exception:
+            continue
+    case_signature = telos.case_corpus_fingerprint(case_material)
     return [
         path for path in found
-        if telos.decision_fingerprint(path, telos.read_document(path)) not in completed
+        if telos.decision_fingerprint(
+            path,
+            telos.read_document(path),
+            case_signature if path.name.startswith("tema_") else "",
+        ) not in completed
     ]
 
 
@@ -505,7 +517,7 @@ def progress_callback(stage: str, current: int, total: int) -> None:
         update_run(phase="saving", message=message)
 
 
-def demo_round(area: str, decision_count: int | None, extra_email: str) -> None:
+def demo_round(area: str) -> None:
     global PENDING_EMAIL
     fixture = json.loads(DEMO_ROUND_FILE.read_text(encoding="utf-8"))
     all_decisions = fixture.get("decisions", [])
@@ -517,7 +529,7 @@ def demo_round(area: str, decision_count: int | None, extra_email: str) -> None:
             "bancario": "bancário",
         }.get(area)
     ]
-    decisions = area_decisions if decision_count is None else area_decisions[:decision_count]
+    decisions = area_decisions
     selected_files = {item.get("file") for item in decisions}
     alerts = [item for item in fixture.get("alerts", []) if item.get("decisao") in selected_files]
     reviews = [item for item in fixture.get("reviews", []) if item.get("decisao") in selected_files]
@@ -554,25 +566,25 @@ def demo_round(area: str, decision_count: int | None, extra_email: str) -> None:
                    "tipo_item": fixture.get("tipo_item")})
     PENDING_EMAIL = {"alerts": alerts, "reviews": reviews,
                      "completed_count": total, "selected_count": total,
-                     "interrupted": False, "extra_recipients": extra_email or None,
+                     "interrupted": False, "extra_recipients": None,
                      "area": area}
-    result["email_disponivel"] = False
+    result["email_disponivel"] = True
     result["email_status"] = "none"
     write_latest_round(result)
     with STATE_LOCK:
         RUN_STATE["last_round"] = result
         RUN_STATE["email_status"] = "none"
-        RUN_STATE["email_available"] = False
+        RUN_STATE["email_available"] = True
     update_run(phase="complete", message="Rodada concluída.",
                progress_current=total, progress_total=total)
-    send_round_email_at_end(PENDING_EMAIL)
+    # The browser sends the saved local recipient only after this round completes.
 
 
-def run_round(area: str, decision_count: int | None, extra_email: str, demo: bool = False) -> None:
+def run_round(area: str, demo: bool = False) -> None:
     global PENDING_EMAIL
     if DEMO_MODE:
         try:
-            demo_round(area, decision_count, extra_email)
+            demo_round(area)
         except Exception as error:
             update_run(phase="error", message=f"A rodada não foi concluída ({type(error).__name__}). A última rodada continua disponível.")
         finally:
@@ -593,6 +605,15 @@ def run_round(area: str, decision_count: int | None, extra_email: str, demo: boo
         if not terms:
             raise RuntimeError("Não há termos de busca configurados para esta área.")
 
+        update_run(phase="searching", message="Atualizando os temas repetitivos disponíveis no STJ…")
+        try:
+            telos.download_stj_qualified_precedents(quiet=True)
+        except Exception as error:
+            update_run(
+                phase="searching",
+                message=f"Não consegui atualizar os temas do STJ ({type(error).__name__}); vou usar os temas já disponíveis.",
+            )
+
         period_end = datetime.now().date()
         period_start = period_end - timedelta(days=21)
         try:
@@ -609,7 +630,7 @@ def run_round(area: str, decision_count: int | None, extra_email: str, demo: boo
                 phase="searching",
                 message=f"A busca do STJ falhou ({type(error).__name__}); vou conferir as decisões já salvas.",
             )
-        candidates = decision_candidates(stj_saved, area)[:decision_count]
+        candidates = decision_candidates(stj_saved, area)
         if not candidates:
             update_run(
                 phase="complete",
@@ -646,8 +667,7 @@ def run_round(area: str, decision_count: int | None, extra_email: str, demo: boo
                 api_key,
                 model,
                 provider,
-                max_decisions=decision_count,
-                extra_recipients=extra_email or None,
+                max_decisions=len(candidates),
                 progress_callback=progress_callback,
                 result_callback=collect_result,
                 alert_transform=map_private_case_names,
@@ -682,22 +702,22 @@ def run_round(area: str, decision_count: int | None, extra_email: str, demo: boo
                              "completed_count": result_holder.get("completed_count", 0),
                              "selected_count": result_holder.get("selected_count", 0),
                              "interrupted": result_holder.get("interrupted", False),
-                             "extra_recipients": extra_email or None}
-            result["email_disponivel"] = False
+                             "extra_recipients": None}
+            result["email_disponivel"] = True
             result["email_status"] = "none"
             if result["concluidas"] or RUN_STATE.get("last_round") is None:
                 write_latest_round(result)
                 with STATE_LOCK:
                     RUN_STATE["last_round"] = result
                     RUN_STATE["email_status"] = "none"
-                    RUN_STATE["email_available"] = False
+                    RUN_STATE["email_available"] = True
             if result["concluidas"] == 0 and RUN_STATE.get("last_round") is not None:
                 update_run(phase="complete", message="Nenhuma decisão foi concluída. Mantive os avisos da rodada anterior.")
             elif result["interrompida"]:
                 update_run(phase="complete", message="Rodada concluída parcialmente; veja os avisos e a seção de revisão.")
             else:
                 update_run(phase="complete", message="Rodada concluída.")
-            send_round_email_at_end(PENDING_EMAIL)
+            # The browser sends the saved local recipient only after this round completes.
     except Exception as error:
         # Keep the previous completed results visible; never include configuration values here.
         update_run(phase="error", message=f"A rodada não foi concluída ({type(error).__name__}). A última rodada continua disponível.")
@@ -763,19 +783,6 @@ def api_run():
     demo = DEMO_MODE
     if area not in CASE_AREAS:
         return jsonify({"error": "Escolha uma das áreas disponíveis."}), 400
-    requested_count = body.get("decision_count", "todos")
-    if str(requested_count).lower() == "todos":
-        decision_count = None if demo else 6
-    else:
-        try:
-            decision_count = int(requested_count)
-        except (TypeError, ValueError):
-            return jsonify({"error": "Escolha uma quantidade válida de itens."}), 400
-        if decision_count < 1 or decision_count > 6:
-            return jsonify({"error": "Escolha de uma a seis decisões."}), 400
-    extra_email = str(body.get("extra_email", "")).strip()
-    if extra_email and not re.fullmatch(r"[^@\s,]+@[^@\s,]+\.[^@\s,]+", extra_email):
-        return jsonify({"error": "Digite um endereço de e-mail válido."}), 400
     if not RUN_LOCK.acquire(blocking=False):
         return jsonify({"error": "Já há uma rodada em andamento."}), 409
 
@@ -793,7 +800,7 @@ def api_run():
     )
     worker = threading.Thread(
         target=run_round,
-        args=(area, decision_count, extra_email, demo),
+        args=(area, demo),
         name="telos-round",
         daemon=True,
     )

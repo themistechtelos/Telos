@@ -1,0 +1,15 @@
+<div class="entry-overlay" id="entry-overlay" hidden>
+  <form class="entry-card" id="entry-form" aria-labelledby="entry-title">
+    <img class="entry-mark" src="{{ url_for('static', filename='themis-symbol.svg') }}" alt="">
+    <p class="eyebrow">ACESSO À DEMONSTRAÇÃO</p>
+    <h1 id="entry-title">Vamos começar</h1>
+    <p class="entry-copy">Informe seu nome e e-mail. Não é necessário criar senha. Esses dados ficam guardados neste navegador.</p>
+    <label for="entry-name">Seu nome</label>
+    <input id="entry-name" name="name" maxlength="120" autocomplete="name" required>
+    <label for="entry-email">Seu e-mail</label>
+    <input id="entry-email" name="email" type="email" maxlength="254" autocomplete="email" required>
+    <p class="entry-error" id="entry-error" role="alert" hidden></p>
+    <button class="button primary" type="submit">Entrar na demonstração</button>
+    <p class="entry-footnote">O endereço só será enviado ao serviço de e-mail no momento do envio dos avisos.</p>
+  </form>
+</div>

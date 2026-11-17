@@ -13,6 +13,8 @@
   const emailButton = document.getElementById('email-send-button');
   const emailStatus = document.getElementById('email-send-status');
   let lastRenderKey = '';
+  let roundAwaitingEmail = false;
+  let automaticEmailStarted = false;
 
   function node(tag, className, text) {
     const element = document.createElement(tag);
@@ -43,7 +45,10 @@
     summary.append(node('span', 'summary-chip', round.area || 'STJ'));
     const itemLabel = round.tipo_item === 'tema repetitivo' ? 'temas analisados' : 'decisões analisadas';
     summary.append(node('span', 'summary-chip', `${round.concluidas} de ${round.selecionadas} ${itemLabel}`));
-    if (round.email_enviado === true) summary.append(node('span', 'summary-chip', 'E-mail enviado'));
+    if (round.email_enviado === true) {
+      const recipient = window.TelosProfile?.get()?.email;
+      summary.append(node('span', 'summary-chip', recipient ? `Avisos enviados para ${recipient}` : 'E-mail enviado'));
+    }
     if (round.email_enviado === false) summary.append(node('span', 'summary-chip', 'E-mail não enviado'));
     content.append(summary);
     if (round.interrompida) content.append(node('div', 'empty-state', 'A rodada foi interrompida antes de analisar todas as decisões selecionadas.'));
@@ -155,15 +160,24 @@
       progressPanel.hidden = true;
     }
     renderRound(state.last_round || null);
+    if (state.email_status === 'sent') window.TelosProfile?.markEmailSent();
+    else if (roundAwaitingEmail) window.TelosProfile?.setEmailPending();
     emailAction.hidden = !state.email_available;
     if (state.email_status === 'sending') {
       emailButton.disabled = true; emailButton.textContent = 'Enviando…'; emailStatus.textContent = 'O serviço de e-mail está processando o envio.';
     } else if (state.email_status === 'sent') {
-      emailButton.disabled = false; emailButton.textContent = 'Enviar novamente por e-mail'; emailStatus.textContent = `${state.message || 'Avisos enviados.'} Clique novamente para reenviar esta rodada.`;
+      emailButton.disabled = false; emailButton.textContent = 'Enviar novamente por e-mail';
+      const recipient = window.TelosProfile?.get()?.email;
+      emailStatus.textContent = `${recipient ? `Avisos enviados para ${recipient}.` : (state.message || 'Avisos enviados.')} Clique novamente para reenviar esta rodada.`;
     } else if (state.email_status === 'failed') {
       emailButton.disabled = false; emailButton.textContent = 'Tentar enviar novamente'; emailStatus.textContent = 'Não foi possível enviar os avisos. Eles continuam disponíveis nesta página.';
     } else {
       emailButton.disabled = false; emailButton.textContent = 'Enviar avisos por e-mail'; emailStatus.textContent = '';
+    }
+    if (roundAwaitingEmail && !automaticEmailStarted && !running && state.phase === 'complete' && state.email_available) {
+      automaticEmailStarted = true;
+      roundAwaitingEmail = false;
+      sendEmail();
     }
   }
 
@@ -186,10 +200,16 @@
   form.addEventListener('submit', async event => {
     event.preventDefault();
     errorBox.hidden = true;
+    if (!window.TelosProfile?.get()?.email) {
+      document.getElementById('entry-overlay').hidden = false;
+      return;
+    }
     const formData = new FormData(form);
     const payload = Object.fromEntries(formData.entries());
-    payload.decision_count = payload.decision_count || 'todos';
     payload.area = payload.area || 'todas';
+    roundAwaitingEmail = true;
+    automaticEmailStarted = false;
+    window.TelosProfile?.setEmailPending();
     button.disabled = true;
     button.querySelector('span:first-child').textContent = 'Preparando…';
     try {
@@ -210,13 +230,19 @@
     }
   });
 
-  emailButton.addEventListener('click', async () => {
+  async function sendEmail() {
+    const profile = window.TelosProfile?.get();
+    if (!profile?.email) {
+      document.getElementById('entry-overlay').hidden = false;
+      return;
+    }
     emailButton.disabled = true;
     emailButton.textContent = 'Preparando…';
+    window.TelosProfile?.setEmailPending();
     try {
       const response = await fetch('/api/send-email', {
         method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({
-          extra_email:document.getElementById('extra-email').value.trim()
+          extra_email:profile.email
         })
       });
       const data = await response.json();
@@ -227,7 +253,9 @@
       emailStatus.textContent = error.message || 'Não foi possível iniciar o envio.';
       emailButton.disabled = false;
     }
-  });
+  }
+
+  emailButton.addEventListener('click', sendEmail);
 
   applyState(window.TELOS_INITIAL_STATE || {});
   window.setInterval(refreshState, 1600);

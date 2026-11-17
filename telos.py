@@ -971,10 +971,19 @@ def call_gemini(api_key: str, model: str, prompt: str) -> dict:
     return result
 
 
-def decision_fingerprint(path: Path, raw_text: str) -> str:
-    return hashlib.sha256(
-        (str(ANALYSIS_VERSION) + "\0" + path.name + "\0" + raw_text).encode("utf-8")
-    ).hexdigest()
+def case_corpus_fingerprint(cases: list[dict]) -> str:
+    material = "\0".join(
+        f"{item.get('arquivo', '')}\0{item.get('texto', '')}"
+        for item in sorted(cases, key=lambda case: str(case.get("arquivo", "")))
+    )
+    return hashlib.sha256(material.encode("utf-8")).hexdigest()
+
+
+def decision_fingerprint(path: Path, raw_text: str, case_signature: str = "") -> str:
+    material = str(ANALYSIS_VERSION) + "\0" + path.name + "\0" + raw_text
+    if case_signature:
+        material += "\0" + case_signature
+    return hashlib.sha256(material.encode("utf-8")).hexdigest()
 
 
 def load_analysis_state() -> set[str]:
@@ -2083,6 +2092,7 @@ def analyze_decisions(
     if not cases:
         print("Não encontrei descrições legíveis na pasta casos/.")
         return 1
+    cases_signature = case_corpus_fingerprint(cases)
 
     decision_paths = sorted(
         path for path in DECISIONS_DIR.iterdir()
@@ -2108,7 +2118,11 @@ def analyze_decisions(
             print(f"\nDecisão: {path.name}\n  Não encontrei um link oficial verificável do STJ no arquivo; não vou inventar um link.")
             continue
         tribunal = official_court_name(link)
-        fingerprint = decision_fingerprint(path, raw_text)
+        fingerprint = decision_fingerprint(
+            path,
+            raw_text,
+            cases_signature if path.name.startswith("tema_") else "",
+        )
         if fingerprint in completed:
             continue
         if provider == "groq" and len(text) > MAX_GROQ_DECISION_CHARS:
@@ -2129,8 +2143,7 @@ def analyze_decisions(
         return 0
 
     decision_limit = max_decisions if max_decisions is not None else MAX_DECISIONS_PER_RUN
-    # The web page accepts up to six; private batches may explicitly pass up to eight.
-    decision_limit = max(1, min(8, int(decision_limit)))
+    decision_limit = max(1, min(len(pending), int(decision_limit)))
     selected = pending[:decision_limit]
     if len(pending) > len(selected):
         print(f"Há {len(pending)} decisão(ões) pendente(s); esta rodada analisará no máximo {len(selected)}.")
@@ -2152,7 +2165,7 @@ def analyze_decisions(
         return result
 
     finished_tasks = 0
-    with ThreadPoolExecutor(max_workers=task_count) as executor:
+    with ThreadPoolExecutor(max_workers=min(task_count, 12)) as executor:
         futures = {
             executor.submit(request_opinion, index, number): (index, number)
             for index in range(len(selected)) for number in (1, 2)
@@ -2206,7 +2219,11 @@ def analyze_decisions(
                 print_decision_result(path, link, consensus, full_text, content_type, cases)
             )
         completed_count += 1
-        completed.add(decision_fingerprint(path, raw_text))
+        completed.add(decision_fingerprint(
+            path,
+            raw_text,
+            cases_signature if path.name.startswith("tema_") else "",
+        ))
         save_analysis_state(completed)
 
     remaining = sum(
