@@ -24,11 +24,6 @@
   </header>
 
   <main class="page-wrap">
-    <section class="user-bar" id="user-bar" hidden aria-live="polite">
-      <div><strong id="welcome-name"></strong><p id="recipient-status">Avisos vão para este e-mail.</p></div>
-      <button class="quiet-button" id="change-profile" type="button">Trocar e-mail</button>
-    </section>
-
     <section class="watch-layout" aria-labelledby="watch-title">
       <div class="panel watch-panel">
         <div class="panel-heading">
@@ -45,6 +40,23 @@
           </select>
           <button class="button primary watch-button" type="submit" id="watch-button"><span>Vigiar agora</span><span aria-hidden="true">→</span></button>
           <p id="form-error" class="form-error" role="alert" hidden></p>
+          <section class="wallet-card" aria-labelledby="wallet-title">
+            <p class="eyebrow" id="wallet-title">SUA CARTEIRA</p>
+            <div class="user-bar wallet-profile" id="user-bar" hidden aria-live="polite">
+              <div class="wallet-profile-copy"><strong id="welcome-name"></strong><p><span id="recipient-status">Avisos para este e-mail</span><span aria-hidden="true"> · </span><button class="profile-change" id="change-profile" type="button">trocar</button></p></div>
+            </div>
+            <div class="wallet-total"><strong class="wallet-number" id="wallet-total">—</strong><span>casos do escritório</span></div>
+            <div class="wallet-areas" aria-label="Casos por área">
+              <div><strong class="wallet-number" id="wallet-bancario">—</strong><span>Bancário</span></div>
+              <div><strong class="wallet-number" id="wallet-imobiliario">—</strong><span>Imobiliário</span></div>
+              <div><strong class="wallet-number" id="wallet-empresarial">—</strong><span>Empresarial</span></div>
+            </div>
+            <div class="wallet-footer">
+              <div class="wallet-theme"><strong class="wallet-number" id="wallet-topics">—</strong><span>temas do STJ monitorados</span></div>
+              <div class="wallet-verification"><span>Última verificação</span><strong id="wallet-last-check">—</strong></div>
+            </div>
+            <p class="wallet-note" id="wallet-control-note" hidden></p>
+          </section>
         </form>
       </div>
 
@@ -52,7 +64,7 @@
         <p class="eyebrow">EM TRÊS PASSOS</p>
         <ol class="steps">
           <li><span>01</span><div><strong>Busca no STJ</strong><p>O Telos procura decisões e temas repetitivos pelos termos da área escolhida.</p></div></li>
-          <li><span>02</span><div><strong>Dois pareceres</strong><p>A IA analisa cada decisão duas vezes, de forma independente. Só vira aviso quando as duas análises concordam que há relação direta; se discordarem sobre essa relação, vai para Revisar à mão. Se divergirem apenas sobre resultado ou favorabilidade, o aviso sai marcado para confirmação.</p></div></li>
+          <li><span>02</span><div><strong>Dois pareceres</strong><p>A IA analisa cada decisão duas vezes, de forma independente. Só vira aviso quando as duas análises concordam; se discordarem, vai para Revisar à mão.</p></div></li>
           <li><span>03</span><div><strong>Aviso com fonte</strong><p>Você confere o resumo, o trecho e o link oficial.</p></div></li>
         </ol>
         <div class="privacy-note"><span aria-hidden="true">✦</span><p>Decisões públicas. Fontes oficiais. Avisos para conferir.</p></div>

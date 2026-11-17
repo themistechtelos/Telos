@@ -12,9 +12,44 @@
   const emailAction = document.getElementById('email-action');
   const emailButton = document.getElementById('email-send-button');
   const emailStatus = document.getElementById('email-send-status');
+  const walletFields = {
+    total: document.getElementById('wallet-total'),
+    bancario: document.getElementById('wallet-bancario'),
+    imobiliario: document.getElementById('wallet-imobiliario'),
+    empresarial: document.getElementById('wallet-empresarial'),
+    topics: document.getElementById('wallet-topics'),
+    lastCheck: document.getElementById('wallet-last-check'),
+    note: document.getElementById('wallet-control-note'),
+  };
   let lastRenderKey = '';
   let roundAwaitingEmail = false;
   let automaticEmailStarted = false;
+  let walletRoundKey = '';
+
+  function displayCheckDate(value) {
+    if (!value) return 'Ainda não verificada';
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? 'Ainda não verificada' : parsed.toLocaleDateString('pt-BR', {dateStyle:'medium'});
+  }
+
+  async function loadWallet() {
+    if (!walletFields.total) return;
+    try {
+      const response = await fetch('/api/wallet', {cache:'no-store'});
+      if (!response.ok) return;
+      const wallet = await response.json();
+      walletFields.total.textContent = wallet.total_cases ?? '—';
+      walletFields.bancario.textContent = wallet.area_counts?.Bancário ?? 0;
+      walletFields.imobiliario.textContent = wallet.area_counts?.Imobiliário ?? 0;
+      walletFields.empresarial.textContent = wallet.area_counts?.Empresarial ?? 0;
+      walletFields.topics.textContent = wallet.topics_count ?? '—';
+      walletFields.lastCheck.textContent = displayCheckDate(wallet.last_verification);
+      if (walletFields.note) {
+        walletFields.note.hidden = !wallet.control_cases;
+        walletFields.note.textContent = wallet.control_cases ? `Inclui ${wallet.control_cases} caso${wallet.control_cases === 1 ? '' : 's'} de controle.` : '';
+      }
+    } catch (_) { /* A carteira continua disponível quando a conexão voltar. */ }
+  }
 
   function node(tag, className, text) {
     const element = document.createElement(tag);
@@ -160,6 +195,11 @@
       progressPanel.hidden = true;
     }
     renderRound(state.last_round || null);
+    const completedRoundKey = state.last_round?.data_rodada || '';
+    if (state.phase === 'complete' && completedRoundKey && completedRoundKey !== walletRoundKey) {
+      walletRoundKey = completedRoundKey;
+      loadWallet();
+    }
     if (state.email_status === 'sent') window.TelosProfile?.markEmailSent();
     else if (roundAwaitingEmail) window.TelosProfile?.setEmailPending();
     emailAction.hidden = !state.email_available;
@@ -258,5 +298,6 @@
   emailButton.addEventListener('click', sendEmail);
 
   applyState(window.TELOS_INITIAL_STATE || {});
+  loadWallet();
   window.setInterval(refreshState, 1600);
 })();

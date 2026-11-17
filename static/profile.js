@@ -22,10 +22,8 @@
   function renderProfile() {
     if (profileBar && profile) {
       profileBar.hidden = false;
-      welcomeName.textContent = `Olá, ${profile.name}`;
-      recipientStatus.textContent = profile.lastEmailSent === profile.email
-        ? `Avisos enviados para ${profile.email}`
-        : `Avisos vão para ${profile.email}`;
+      welcomeName.textContent = profile.name;
+      recipientStatus.textContent = `Avisos para: ${profile.email}`;
     }
     overlay.hidden = Boolean(profile);
     if (profile) window.dispatchEvent(new CustomEvent('telos-profile-ready', {detail: {...profile}}));
@@ -76,14 +74,13 @@
         profile.pendingEmail = '';
         localStorage.setItem(storageKey, JSON.stringify(profile));
       }
-      if (recipientStatus && profile) recipientStatus.textContent = profile.lastEmailSent === profile.email
-        ? `Avisos enviados para ${profile.email}` : `Avisos vão para ${profile.email}`;
+      if (recipientStatus && profile) recipientStatus.textContent = `Avisos para: ${profile.email}`;
     },
     setEmailPending: () => {
       if (profile) {
         profile.pendingEmail = profile.email;
         localStorage.setItem(storageKey, JSON.stringify(profile));
-        if (recipientStatus) recipientStatus.textContent = `Avisos vão para ${profile.email}`;
+        if (recipientStatus) recipientStatus.textContent = `Avisos para: ${profile.email}`;
       }
     },
   };

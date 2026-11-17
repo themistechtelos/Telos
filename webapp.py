@@ -760,6 +760,36 @@ def cases_page():
                            hosted_simulation=TELOS_HOSPEDADO)
 
 
+def wallet_summary() -> dict:
+    items = case_list()
+    counts = {"Bancário": 0, "Imobiliário": 0, "Empresarial": 0}
+    control_cases = 0
+    for item in items:
+        if item["area"] in counts:
+            counts[item["area"]] += 1
+        elif item["area"] == "Caso de controle":
+            control_cases += 1
+
+    # Contagem do catálogo configurado pelo programa, disponível nos dois modos.
+    topics = {str(number) for area_topics in telos.STJ_RELEVANT_TOPICS.values() for number in area_topics}
+
+    with STATE_LOCK:
+        last_round = RUN_STATE.get("last_round")
+        last_verification = last_round.get("data_rodada") if isinstance(last_round, dict) else None
+    return {
+        "total_cases": len(items),
+        "area_counts": counts,
+        "control_cases": control_cases,
+        "topics_count": len(topics),
+        "last_verification": last_verification,
+    }
+
+
+@app.get("/api/wallet")
+def api_wallet():
+    return jsonify(wallet_summary())
+
+
 @app.get("/api/state")
 def api_state():
     with STATE_LOCK:
