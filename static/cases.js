@@ -75,13 +75,22 @@
     list.className = 'affected-list';
     (notice.casos || []).forEach(item => {
       const row = document.createElement('li');
+      row.style.flexWrap = 'wrap';
+      const caseRow = document.createElement('div');
+      caseRow.style.cssText = 'display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;flex:0 0 100%';
       const caseName = document.createElement('span');
       caseName.textContent = item.titulo;
       const badge = document.createElement('span');
       const position = String(item.favorabilidade || '').toLowerCase();
       badge.className = `badge ${position.includes('favorável') ? 'good' : position.includes('desfavorável') ? 'bad' : 'uncertain'}`;
       badge.textContent = item.favorabilidade || 'Favorabilidade incerta';
-      row.append(caseName, badge);
+      caseRow.append(caseName, badge);
+      row.append(caseRow);
+      const nextStep = document.createElement('div');
+      nextStep.className = 'decision-meta';
+      nextStep.style.cssText = 'width:100%;flex:0 0 100%';
+      nextStep.textContent = `Próximo passo sugerido: ${item.proximo_passo || 'Ler a tese e confirmar o impacto antes de agir.'}`;
+      row.append(nextStep);
       list.append(row);
     });
     if (list.childElementCount) card.append(list);

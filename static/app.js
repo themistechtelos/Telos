@@ -111,9 +111,16 @@
           const list = node('ul', 'affected-list');
           item.casos.forEach(affected => {
             const row = node('li');
-            row.append(node('span', '', affected.titulo));
+            row.style.flexWrap = 'wrap';
+            const caseRow = node('div');
+            caseRow.style.cssText = 'display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;flex:0 0 100%';
+            caseRow.append(node('span', '', affected.titulo));
             const pos = String(affected.favorabilidade || '').toLowerCase();
-            row.append(node('span', `badge ${pos.includes('favorável') ? 'good' : pos.includes('desfavorável') ? 'bad' : 'uncertain'}`, affected.favorabilidade));
+            caseRow.append(node('span', `badge ${pos.includes('favorável') ? 'good' : pos.includes('desfavorável') ? 'bad' : 'uncertain'}`, affected.favorabilidade));
+            row.append(caseRow);
+            const nextStep = node('div', 'decision-meta', `Próximo passo sugerido: ${affected.proximo_passo || 'Ler a tese e confirmar o impacto antes de agir.'}`);
+            nextStep.style.cssText = 'width:100%;flex:0 0 100%';
+            row.append(nextStep);
             list.append(row);
           });
           card.append(list);
@@ -144,8 +151,12 @@
       round.revisar.forEach(review => {
         const card = node('article', 'panel review-card');
         card.append(node('div', 'decision-meta', review.metadata || 'Dados do processo não informados.'));
+        if (!(review.casos || []).length) {
+          card.append(node('div', 'decision-meta', `Próximo passo sugerido: ${review.proximo_passo || 'Ler a tese e decidir se ela se aplica ao caso.'}`));
+        }
         (review.casos || []).forEach(item => {
           card.append(node('div', 'review-case-title', item.titulo));
+          card.append(node('div', 'decision-meta', `Próximo passo sugerido: ${item.proximo_passo || 'Ler a tese e decidir se ela se aplica ao caso.'}`));
           const columns = node('div', 'opinion-grid');
           const first = node('div', 'opinion'); first.append(node('strong', '', 'PARECER 1')); first.append(document.createTextNode(item.parecer_1 || 'Não foi possível ler este parecer, confira a decisão no link oficial'));
           const second = node('div', 'opinion'); second.append(node('strong', '', 'PARECER 2')); second.append(document.createTextNode(item.parecer_2 || 'Não foi possível ler este parecer, confira a decisão no link oficial'));

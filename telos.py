@@ -1441,6 +1441,19 @@ def alert_position_label(alert: dict) -> str:
     return "FAVORABILIDADE INCERTA"
 
 
+def suggested_next_step(position_label: str) -> str:
+    if position_label == "FAVORÁVEL AO CLIENTE":
+        return "Peticionar informando a tese e pedindo sua aplicação (art. 927, III, do CPC)."
+    if position_label == "DESFAVORÁVEL AO CLIENTE":
+        return "Avisar o cliente, rever a estratégia e avaliar se o caso se distingue da tese."
+    if position_label == "FAVORABILIDADE A CONFIRMAR":
+        return "Ler a tese e confirmar o impacto antes de agir."
+    return "Ler a tese e confirmar o impacto antes de agir."
+
+
+REVIEW_NEXT_STEP = "Ler a tese e decidir se ela se aplica ao caso."
+
+
 def decision_evidence_by_case(group: list[dict]) -> list[tuple[str, str]]:
     evidence_by_case: list[tuple[str, str]] = []
     seen: set[str] = set()
@@ -1649,7 +1662,9 @@ def format_round_email(
             "Casos afetados:",
         ])
         for alert in group:
-            lines.append(f"- {alert['caso']} — {alert_position_label(alert)}")
+            position_label = alert_position_label(alert)
+            lines.append(f"- {alert['caso']} — {position_label}")
+            lines.append(f"  Próximo passo sugerido: {suggested_next_step(position_label)}")
         evidence = decision_evidence_by_case(group)
         if evidence:
             lines.append("Trecho(s) que comprova(m):")
@@ -1672,6 +1687,7 @@ def format_round_email(
                 "",
                 decision_metadata_text(review),
                 UNREADABLE_OPINION,
+                f"Próximo passo sugerido: {REVIEW_NEXT_STEP}",
                 f"{official_link_description(review['link_oficial']).capitalize()}: {review['link_oficial']}",
             ])
             continue
@@ -1683,9 +1699,12 @@ def format_round_email(
             lines.extend([
                 "",
                 item["titulo"],
+                f"Próximo passo sugerido: {REVIEW_NEXT_STEP}",
                 format_review_opinion("Parecer 1", item["parecer_1"], item["resultado_1"]),
                 format_review_opinion("Parecer 2", item["parecer_2"], item["resultado_2"]),
             ])
+        if not cases:
+            lines.append(f"Próximo passo sugerido: {REVIEW_NEXT_STEP}")
         lines.extend([review_disagreement_text(review, cases), f"{official_link_description(review['link_oficial']).capitalize()}: {review['link_oficial']}"])
     content = "\n".join(lines)
     verify_email_has_no_json_keys(content)
@@ -1856,6 +1875,9 @@ def render_round_email_html(
                 f'<span style="display:inline-block;padding:5px 9px;background-color:{badge_color};'
                 f'color:{badge_ink};border-radius:20px;font-family:Montserrat,Arial,Helvetica,sans-serif;'
                 f'font-size:10px;font-weight:bold;letter-spacing:.2px;white-space:nowrap;">{label}</span></td></tr>',
+                f'<tr><td colspan="2" style="padding:0 0 8px;font-family:Montserrat,Arial,Helvetica,sans-serif;'
+                f'font-size:11px;line-height:17px;color:{muted};"><strong>Próximo passo sugerido:</strong> '
+                f'{_email_escape(suggested_next_step(label))}</td></tr>',
             ])
         parts.append('</table></div>')
 
@@ -1912,6 +1934,9 @@ def render_round_email_html(
                 f'line-height:23px;color:{ink};">Decisão sob revisão</div>',
                 f'<div style="padding-top:8px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:13px;'
                 f'line-height:20px;color:{ink};">{_email_escape(UNREADABLE_OPINION)}</div>',
+                f'<div style="padding-top:8px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:11px;'
+                f'line-height:17px;color:{muted};"><strong>Próximo passo sugerido:</strong> '
+                f'{_email_escape(REVIEW_NEXT_STEP)}</div>',
                 '<div style="padding-top:16px;">',
                 _email_button(review.get("link_oficial", ""), official_email_button(review.get("link_oficial", ""))),
                 '</div></td></tr></table></td></tr>',
@@ -1946,7 +1971,16 @@ def render_round_email_html(
                 'border:1px solid #46455c;">',
                 render_review_opinion_html("Parecer 2", item["parecer_2"], item["resultado_2"]),
                 '</td></tr></table>',
+                f'<div style="padding-top:8px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:11px;'
+                f'line-height:17px;color:{muted};"><strong>Próximo passo sugerido:</strong> '
+                f'{_email_escape(REVIEW_NEXT_STEP)}</div>',
             ])
+        if not cases:
+            parts.append(
+                f'<div style="padding-top:8px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:11px;'
+                f'line-height:17px;color:{muted};"><strong>Próximo passo sugerido:</strong> '
+                f'{_email_escape(REVIEW_NEXT_STEP)}</div>'
+            )
         parts.append(
             f'<div style="margin-top:12px;padding:10px 11px;background-color:#33304a;'
             f'font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:12px;line-height:19px;color:{ink};">'

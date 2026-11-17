@@ -466,7 +466,10 @@ def result_for_page(result: dict) -> dict:
             "metadata": telos.decision_metadata_text(first),
             "casos": [
                 {"titulo": alert.get("caso", "Caso do escritório"),
-                 "favorabilidade": telos.alert_position_label(alert)}
+                 "favorabilidade": telos.alert_position_label(alert),
+                 "proximo_passo": telos.suggested_next_step(
+                     telos.alert_position_label(alert)
+                 )}
                 for alert in group
             ],
             "trechos": [
@@ -485,6 +488,7 @@ def result_for_page(result: dict) -> dict:
                 "casos": [],
                 "divergencia": telos.UNREADABLE_OPINION,
                 "link": review.get("link_oficial", ""),
+                "proximo_passo": telos.REVIEW_NEXT_STEP,
             })
             continue
         items = telos.review_cases(review)
@@ -493,6 +497,7 @@ def result_for_page(result: dict) -> dict:
             "casos": [
                 {
                     "titulo": item["titulo"],
+                    "proximo_passo": telos.REVIEW_NEXT_STEP,
                     "parecer_1": telos.format_review_opinion(
                         "Parecer 1", item["parecer_1"], item["resultado_1"]
                     ),
