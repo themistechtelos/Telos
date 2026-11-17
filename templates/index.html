@@ -27,17 +27,20 @@
     <section class="watch-layout" aria-labelledby="watch-title">
       <div class="panel watch-panel">
         <div class="panel-heading">
-          <div><p class="eyebrow">NOVA RODADA</p><h2 id="watch-title">O que vamos vigiar?</h2></div>
+          <div><p class="eyebrow">NOVA RODADA</p><h2 id="watch-title">O que vamos vigiar?</h2><p class="watch-subtitle">O Telos cruza as teses do STJ com os casos da sua carteira e só avisa quando há relação direta.</p></div>
           <img class="panel-mark" src="{{ url_for('static', filename='themis-symbol.svg') }}" alt="">
         </div>
         <form id="watch-form">
-          <label for="area">Área do Direito</label>
-          <select id="area" name="area">
-            <option value="imobiliario">Direito Imobiliário</option>
-            <option value="empresarial">Direito Empresarial</option>
-            <option value="bancario">Direito Bancário</option>
-            <option value="todas">Todas as áreas</option>
-          </select>
+          <div class="area-field">
+            <label>Área do Direito</label>
+            <input type="hidden" id="area" name="area" value="todas">
+            <div class="area-choices" role="group" aria-label="Escolha a área do Direito">
+              <button class="area-option" type="button" data-area="todas" aria-pressed="false">Todas as áreas</button>
+              <button class="area-option" type="button" data-area="bancario" aria-pressed="false">Bancário</button>
+              <button class="area-option" type="button" data-area="imobiliario" aria-pressed="false">Imobiliário</button>
+              <button class="area-option" type="button" data-area="empresarial" aria-pressed="false">Empresarial</button>
+            </div>
+          </div>
           <button class="button primary watch-button" type="submit" id="watch-button"><span>Vigiar agora</span><span aria-hidden="true">→</span></button>
           <p id="form-error" class="form-error" role="alert" hidden></p>
         </form>

@@ -219,7 +219,21 @@
 
   const initialState = window.TELOS_INITIAL_STATE || {};
   const areaSelect = document.getElementById('area');
+  const areaButtons = [...document.querySelectorAll('[data-area]')];
+  function syncAreaButtons() {
+    areaButtons.forEach(choice => {
+      const selected = choice.dataset.area === areaSelect?.value;
+      choice.classList.toggle('is-selected', selected);
+      choice.setAttribute('aria-pressed', String(selected));
+    });
+  }
+  areaButtons.forEach(choice => choice.addEventListener('click', () => {
+    if (!areaSelect) return;
+    areaSelect.value = choice.dataset.area;
+    syncAreaButtons();
+  }));
   if (areaSelect) areaSelect.value = initialState.demo_mode ? 'todas' : 'imobiliario';
+  syncAreaButtons();
 
   async function refreshState() {
     try {

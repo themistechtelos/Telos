@@ -30,3 +30,16 @@
 @media(max-width:900px){.wallet-card{grid-template-columns:minmax(160px,1.4fr) repeat(5,minmax(70px,1fr));column-gap:12px}}
 @media(max-width:900px){.watch-panel form{flex:0 0 auto;align-content:initial}}
 @media(max-width:640px){.watch-layout{margin-top:28px}.watch-panel,.how-panel{padding:21px}.wallet-card{grid-template-columns:minmax(0,1fr);row-gap:13px;padding:16px 14px}.wallet-card>.eyebrow{grid-column:1}.wallet-areas{display:grid;grid-column:1;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.wallet-areas .wallet-number{font-size:22px}.wallet-areas span{font-size:8px}.wallet-total .wallet-number{font-size:29px}.wallet-verification{align-items:flex-start;text-align:left}.wallet-verification strong{max-width:170px}}
+.panel-heading{align-items:flex-start}
+.watch-subtitle{max-width:465px;margin:7px 0 0;color:var(--muted);font-size:11px;line-height:1.5}
+.watch-panel form{flex:0 0 auto;display:flex;flex-direction:column;gap:8px}
+.area-field{display:grid;gap:8px}
+.watch-panel label{margin-top:0}
+.area-choices{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:-2px}
+.area-option{min-height:39px;padding:8px 7px;border:1px solid rgba(226,227,255,.22);border-radius:8px;background:rgba(255,255,255,.035);color:#e6e6f2;font:700 10px/1.3 Montserrat,system-ui,Arial,sans-serif;cursor:pointer;transition:background .16s ease,border-color .16s ease,color .16s ease,transform .16s ease}
+.area-option:hover{border-color:rgba(165,167,255,.7);transform:translateY(-1px)}
+.area-option.is-selected{background:var(--lav);border-color:var(--lav);color:#171827}
+.area-option:focus-visible{outline:2px solid var(--lav-light);outline-offset:2px}
+.watch-button{margin-top:11px}
+@media(min-width:901px){.how-panel{padding:18px 24px}.how-panel .steps{margin:4px 0 5px}.how-panel .steps li{padding:5px 0}.how-panel .privacy-note{padding:7px 12px}}
+@media(max-width:640px){.area-choices{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.area-option{font-size:10px}.watch-subtitle{font-size:10px}.panel-heading{margin-bottom:17px}}
