@@ -1758,16 +1758,21 @@ def render_round_email_html(
         'style="padding:24px 12px;">',
         '<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" '
         'bgcolor="#171827" style="width:100%;max-width:600px;border-collapse:collapse;background-color:#171827;color:#f4f4fb;">',
-        f'<tr><td bgcolor="{navy}" style="padding:28px 30px 26px;background-color:{navy};'
-        'border-radius:10px 10px 0 0;">',
+        f'<tr><td bgcolor="{navy}" style="padding:12px 20px 8px;background-color:{navy};">',
+        '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="1" '
+        'bordercolor="#3b3d57" bgcolor="#202238" style="width:100%;border-collapse:separate;'
+        'background-color:#202238;border:1px solid #3b3d57;border-radius:9px;">',
+        f'<tr><td width="4" bgcolor="{lavender}" style="width:4px;background-color:{lavender};'
+        'font-size:0;line-height:0;border-radius:9px 0 0 9px;">&nbsp;</td>',
+        '<td style="padding:12px 18px 13px;border-radius:0 9px 9px 0;">',
         f'<div style="font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:3px;'
         f'font-weight:bold;color:{lavender};">THEMIS TECH</div>',
-        '<div style="padding-top:8px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:30px;'
+        '<div style="padding-top:3px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:30px;'
         f'font-weight:bold;letter-spacing:5px;color:#ffffff;">TELOS</div>',
-        f'<div style="padding-top:14px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:18px;line-height:26px;'
+        f'<div style="padding-top:5px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:18px;line-height:26px;'
         f'font-style:italic;color:#ffffff;">A lei mudou. Seus casos já sabem.</div>',
-        '</td></tr>',
-        f'<tr><td bgcolor="{navy}" style="padding:24px 26px 8px;background-color:{navy};font-family:Montserrat,Arial,Helvetica,sans-serif;color:{ink};">',
+        '</td></tr></table></td></tr>',
+        f'<tr><td bgcolor="{navy}" style="padding:14px 26px 8px;background-color:{navy};font-family:Montserrat,Arial,Helvetica,sans-serif;color:{ink};">',
         '<div style="font-size:17px;font-weight:bold;line-height:24px;">Resumo da rodada</div>',
         f'<div style="padding-top:5px;font-size:13px;line-height:20px;color:{muted};">'
         f'{completed_count} de {selected_count} decisões analisadas com dois pareceres.</div>',
