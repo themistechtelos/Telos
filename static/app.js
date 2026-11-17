@@ -17,19 +17,18 @@
     bancario: document.getElementById('wallet-bancario'),
     imobiliario: document.getElementById('wallet-imobiliario'),
     empresarial: document.getElementById('wallet-empresarial'),
-    topics: document.getElementById('wallet-topics'),
     lastCheck: document.getElementById('wallet-last-check'),
-    note: document.getElementById('wallet-control-note'),
   };
   let lastRenderKey = '';
   let roundAwaitingEmail = false;
   let automaticEmailStarted = false;
   let walletRoundKey = '';
+  let wasRoundRunning = false;
 
   function displayCheckDate(value) {
     if (!value) return 'Ainda não verificada';
     const parsed = new Date(value);
-    return Number.isNaN(parsed.getTime()) ? 'Ainda não verificada' : parsed.toLocaleDateString('pt-BR', {dateStyle:'medium'});
+    return Number.isNaN(parsed.getTime()) ? 'Ainda não verificada' : parsed.toLocaleString('pt-BR', {dateStyle:'medium', timeStyle:'short'});
   }
 
   async function loadWallet() {
@@ -42,12 +41,7 @@
       walletFields.bancario.textContent = wallet.area_counts?.Bancário ?? 0;
       walletFields.imobiliario.textContent = wallet.area_counts?.Imobiliário ?? 0;
       walletFields.empresarial.textContent = wallet.area_counts?.Empresarial ?? 0;
-      walletFields.topics.textContent = wallet.topics_count ?? '—';
       walletFields.lastCheck.textContent = displayCheckDate(wallet.last_verification);
-      if (walletFields.note) {
-        walletFields.note.hidden = !wallet.control_cases;
-        walletFields.note.textContent = wallet.control_cases ? `Inclui ${wallet.control_cases} caso${wallet.control_cases === 1 ? '' : 's'} de controle.` : '';
-      }
     } catch (_) { /* A carteira continua disponível quando a conexão voltar. */ }
   }
 
@@ -171,6 +165,7 @@
 
   function applyState(state) {
     const running = Boolean(state.running);
+    if (running) wasRoundRunning = true;
     button.disabled = running;
     button.querySelector('span:first-child').textContent = running ? 'Rodada em andamento' : 'Vigiar agora';
     if (running || state.phase === 'error') {
@@ -196,8 +191,9 @@
     }
     renderRound(state.last_round || null);
     const completedRoundKey = state.last_round?.data_rodada || '';
-    if (state.phase === 'complete' && completedRoundKey && completedRoundKey !== walletRoundKey) {
+    if (state.phase === 'complete' && completedRoundKey && (completedRoundKey !== walletRoundKey || wasRoundRunning)) {
       walletRoundKey = completedRoundKey;
+      wasRoundRunning = false;
       loadWallet();
     }
     if (state.email_status === 'sent') window.TelosProfile?.markEmailSent();
