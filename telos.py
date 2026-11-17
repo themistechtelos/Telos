@@ -1770,7 +1770,7 @@ def render_round_email_html(
         '<div style="padding-top:3px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:30px;'
         f'font-weight:bold;letter-spacing:5px;color:#ffffff;">TELOS</div>',
         f'<div style="padding-top:5px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:18px;line-height:26px;'
-        f'font-style:italic;color:#ffffff;">A lei mudou. Seus casos já sabem.</div>',
+        f'font-style:italic;color:#ffffff;">A lei mudou. Você é o primeiro a saber.</div>',
         '</td></tr></table></td></tr>',
         f'<tr><td bgcolor="{navy}" style="padding:14px 26px 8px;background-color:{navy};font-family:Montserrat,Arial,Helvetica,sans-serif;color:{ink};">',
         '<div style="font-size:17px;font-weight:bold;line-height:24px;">Resumo da rodada</div>',

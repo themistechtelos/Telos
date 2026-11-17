@@ -1,5 +1,7 @@
 # Telos — Themis Tech
 
+A lei mudou. Você é o primeiro a saber.
+
 ## 1. O que é o Telos
 
 O Telos é um vigia de jurisprudência para escritórios de advocacia, criado pela Themis Tech: busca decisões e temas repetitivos do Superior Tribunal de Justiça (STJ), compara o material com os casos do escritório e mostra quais casos podem ter sido afetados, o resultado e se ele favorece ou desfavorece a posição do cliente. Acesse o [site de apresentação](https://themistech.netlify.app), experimente o [Telos no ar](https://telos-zoor.onrender.com) ou consulte [este repositório no GitHub](https://github.com/themistechtelos/Telos).
