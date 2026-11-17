@@ -219,12 +219,24 @@ EMAIL_CASE_TITLES = {
 }
 CASE_DISPLAY_NAMES: dict[str, str] = {}
 
+EMAIL_ADDRESS_PATTERN = re.compile(r"\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b", re.I)
+CNPJ_PATTERN = re.compile(r"(?<!\d)\d{2}\.?\d{3}\.?\d{3}/?\d{4}-?\d{2}(?!\d)")
+CPF_PATTERN = re.compile(r"(?<!\d)\d{3}\.?\d{3}\.?\d{3}-?\d{2}(?!\d)")
+
+
+def sanitize_case_description(text: str) -> tuple[str, bool]:
+    """Replace common CPF, CNPJ and email formats before a case reaches analysis."""
+    sanitized = str(text)
+    for pattern in (EMAIL_ADDRESS_PATTERN, CNPJ_PATTERN, CPF_PATTERN):
+        sanitized = pattern.sub("[dado removido]", sanitized)
+    return sanitized, sanitized != str(text)
+
 
 def email_case_title(case_filename: str) -> str:
     """Return a human-readable case heading without exposing its filename."""
-    private_name = CASE_DISPLAY_NAMES.get(Path(case_filename).stem)
-    if private_name:
-        return f"Caso cadastrado — {private_name}"
+    display_title = CASE_DISPLAY_NAMES.get(Path(case_filename).stem)
+    if display_title:
+        return display_title
     known_title = EMAIL_CASE_TITLES.get(Path(case_filename).name)
     if known_title:
         return known_title
@@ -2093,6 +2105,7 @@ def analyze_decisions(
             print(f"Não consegui ler o caso {path.name}: {error}")
             continue
         if text:
+            text, _ = sanitize_case_description(text)
             cases.append({"arquivo": path.name, "texto": text})
     if not cases:
         print("Não encontrei descrições legíveis na pasta casos/.")

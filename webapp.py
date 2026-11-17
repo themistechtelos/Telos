@@ -25,7 +25,6 @@ EMAIL_RATE_FILE = DATA_DIR / "limite_envios_email.json"
 DEMO_ROUND_FILE = ROOT / "demo_round.json"
 TELOS_HOSPEDADO = os.environ.get("TELOS_HOSPEDADO", "false").strip().lower() in {"1", "true", "yes", "on"}
 DEMO_MODE = TELOS_HOSPEDADO or os.environ.get("TELOS_DEMO_MODE", "true").strip().lower() in {"1", "true", "yes", "on"}
-CLIENT_MAP_FILE = Path(os.environ.get("TELOS_CLIENT_MAP_FILE", ROOT / ".telos_clientes.json"))
 CASE_AREAS = {
     "imobiliario": range(1, 8),
     "empresarial": range(8, 13),
@@ -184,7 +183,156 @@ def configured_stj_terms(area: str) -> dict[str, list[str]]:
 
 def case_number(path: Path) -> int | None:
     match = re.fullmatch(r"caso[_-](\d+)", path.stem, re.I)
+    if match:
+        return int(match.group(1))
+    try:
+        contents = telos.read_document(path)
+    except Exception:
+        return None
+    match = re.search(r"(?mi)^Número do caso:\s*(\d+)\s*$", contents)
     return int(match.group(1)) if match else None
+
+
+def sanitize_description(description: str) -> tuple[str, bool]:
+    return telos.sanitize_case_description(description)
+
+
+def extract_case_description(contents: str) -> str:
+    match = re.search(r"(?ms)^Descrição:\s*\n?(.*)$", contents)
+    if match:
+        return match.group(1).strip()
+    lines = [line.strip() for line in contents.splitlines() if line.strip()]
+    lines = [line for line in lines if not line.startswith(
+        ("Área:", "Tipo:", "Código:", "Número do caso:", "Nome curto:")
+    )]
+    return " ".join(lines[1:]) if len(lines) > 1 else "Descrição não informada."
+
+
+def short_case_name(description: str, area: str = "") -> str:
+    clean, _ = sanitize_description(description)
+    folded = unicodedata.normalize("NFKD", clean.casefold())
+    plain = "".join(char for char in folded if not unicodedata.combining(char))
+    rules = (
+        (("atraso", "imovel"), "Atraso na entrega do imóvel"),
+        (("entrega", "apartamento"), "Atraso na entrega do imóvel"),
+        (("juros",), "Revisão de juros"),
+        (("consignado",), "Empréstimo consignado"),
+        (("pix",), "Golpe do Pix"),
+        (("cartao",), "Cobrança de cartão"),
+        (("negativ",), "Negativação indevida"),
+        (("duplicata",), "Duplicata protestada"),
+        (("condominio",), "Cobrança de taxas condominiais"),
+        (("despejo",), "Despejo por falta de pagamento"),
+        (("locacao", "comercial"), "Renovação de locação comercial"),
+        (("franquia",), "Rescisão de franquia"),
+        (("socio",), "Apuração de haveres"),
+        (("recuperacao judicial",), "Crédito na recuperação judicial"),
+        (("infiltracao",), "Defeitos no imóvel"),
+        (("bagagem",), "Extravio de bagagem"),
+        (("conexao",), "Atraso e perda de conexão"),
+        (("cirurgia", "plano"), "Cobertura de cirurgia pelo plano"),
+        (("home care",), "Negativa de home care"),
+    )
+    for words, title in rules:
+        if all(word in plain for word in words):
+            return title
+    stopwords = {
+        "a", "ao", "aos", "as", "com", "da", "das", "de", "do", "dos", "e",
+        "em", "na", "nas", "no", "nos", "o", "os", "ou", "para", "pela",
+        "pelo", "por", "que", "se", "sem", "um", "uma", "cliente", "empresa",
+        "caso", "quer", "teve", "tem", "diz", "cpf", "cnpj", "email", "contato",
+        "dado", "dados", "removido", "removida", "pessoais",
+    }
+    words = re.findall(r"[A-Za-zÀ-ÖØ-öø-ÿ0-9]+", clean)
+    selected = [word for word in words if word.casefold() not in stopwords][:5]
+    if not selected:
+        return f"Assunto {area or 'jurídico'}"
+    return " ".join(selected).capitalize()[:56]
+
+
+def case_title(path: Path, number: int, contents: str | None = None) -> str:
+    if contents is None:
+        try:
+            contents = telos.read_document(path)
+        except Exception:
+            contents = ""
+    short = re.search(r"(?mi)^Nome curto:\s*(.+?)\s*$", contents)
+    if short:
+        subject = short.group(1).strip()
+    else:
+        known = telos.EMAIL_CASE_TITLES.get(path.name, "")
+        known_match = re.match(r"(?i)^Caso\s+\d+\s*[—-]\s*(.+)$", known)
+        subject = known_match.group(1).strip() if known_match else short_case_name(extract_case_description(contents))
+    return f"Caso {number} — {subject}"
+
+
+def case_records() -> list[dict]:
+    paths = sorted(
+        (path for path in telos.CASES_DIR.rglob("*.txt") if path.is_file()),
+        key=lambda path: (case_number(path) is None, case_number(path) or 0, path.as_posix()),
+    )
+    loaded = []
+    used_numbers = []
+    for path in paths:
+        try:
+            contents = telos.read_document(path)
+        except (OSError, RuntimeError):
+            continue
+        number = case_number(path)
+        if number is not None:
+            used_numbers.append(number)
+        has_saved_number = bool(
+            re.fullmatch(r"caso[_-]\d+", path.stem, re.I)
+            or re.search(r"(?mi)^Número do caso:\s*\d+\s*$", contents)
+        )
+        loaded.append((path, contents, number, has_saved_number))
+    next_number = max(used_numbers, default=0) + 1
+    records = []
+    for path, contents, number, has_saved_number in loaded:
+        if number is None:
+            number = next_number
+            next_number += 1
+        area_match = re.search(r"(?mi)^Área:\s*(imobiliario|empresarial|bancario)\s*$", contents)
+        if number in CASE_AREAS["imobiliario"]:
+            area = "Imobiliário"
+        elif number in CASE_AREAS["empresarial"]:
+            area = "Empresarial"
+        elif number in CASE_AREAS["bancario"]:
+            area = "Bancário"
+        elif number == 13:
+            area = "Caso de controle"
+        elif area_match:
+            area = {"imobiliario": "Imobiliário", "empresarial": "Empresarial", "bancario": "Bancário"}[area_match.group(1).lower()]
+        else:
+            area = "Caso de demonstração"
+        records.append({
+            "path": path,
+            "numero": number,
+            "titulo": case_title(path, number, contents),
+            "descricao": extract_case_description(contents),
+            "area": area,
+            "numero_salvo": has_saved_number,
+        })
+    return records
+
+
+def next_case_number() -> int:
+    records = case_records()
+    for item in records:
+        if item["numero_salvo"]:
+            continue
+        contents = telos.read_document(item["path"])
+        sanitized, _ = sanitize_description(extract_case_description(contents))
+        lines = contents.splitlines()
+        insertion = 1 if lines and lines[0].startswith("Código:") else 0
+        lines[insertion:insertion] = [
+            f"Número do caso: {item['numero']}",
+            f"Nome curto: {short_case_name(sanitized, item['area'].lower())}",
+        ]
+        saved_text = "\n".join(lines).strip()
+        saved_text, _ = sanitize_description(saved_text)
+        item["path"].write_text(saved_text + "\n", encoding="utf-8")
+    return max((item["numero"] for item in records), default=0) + 1
 
 
 def cases_for_area(area: str) -> list[Path]:
@@ -208,48 +356,10 @@ def cases_for_area(area: str) -> list[Path]:
 
 
 def case_list() -> list[dict]:
-    items = []
-    client_map = load_client_map()
-    for path in sorted(telos.CASES_DIR.rglob("*.txt"), key=lambda item: (case_number(item) is None, case_number(item) or 0, item.as_posix())):
-        try:
-            content = telos.read_document(path)
-        except (OSError, RuntimeError):
-            continue
-        lines = [line.strip() for line in content.splitlines() if line.strip()]
-        number = case_number(path)
-        if number in CASE_AREAS["imobiliario"]:
-            area = "Imobiliário"
-        elif number in CASE_AREAS["empresarial"]:
-            area = "Empresarial"
-        elif number in CASE_AREAS["bancario"]:
-            area = "Bancário"
-        elif number == 13:
-            area = "Caso de controle"
-        else:
-            area = "Caso de demonstração"
-        record = client_map.get(path.stem, {})
-        lines = [line for line in lines if not line.startswith(("Área:", "Tipo:", "Código:"))]
-        title = telos.email_case_title(path.name)
-        if record:
-            title = f"{record.get('tipo', 'Caso')} — {record.get('nome_cliente', 'Cliente')}"
-        if number not in (
-            set(CASE_AREAS["imobiliario"])
-            | set(CASE_AREAS["empresarial"])
-            | set(CASE_AREAS["bancario"])
-            | {13}
-        ):
-            area_match = re.search(r"(?m)^Área:\s*(imobiliario|empresarial|bancario)\s*$", content, re.I)
-            area = "Imobiliário" if area_match and area_match.group(1).lower() == "imobiliario" else (
-                "Empresarial" if area_match and area_match.group(1).lower() == "empresarial" else (
-                    "Bancário" if area_match and area_match.group(1).lower() == "bancario" else "Caso de demonstração"
-                )
-            )
-        items.append({
-            "titulo": title,
-            "descricao": " ".join(lines[1:]) if len(lines) > 1 else "Descrição não informada.",
-            "area": area,
-        })
-    return items
+    return [
+        {"titulo": item["titulo"], "descricao": item["descricao"], "area": item["area"]}
+        for item in case_records()
+    ]
 
 
 CASE_MATCH_STOPWORDS = {
@@ -266,7 +376,7 @@ def case_match_tokens(text: str) -> set[str]:
     return {word for word in re.findall(r"[a-z0-9]{3,}", plain) if word not in CASE_MATCH_STOPWORDS}
 
 
-def demo_case_example(description: str, client_name: str, area: str) -> tuple[dict, dict] | None:
+def demo_case_example(description: str, area: str) -> tuple[dict, dict] | None:
     """Choose an existing demo notice by transparent local word similarity."""
     try:
         fixture = json.loads(DEMO_ROUND_FILE.read_text(encoding="utf-8"))
@@ -317,7 +427,7 @@ def demo_case_example(description: str, client_name: str, area: str) -> tuple[di
         ranked.append((overlap, -index, decision, chosen))
     _, _, decision, source_alert = max(ranked, key=lambda item: (item[0], item[1]))
     simulated_alert = dict(source_alert)
-    simulated_alert["caso"] = f"Simulação — {client_name}"
+    simulated_alert["caso"] = f"Caso demonstrativo — {short_case_name(description, area)}"
     simulated_alert["resumo"] = f"Exemplo demonstrativo: {source_alert.get('resumo', '')}"
     simulated_alert["motivo_relacao"] = "A decisão foi escolhida por semelhança com a descrição; isso não confirma relação jurídica direta com o caso."
     simulated_alert["posicao_cliente"] = "Favorabilidade a confirmar: este exemplo não avalia a posição do novo caso."
@@ -333,25 +443,6 @@ def case_match_tokens_ordered(text: str) -> list[str]:
     folded = unicodedata.normalize("NFKD", text.casefold())
     plain = "".join(char for char in folded if not unicodedata.combining(char))
     return [word for word in re.findall(r"[a-z0-9]{3,}", plain) if word not in CASE_MATCH_STOPWORDS]
-
-
-def load_client_map() -> dict:
-    try:
-        data = json.loads(CLIENT_MAP_FILE.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        return {}
-    return data if isinstance(data, dict) else {}
-
-
-def map_private_case_names(alerts: list[dict]) -> list[dict]:
-    # Names are reattached locally, after the IA has returned its code-based analysis.
-    mapping = load_client_map()
-    display_names = {code: str(record.get("nome_cliente", "Cliente")) for code, record in mapping.items()}
-    for alert in alerts:
-        code = Path(str(alert.get("arquivo_caso", ""))).stem
-        if code in display_names:
-            alert["caso"] = f"Caso cadastrado — {display_names[code]}"
-    return alerts
 
 
 def result_for_page(result: dict) -> dict:
@@ -656,8 +747,9 @@ def run_round(area: str, demo: bool = False) -> None:
             telos.DECISIONS_DIR = decisions_dir
             telos.CASES_DIR = cases_dir
             telos.CASE_DISPLAY_NAMES = {
-                code: str(record.get("nome_cliente", "Cliente"))
-                for code, record in load_client_map().items()
+                item["path"].stem: item["titulo"]
+                for item in case_records()
+                if item["path"] in current_cases
             }
             result_holder: dict = {}
             def collect_result(result: dict) -> None:
@@ -670,7 +762,6 @@ def run_round(area: str, demo: bool = False) -> None:
                 max_decisions=len(candidates),
                 progress_callback=progress_callback,
                 result_callback=collect_result,
-                alert_transform=map_private_case_names,
                 send_email_after=False,
             )
 
@@ -957,20 +1048,20 @@ def api_create_case():
         return jsonify({"error": "Não foi possível cadastrar este caso."}), 403
     body = request.get_json(silent=True) or {}
     kind = str(body.get("kind", "")).strip().lower()
-    name = str(body.get("client_name", "")).strip()
-    description = str(body.get("description", "")).strip()
+    description, personal_data_removed = sanitize_description(str(body.get("description", "")).strip())
     area = str(body.get("area", "")).strip().lower()
     if kind not in {"contrato", "processo"}:
         return jsonify({"error": "Escolha contrato ou processo."}), 400
-    if not name or len(name) > 160 or not description or len(description) > 4000:
-        return jsonify({"error": "Preencha o nome do cliente e uma descrição com até 4.000 caracteres."}), 400
+    if not description or len(description) > 4000:
+        return jsonify({"error": "Preencha uma descrição com até 4.000 caracteres."}), 400
     if area not in {"imobiliario", "empresarial", "bancario"}:
         return jsonify({"error": "Escolha uma área do Direito."}), 400
+    short_name = short_case_name(description, area)
     email = str(body.get("email", "")).strip()
     if TELOS_HOSPEDADO:
         if email and not re.fullmatch(r"[^@\s,]+@[^@\s,]+\.[^@\s,]+", email):
             return jsonify({"error": "Digite um e-mail válido ou deixe o campo vazio."}), 400
-        example = demo_case_example(description, name, area)
+        example = demo_case_example(description, area)
         if example is None:
             return jsonify({"error": "Não encontramos uma decisão de demonstração adequada para essa área."}), 404
         notice, email_alert = example
@@ -994,22 +1085,28 @@ def api_create_case():
             "notice": notice,
             "email_sent": email_sent,
             "email_message": email_message,
+            "dados_pessoais_removidos": personal_data_removed,
+            "nome_curto": short_name,
         }), 200
 
     import secrets
     code = "caso-" + secrets.token_hex(5)
+    number = next_case_number()
     case_folder = telos.CASES_DIR / "cadastrados"
     case_folder.mkdir(parents=True, exist_ok=True)
     case_path = case_folder / f"{code}.txt"
     case_path.write_text(
-        f"Código: {code}\nTipo: {kind}\nÁrea: {area}\nDescrição:\n{description}\n",
+        f"Código: {code}\nNúmero do caso: {number}\nNome curto: {short_name}\n"
+        f"Tipo: {kind}\nÁrea: {area}\nDescrição:\n{description}\n",
         encoding="utf-8",
     )
-    mapping = load_client_map()
-    mapping[code] = {"nome_cliente": name, "tipo": kind, "area": area}
-    CLIENT_MAP_FILE.parent.mkdir(parents=True, exist_ok=True)
-    CLIENT_MAP_FILE.write_text(json.dumps(mapping, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    return jsonify({"created": True, "message": "Caso cadastrado. Ele entra na próxima rodada."}), 201
+    return jsonify({
+        "created": True,
+        "message": f"Caso {number} — {short_name} cadastrado. Ele entra na próxima rodada.",
+        "dados_pessoais_removidos": personal_data_removed,
+        "numero_caso": number,
+        "nome_curto": short_name,
+    }), 201
 
 
 if __name__ == "__main__":

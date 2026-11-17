@@ -43,11 +43,11 @@ Uma [prévia do e-mail](email_exemplo.html) mostra a apresentação visual dos a
 
 ## 6. Sigilo no cadastro de casos
 
-No uso local, o nome do cliente fica no arquivo `.telos_clientes.json`, no computador do escritório; esse arquivo é ignorado pelo Git. A descrição é gravada junto a um código do caso. Para a análise ao vivo, o provedor de IA recebe o código e a descrição, não o nome. Depois da resposta, o programa associa o código ao nome no próprio computador para exibir avisos e preparar e-mails. A descrição do caso e o texto da decisão são enviados ao provedor de IA escolhido; não inclua nesses textos dados que não queira compartilhar com esse serviço.
+O cadastro não pede o nome do cliente. O caso fica identificado por um número e por um nome curto do assunto, gerado a partir da descrição. Na análise ao vivo, o provedor de IA recebe apenas um código e a descrição jurídica. Antes de salvar ou enviar a descrição, o Telos substitui formatos reconhecidos de CPF, CNPJ e e-mail por `[dado removido]` e informa quando fez essa remoção. Essa verificação não reconhece todos os dados pessoais possíveis; não inclua nomes ou outras informações pessoais. O texto das decisões também é enviado ao provedor de IA escolhido.
 
 Na página, o nome e o e-mail usados para entrar na demonstração ficam no armazenamento local do navegador; o nome nunca é enviado ao servidor. O e-mail só é enviado ao servidor no momento do envio da mensagem e não é gravado pela aplicação. O serviço de e-mail recebe o endereço para fazer a entrega.
 
-No cadastro demonstrativo hospedado, o nome e a descrição digitados são enviados ao site hospedado para selecionar uma decisão parecida. O exemplo é calculado sem IA, os dados não são gravados e essa simulação não cria um caso para rodadas futuras. No cadastro local ativo, o nome do cliente fica no arquivo `.telos_clientes.json`, ignorado pelo Git, e a descrição fica associada a um código. Na próxima rodada ao vivo, o Telos confere o caso com os temas já disponíveis para a área e acompanha novas decisões.
+No cadastro demonstrativo hospedado, a descrição já filtrada é enviada ao site apenas para selecionar uma decisão parecida. O exemplo é calculado sem IA, os dados não são gravados e essa simulação não cria um caso para rodadas futuras. No computador do escritório, o caso é salvo com seu número, nome curto, código, tipo, área e descrição filtrada; ele entra nas próximas rodadas.
 
 ## 7. Modo de demonstração
 

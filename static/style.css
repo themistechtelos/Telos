@@ -27,6 +27,7 @@
 .wallet-verification{display:flex;flex-direction:column;align-items:flex-end;text-align:right;gap:3px}
 .wallet-verification span{color:var(--muted);font-size:9px}
 .wallet-verification strong{color:#fff;font-size:10px;font-weight:600}
+.pii-notice{color:var(--lav-light);font-weight:750}
 @media(max-width:900px){.wallet-card{grid-template-columns:minmax(160px,1.4fr) repeat(5,minmax(70px,1fr));column-gap:12px}}
 @media(max-width:900px){.watch-panel form{flex:0 0 auto;align-content:initial}}
 @media(max-width:640px){.watch-layout{margin-top:28px}.watch-panel,.how-panel{padding:21px}.wallet-card{grid-template-columns:minmax(0,1fr);row-gap:13px;padding:16px 14px}.wallet-card>.eyebrow{grid-column:1}.wallet-areas{display:grid;grid-column:1;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.wallet-areas .wallet-number{font-size:22px}.wallet-areas span{font-size:8px}.wallet-total .wallet-number{font-size:29px}.wallet-verification{align-items:flex-start;text-align:left}.wallet-verification strong{max-width:170px}}
